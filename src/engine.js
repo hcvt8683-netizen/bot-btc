@@ -4,6 +4,7 @@ const BOT = (() => {
   const iso = (t) => new Date(t).toISOString().slice(0, 10);
   const num = (x) => { const v = Number(x); return x == null || x === '' || !isFinite(v) ? null : v; };
   const WIN = 1461;
+  const MAX_UOC = 3; // số ngày cuối tối đa được ước tính vốn hóa và MVRV khi Coin Metrics chưa công bố
 
   const FAMILIES = { tamly: 'Tâm lý', onchain: 'Định giá on-chain', xuhuong: 'Xu hướng giá', thodao: 'Thợ đào', chuky: 'Chu kỳ', khoiluong: 'Khối lượng' };
   // dir -1: giá trị thấp là rẻ; +1: giá trị cao là rẻ. feat: 'pct' = vị trí trong 4 năm gần nhất, 'raw' = giá trị gốc × scale
@@ -50,6 +51,15 @@ const BOT = (() => {
     for (let t = Date.parse(keys[0] + 'T00:00:00Z'), e = Date.parse(keys[keys.length - 1] + 'T00:00:00Z'); t <= e; t += DAY) {
       const d = iso(t), r = rows.get(d); if (r) last = r; full.push([d, r || { ...last, iss: null }]);
     }
+    // Coin Metrics có thể công bố giá trước, vốn hóa và MVRV sau: các ngày cuối còn thiếu (tối đa MAX_UOC ngày)
+    // được ước tính từ ngày gần nhất có đủ số liệu, theo tỉ lệ giá. Chỉ dùng số liệu đến chính ngày đó.
+    let k0 = full.length - 1, uocTinh = null;
+    while (k0 >= 0 && (full[k0][1].mc == null || full[k0][1].mv == null)) k0--;
+    if (k0 >= 0 && k0 < full.length - 1 && full.length - 1 - k0 <= MAX_UOC) {
+      const b = full[k0][1];
+      for (let k = k0 + 1; k < full.length; k++) { const r = full[k][1], f = r.p / b.p; full[k] = [full[k][0], { ...r, mc: b.mc * f, mv: b.mv * f }]; }
+      uocTinh = { tu: full[k0][0], den: full[full.length - 1][0], ngay: full.length - 1 - k0 };
+    }
     const today = iso(Date.now());
     if (live && live.price > 0) {
       const lr = full[full.length - 1][1], k = live.price / lr.p;
@@ -64,6 +74,7 @@ const BOT = (() => {
     const S = { dates: full.map((x) => x[0]), price: new Float64Array(n), mc: [], mv: [], iss: [], fng: new Array(n).fill(null),
       has: { cm: !!(cm && cm.length) && full.some((x) => x[1].mv != null), iss: full.some((x) => x[1].iss != null), fng: !!(fng && fng.length), vol: qvMap.size > 400 } };
     full.forEach(([, r], i) => { S.price[i] = r.p; S.mc.push(r.mc); S.mv.push(r.mv); S.iss.push(r.iss); });
+    S.uocTinh = uocTinh;
     S.qv = S.dates.map((d) => qvMap.get(d) ?? null);
     if (S.qv[n - 1] != null) S.qv[n - 1] = null; // ngày hôm nay chưa đóng, khối lượng chưa đủ
     if (fng && fng.length) {

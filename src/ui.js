@@ -64,6 +64,7 @@
       else if (LOCAL) setStatus('cache', true, 'dữ liệu vừa tải đã được lưu vào thư mục du_lieu_tam để dùng khi mất mạng');
       if (!st.raw.cm && !st.raw.kl) throw new Error('Không tải được giá lịch sử.');
       st.S = BOT.buildSeries(st.raw);
+      if (st.S.uocTinh && st.status.cm) { const u = st.S.uocTinh; setStatus('cm', true, `${st.status.cm.msg}. Coin Metrics chưa công bố vốn hóa và MVRV của ${u.ngay} ngày cuối (đến ${fmtDate(u.den)}); bot ước tính từ ngày ${fmtDate(u.tu)} theo biến động giá, nên MVRV và MVRV Z-Score những ngày này là số gần đúng`); }
       st.vol = BOT.volumeStudy(st.S);
       await afterLoad();
     } catch (e) {
