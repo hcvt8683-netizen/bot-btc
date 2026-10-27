@@ -619,7 +619,7 @@ const BOT = (() => {
   }
 
   return { IND, FAMILIES, HOLD, FRAMES, LEVELS, ERAS, MULT, SELL, VCLS, buildSeries, analyze, levelOf, samples, wilson, volumeStudy, recommend, buildReport, exportJSON,
-    _: { featAt, fitLogit, predLogit, median, quant, episodes, auc } };
+    _: { featAt, fitLogit, predLogit, median, quant, episodes, auc, computeRaw } };
 })();
 // ===== CORE END =====
 if (typeof module !== 'undefined') module.exports = BOT;

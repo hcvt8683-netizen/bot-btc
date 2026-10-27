@@ -51,6 +51,7 @@ async def main():
             print(tag, 'ready', round((datetime.datetime.now() - t0).total_seconds(), 1), 's |', await pg.text_content('#progress'))
             print('  set buttons:', ' | '.join([t.strip() for t in await pg.locator('#sets button').all_text_contents()]))
             print('  options rows:', await pg.locator('#t-pa tbody tr').count(), '| ind charts:', await pg.locator('#ind-charts canvas').count())
+            print('  price levels rows:', await pg.locator('#t-lv tbody tr').count(), '| ladder rows:', await pg.locator('#t-lvl tbody tr').count(), '|', (await pg.text_content('#lv-sum'))[:200])
             await pg.screenshot(path=OUT + f'/o_{tag}.png', full_page=True)
             await pg.click('#mode-sell'); await pg.wait_for_timeout(600)
             print('  sell visible:', await pg.is_visible('#sell-view'), '| buy hidden:', not await pg.is_visible('#buy-view'))

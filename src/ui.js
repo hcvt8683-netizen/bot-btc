@@ -126,6 +126,7 @@
       const last = st.S.price.length - 1;
       if (refreshFull || !st.full || st.full.ids.join() !== ids.join()) st.full = cachedA(ids, last) || B3.analyze(st.S, last, ids);
       st.a = st.asOf === last ? st.full : cachedA(ids, st.asOf) || B3.analyze(st.S, st.asOf, ids);
+      st.lv = B3.priceLevels(st.S, st.asOf, st.a);
       st.sdFull = B3.sellSide(st.S, last, st.full);
       st.sd = st.asOf === last ? st.sdFull : B3.sellSide(st.S, st.asOf, st.a);
       $('loading').hidden = true; $('app').hidden = false;
@@ -180,7 +181,7 @@
     if (usesRec() && st.rec && st.rec.asOfDate > a.date) {
       w.hidden = false; w.textContent = `Lưu ý: bộ khuyến cáo được tìm bằng dữ liệu đến ${fmtDate(st.rec.asOfDate)}, sau ngày phân tích ${fmtDate(a.date)}. Kết quả quá khứ vì thế có thể đẹp hơn thực tế lúc đó. Bấm "Tìm lại bộ có tỷ lệ thắng cao nhất" để tìm chỉ bằng dữ liệu đến ngày phân tích.`;
     } else w.hidden = true;
-    renderGauges(); renderOptions(); renderTiles(past); renderCriteria(); renderRec(); drawChart(); renderFeat(); drawIndCharts(); renderSets(); renderSell(); applyMode();
+    renderGauges(); renderLevels(); renderOptions(); renderTiles(past); renderCriteria(); renderRec(); drawChart(); renderFeat(); drawIndCharts(); renderSets(); renderSell(); applyMode();
   }
 
   function zoneBar(Z, kind, score) {
@@ -204,6 +205,45 @@
     gs.append(el('p', null, `Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn ${nf(0).format(a.sell.score)}% số tuần trong lịch sử.`));
     const sz2 = a.sell.ev.zones.find((z) => z.id === sz.id), sbase = a.sell.ev.base;
     gs.append(el('p', 'muted', sz2.n ? `Lịch sử ở khung ${sz.ten.toLowerCase()}: giá thấp hơn sau 6 tháng ${pc(sz2.h[1].giam.win)}, giảm hơn 10% ${pc(sz2.h[1].giamManh.win)} (${sz2.n} tuần). Bất kỳ lúc nào: ${pc(sbase.h[1].giam.win)} và ${pc(sbase.h[1].giamManh.win)}.` : 'Chưa có tuần nào trong lịch sử thuộc khung này.'));
+  }
+
+  // ---------- giá đề xuất mua, bán ----------
+  function renderLevels() {
+    const lv = st.lv, a = st.a, find = (kind, id) => lv.levels.find((L) => L.kind === kind && L.id === id);
+    $('lv-lead').textContent = `Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày ${fmtDate(lv.date)}. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.`;
+    $('lv-sum').replaceChildren(el('b', null, 'Giá đề xuất mua: '), `Cân nhắc mua ${B3.levelText(lv, find('buy', 'cannhac'))}; Phải mua ${B3.levelText(lv, find('buy', 'phai'))}. `,
+      el('b', null, 'Giá đề xuất bán: '), `Cân nhắc bán ${B3.levelText(lv, find('sell', 'cannhac'))}; Nên bán ${B3.levelText(lv, find('sell', 'nen'))}.`);
+    // lịch sử của khung: tỷ lệ thực tế so với mốc mua, bán vào một tuần bất kỳ
+    const hist = (L) => {
+      const ev = a[L.kind].ev, z = ev.zones.find((x) => x.id === L.id), b = ev.base; if (!z.n) return ['Chưa có tuần nào ở khung này.', '', ''];
+      const yeu = z.eps < 3 ? ', ít đợt độc lập nên chưa đáng tin' : '';
+      if (L.kind === 'buy') { const kem = z.h[2].win != null && z.h[2].win < b.h[2].win;
+        return [`Thắng sau 6 tháng ${pc(z.h[2].win)}, sau 1 năm ${pc(z.h[3].win)} (mua bất kỳ lúc nào: ${pc(b.h[2].win)}, ${pc(b.h[3].win)})`, `${z.n} tuần, ${z.eps} đợt${yeu}${kem ? '; thấp hơn mốc' : ''}`, kem ? 'bad' : ''];
+      }
+      const kem = z.h[1].giam.win != null && z.h[1].giam.win <= b.h[1].giam.win;
+      return [`Giá thấp hơn sau 6 tháng ${pc(z.h[1].giam.win)}, giảm hơn 10%: ${pc(z.h[1].giamManh.win)} (bất kỳ lúc nào: ${pc(b.h[1].giam.win)}, ${pc(b.h[1].giamManh.win)})`, `${z.n} tuần, ${z.eps} đợt${yeu}${kem ? '; không hơn mốc' : ''}`, kem ? 'bad' : ''];
+    };
+    const h = el('tr'); ['Khuyến cáo', 'Giá BTC', 'Cách giá hiện tại', 'Hôm nay', 'Lịch sử ở khung này'].forEach((t, k) => h.append(el('th', k === 1 || k === 2 ? 'r' : '', t)));
+    const tb = el('tbody');
+    const row = (L) => {
+      const tr = el('tr'), zc = L.kind === 'buy' ? ZCOL.buy[L.id] : ZCOL.sell[L.id], n = el('td'), d = el('i', 'zdot'); d.style.background = `var(${zc})`; n.append(d, el('b', null, L.ten), el('span', 'sub', `tỷ lệ nên ${L.kind === 'buy' ? 'mua' : 'bán'} từ ${L.thr}%`));
+      const g = el('td', 'r num nowrap'); if (L.gia != null) g.append(el('b', null, `${L.kind === 'buy' ? '≤' : '≥'} ${usd(L.gia)}`)); else g.append(el('span', 'muted', B3.levelText(lv, L)));
+      const [t1, t2, tone] = hist(L), hc = el('td', tone); hc.append(t1); if (t2) hc.append(el('span', 'sub', t2));
+      tr.append(n, g, el('td', 'r num', L.gia != null ? spc(L.gia / lv.price - 1, 1) : '—'), el('td', null, L.dat ? 'đang đạt' : 'chưa đạt'), hc); return tr;
+    };
+    lv.levels.filter((L) => L.kind === 'sell').forEach((L) => tb.append(row(L)));
+    const cur = el('tr', 'here'); cur.append(el('td', null, 'Giá ngày phân tích'), el('td', 'r num nowrap', usd(lv.price)), el('td'), el('td', null, `nên mua ${nf(0).format(a.buy.score)}%, nên bán ${nf(0).format(a.sell.score)}%`), el('td')); tb.append(cur);
+    lv.levels.filter((L) => L.kind === 'buy').forEach((L) => tb.append(row(L)));
+    const th = el('thead'); th.append(h); $('t-lv').replaceChildren(th, tb);
+    $('lv-notes').replaceChildren(...B3.levelNotes(lv).map((s) => el('p', 'warn', s)));
+    // bảng "nếu giá là …"; một chữ số thập phân để 69,6% không hiện thành 70% mà vẫn chưa tới khung 70%
+    const h2 = el('tr'); ['Giá BTC', 'So với hiện tại', 'Tỷ lệ nên mua', 'Tỷ lệ nên bán'].forEach((t, k) => h2.append(el('th', k ? 'r' : '', t)));
+    const tb2 = el('tbody');
+    lv.ladder.forEach((r) => {
+      const tr = el('tr', r.f === 1 ? 'here' : ''), cell = (v, Z, kind) => { const c = el('td', 'r num'); if (v == null) { c.append('—'); return c; } const z = zoneOf(Z, v); c.append(el('b', z.id === 'khong' ? 'muted' : kind === 'buy' ? (z.id === 'phai' ? 'good' : 'mid') : (z.id === 'nen' ? 'bad' : 'mid'), nf(1).format(v) + '%'), el('span', 'sub', z.ten)); return c; };
+      tr.append(el('td', 'num nowrap', usd(r.gia)), el('td', 'r num', r.f === 1 ? 'hiện tại' : spc(r.f - 1)), cell(r.buy, BUY_Z, 'buy'), cell(r.sell, SELL_Z, 'sell')); tb2.append(tr);
+    });
+    const th2 = el('thead'); th2.append(h2); $('t-lvl').replaceChildren(th2, tb2);
   }
 
   function rangeBar(x, base, tone) {
@@ -418,7 +458,7 @@
 
   // ---------- xuất file và Claude ----------
   const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: 'giá trực tiếp Binance/CoinGecko', fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: 'Binance (giá, khối lượng ngày)', cache: 'bản lưu trên máy' }[k])).filter(Boolean).join(', ');
-  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd);
+  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv);
   function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
   $('dl-md').addEventListener('click', () => download(`bao-cao-bot-btc-${st.a.date}.md`, report(), 'text/markdown;charset=utf-8'));
   $('dl-csv').addEventListener('click', () => download(`du-lieu-tuan-bot-btc-${st.a.date}.csv`, B3.csvWeekly(st.S, st.a), 'text/csv;charset=utf-8'));

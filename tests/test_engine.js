@@ -30,6 +30,18 @@ const assert = (ok, msg) => { if (!ok) { console.error('SAI:', msg); process.exi
   assert(loi === null, 'thiếu MVRV ngày cuối, có giá trực tiếp: phương án Pi + MVRV vẫn phân tích được hôm nay' + (loi ? ' (' + loi + ')' : ''));
   const S6 = BOT.buildSeries({ cm: thieu(3), kl, fng, live: null }), S7 = BOT.buildSeries({ cm: thieu(4), kl, fng, live: null });
   assert(S6.uocTinh && S6.uocTinh.ngay === 3 && !S7.uocTinh && S7.v.mvrv[S7.dates.length - 1] == null, 'chỉ ước tính khi thiếu tối đa 3 ngày; thiếu 4 ngày thì không đoán');
+  // giá đề xuất mua, bán
+  const sNow = B3.scoreAtPrice(S, last, a, S.price[last]);
+  assert(Math.abs(sNow.buy - a.buy.score) < 1e-9 && Math.abs(sNow.sell - a.sell.score) < 1e-9, 'giá đề xuất: tại giá hiện tại, tỷ lệ tính lại đúng bằng tỷ lệ nên mua, nên bán');
+  const f1 = B3.findLevel(100, 'buy', (X) => X <= 87.3), f2 = B3.findLevel(100, 'sell', (X) => X >= 131.7), f3 = B3.findLevel(100, 'buy', (X) => X <= 140), f4 = B3.findLevel(100, 'buy', () => false);
+  assert(!f1.dat && Math.abs(f1.gia - 87.3) < 0.01 && !f2.dat && Math.abs(f2.gia - 131.7) < 0.01 && f3.dat && Math.abs(f3.gia - 140) < 0.01 && f4.gia == null,
+    'dò mốc giá tìm đúng ranh giới: mốc dưới giá, mốc trên giá, hôm nay đã đạt, không bao giờ đạt');
+  // dữ liệu giả lập có giá chạy theo đà nên mô hình thường ngược chiều và mốc có thể trống; mốc nào có thì phải đúng ranh giới
+  const lv = B3.priceLevels(S, last, a);
+  const bien = (L) => { const s1 = B3.scoreAtPrice(S, last, a, L.gia), s2 = B3.scoreAtPrice(S, last, a, L.gia * (L.kind === 'buy' ? 1.002 : 0.998)); return s1[L.kind] >= L.thr && s2[L.kind] < L.thr; };
+  assert(lv.levels.length === 4 && lv.ladder.length === 10 && lv.levels.every((L) => L.gia == null || bien(L)), 'giá đề xuất của bot nằm đúng ranh giới khung');
+  const g1 = B3.priceLevels(S, d, x1), g2 = B3.priceLevels(S2, S2.dates.indexOf('2022-06-19'), x2);
+  assert(g1.levels.every((L, k) => L.dat === g2.levels[k].dat && (L.gia == null ? g2.levels[k].gia == null : Math.abs(L.gia / g2.levels[k].gia - 1) < 1e-9)) && g1.ladder.every((r, k) => Math.abs(r.buy - g2.ladder[k].buy) < 1e-9 && Math.abs(r.sell - g2.ladder[k].sell) < 1e-9), 'giá đề xuất tại 19/06/2022 không phụ thuộc dữ liệu sau ngày đó');
   const sd = B3.sellSide(S, last, a);
   assert(['giu', 'chot', 'ban'].includes(sd.verdict.id), 'bên bán có kết luận hợp lệ');
   const rec = await B3.search(S, last, S.avail);
@@ -38,4 +50,5 @@ const assert = (ok, msg) => { if (!ok) { console.error('SAI:', msg); process.exi
   assert(cmp.list.length >= 5, 'so sánh các phương án chạy được');
   assert(B3.csvWeekly(S, a).startsWith('\ufeffngay,'), 'xuất CSV từng tuần đúng định dạng');
   assert(B3.report(S, a, rec, null, 'thử', true, cmp, sd).includes('## Bên bán'), 'báo cáo có phần bên bán');
+  assert(B3.report(S, a, rec, null, 'thử', true, cmp, sd, lv).includes('## Giá đề xuất mua và bán'), 'báo cáo có phần giá đề xuất');
 })();

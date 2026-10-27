@@ -1,7 +1,7 @@
 // ===== B3 START =====
 const B3 = (() => {
   const { IND, FAMILIES } = BOT;
-  const { featAt, fitLogit, predLogit, median, quant } = BOT._;
+  const { featAt, fitLogit, predLogit, median, quant, computeRaw } = BOT._;
   const wilson = BOT.wilson;
   const DAY = 86400000;
 
@@ -40,11 +40,12 @@ const B3 = (() => {
   }
   const featRows = (S, smp, ids) => smp.map((i, j) => { const f = ids.map((id) => featAt(S, id, i)); return { j, i, date: S.dates[i], f, ok: f.every((x) => x != null) }; });
 
+  // vị trí 0–100 của mức chênh e trong thang so sánh đã sắp xếp
+  const rankIn = (arr, e) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < e) lo = m + 1; else hi = m; } let eq = lo; while (eq < arr.length && arr[eq] === e) eq++; return ((lo + 0.5 * (eq - lo)) / arr.length) * 100; };
   // dự báo đi tới: tại mỗi lần, chỉ học từ những lần đã biết kết quả trước đó
   function walk(S, smp, R, H, target, refit) {
     const preds = [], X = [], Y = [];
     let model = null, lastFit = -1e9, k = 0, sumY = 0, ref = null;
-    const rankIn = (arr, e) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < e) lo = m + 1; else hi = m; } let eq = lo; while (eq < arr.length && arr[eq] === e) eq++; return ((lo + 0.5 * (eq - lo)) / arr.length) * 100; };
     for (const r of R) {
       while (k + H <= r.j) { const q = R[k]; if (q.ok) { const ret = S.price[smp[k + H]] / S.price[q.i] - 1; X.push(q.f); Y.push(target(ret)); sumY += Y[Y.length - 1]; } k++; }
       if (!r.ok || X.length < MIN_TRAIN) continue;
@@ -58,8 +59,10 @@ const B3 = (() => {
       const ret = r.j + H < smp.length ? S.price[smp[r.j + H]] / S.price[r.i] - 1 : null;
       preds.push({ j: r.j, i: r.i, date: r.date, p, p0, e, r: ret, rank: rankIn(ref, e) });
     }
-    return { preds, model };
+    return { preds, model, ref };
   }
+  // mô hình cuối cùng của từng kỳ giữ, để tính lại tỷ lệ tại ngày phân tích với giá giả định
+  const fitOf = (ws) => ws.map((w) => ({ model: w.model, ref: w.ref, p0: w.preds[w.preds.length - 1].p0 }));
 
   // điểm tổng = trung bình vị trí của các kỳ giữ
   function combine(list) {
@@ -159,17 +162,72 @@ const B3 = (() => {
     const feats = ids.map((id) => ({ id, v: S.v[id][smp[nowJ]] }));
     return {
       date: S.dates[asOf], asOf, price: S.price[asOf], ids, from,
-      buy: { score: bNow.score, zone: zoneOf(BUY_Z, bNow.score), ev: buyEvidence(buyS, from), series: buyS },
-      sell: { score: sNow.score, zone: zoneOf(SELL_Z, sNow.score), ev: sellEvidence(sellS, from), series: sellS },
+      buy: { score: bNow.score, zone: zoneOf(BUY_Z, bNow.score), ev: buyEvidence(buyS, from), series: buyS, fit: fitOf(buyW) },
+      sell: { score: sNow.score, zone: zoneOf(SELL_Z, sNow.score), ev: sellEvidence(sellS, from), series: sellS, fit: fitOf(sellW) },
       hold, weights, feats,
     };
+  }
+
+  // ---- giá đề xuất mua, bán: giá BTC tại ngày phân tích để bot chuyển khung
+  // tỷ lệ nên mua, nên bán nếu giá ngày phân tích là X: tính lại chỉ số trên chuỗi cắt tại ngày đó (không thấy dữ liệu sau),
+  // giữ nguyên mô hình đã học và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng); vốn hóa, MVRV, Puell đổi theo giá
+  function scoreAtPrice(S, asOf, a, X) {
+    const n = asOf + 1, k = X / S.price[asOf], cut = (arr) => arr.slice(0, n);
+    const T = { dates: cut(S.dates), price: cut(S.price), mc: cut(S.mc), mv: cut(S.mv), iss: cut(S.iss), fng: cut(S.fng), qv: cut(S.qv), has: S.has };
+    T.price[asOf] = X;
+    for (const key of ['mc', 'mv', 'iss']) if (T[key][asOf] != null) T[key][asOf] *= k;
+    computeRaw(T);
+    if (S.iss[asOf] == null && T.v.puell[asOf] != null) T.v.puell[asOf] *= k; // Puell hôm nay mượn từ hôm trước: cho đổi theo giá
+    const f = a.ids.map((id) => featAt(T, id, asOf));
+    if (f.some((x) => x == null)) return null;
+    const sc = (fits) => fits.reduce((s, m) => s + rankIn(m.ref, predLogit(m.model, f) - m.p0), 0) / fits.length;
+    return { buy: sc(a.buy.fit), sell: sc(a.sell.fit) };
+  }
+  // các ngưỡng khung xếp theo giá từ cao xuống thấp: Nên bán, Cân nhắc bán, Cân nhắc mua, Phải mua
+  const LV = [...SELL_Z.filter((z) => z.min > 0).map((z) => ({ id: z.id, ten: z.ten, kind: 'sell', thr: z.min })),
+    ...BUY_Z.filter((z) => z.min > 0).reverse().map((z) => ({ id: z.id, ten: z.ten, kind: 'buy', thr: z.min }))];
+  const LV_STEP = 1.01, LV_LO = 0.25, LV_HI = 4, LV_LADDER = [0.7, 0.8, 0.9, 0.95, 1, 1.05, 1.1, 1.2, 1.3, 1.5];
+  // lời giải thích khi mốc giá ít ý nghĩa
+  function levelNotes(lv) {
+    const out = [];
+    if (lv.phang) out.push('Với bộ chỉ số này, tỷ lệ nên mua và nên bán gần như không đổi khi giá trong ngày thay đổi, vì các chỉ số là trung bình dài hạn (ví dụ Pi Cycle dùng trung bình 111 và 350 ngày). Khuyến cáo đổi chủ yếu theo thời gian, không theo một mức giá cụ thể.');
+    if (lv.nguocMua) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.');
+    if (lv.nguocBan) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.');
+    return out;
+  }
+  // dò từ giá p mỗi bước 1% rồi chia đôi, tìm mốc mà tại đó điều kiện ok(X) đổi so với hôm nay;
+  // giá giảm làm tỷ lệ nên mua tăng, giá tăng làm tỷ lệ nên bán tăng; đang đạt thì dò ngược lại để tìm chỗ hết đạt
+  function findLevel(p, kind, ok) {
+    const dat = ok(p), go = (kind === 'buy' ? -1 : 1) * (dat ? -1 : 1);
+    let a0 = p, b0 = null;
+    for (let s = 1; ; s++) { const X = p * LV_STEP ** (go * s); if (X < p * LV_LO || X > p * LV_HI) break; if (ok(X) !== dat) { b0 = X; break; } a0 = X; }
+    if (b0 == null) return { dat, gia: null };
+    for (let it = 0; it < 12; it++) { const m = Math.sqrt(a0 * b0); if (ok(m) === dat) a0 = m; else b0 = m; }
+    return { dat, gia: dat ? a0 : b0 };
+  }
+  function priceLevels(S, asOf, a) {
+    const p = S.price[asOf], memo = new Map();
+    const at = (X) => { if (!memo.has(X)) memo.set(X, scoreAtPrice(S, asOf, a, X)); return memo.get(X); };
+    const levels = LV.map((L) => ({ ...L, ...findLevel(p, L.kind, (X) => { const s = at(X); return s != null && s[L.kind] >= L.thr; }) }));
+    // bảng "nếu giá là X": cho thấy tỷ lệ đổi theo giá thế nào, kể cả khi mô hình chạy ngược hoặc gần như không đổi
+    const ladder = LV_LADDER.map((f) => { const s = at(p * f); return { f, gia: p * f, buy: s ? s.buy : null, sell: s ? s.sell : null }; });
+    const now = ladder.find((r) => r.f === 1), dn = ladder.find((r) => r.f === 0.8), up = ladder.find((r) => r.f === 1.2);
+    const phang = ladder.every((r) => r.buy != null && Math.abs(r.buy - now.buy) < 3 && Math.abs(r.sell - now.sell) < 3);
+    return { date: S.dates[asOf], price: p, lo: p * LV_LO, hi: p * LV_HI, levels, ladder, phang,
+      nguocMua: !phang && dn.buy != null && dn.buy < now.buy - 1, nguocBan: !phang && up.sell != null && up.sell < now.sell - 1 };
+  }
+  const usdT = (x) => Math.round(x).toLocaleString('vi-VN') + ' $';
+  function levelText(lv, L) {
+    if (L.gia != null) return `khi giá ${L.kind === 'buy' ? '≤' : '≥'} ${usdT(L.gia)}`;
+    if (!L.dat) return L.kind === 'buy' ? `chưa đạt dù giá giảm tới ${usdT(lv.lo)}` : `chưa đạt dù giá tăng tới ${usdT(lv.hi)}`;
+    return L.kind === 'buy' ? `ở mọi mức giá đến ${usdT(lv.hi)}` : `ở mọi mức giá từ ${usdT(lv.lo)}`;
   }
 
   const P = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
   const SP = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
   const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
   const nm = (id) => IND.find((d) => d.id === id).ten;
-  function report(S, a, rec, vol, sources, isToday, cmp, sd) {
+  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv) {
     const L = [], t = (x) => L.push(x);
     t(`# Báo cáo bot BTC, phân tích tại ngày ${D(a.date)}`); t('');
     t('Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải trên web, bằng kiểm chứng đi tới (chỉ dùng dữ liệu có đến từng thời điểm).'); t('');
@@ -179,6 +237,15 @@ const B3 = (() => {
     t('## Kết luận');
     t(`- Tỷ lệ nên mua: **${a.buy.score.toFixed(0)}%**, khung **${a.buy.zone.ten}** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn ${a.buy.score.toFixed(0)}% số tuần trước đó.`);
     t(`- Tỷ lệ nên bán: **${a.sell.score.toFixed(0)}%**, khung **${a.sell.zone.ten}** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn ${a.sell.score.toFixed(0)}% số tuần trước đó.`); t('');
+    if (lv) {
+      t(`## Giá đề xuất mua và bán (ngày ${D(lv.date)}, giá ${usdT(lv.price)})`);
+      t('Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.');
+      t('| Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |'); t('|---|---|---|---|');
+      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? 'đang đạt' : 'chưa đạt'} |`));
+      levelNotes(lv).forEach((s) => t(`- ${s}`));
+      t('Nếu giá ngày phân tích là: ' + lv.ladder.map((r) => `${usdT(r.gia)} (${r.f === 1 ? 'hiện tại' : SP(r.f - 1)}): nên mua ${r.buy == null ? '—' : r.buy.toFixed(0) + '%'}, nên bán ${r.sell == null ? '—' : r.sell.toFixed(0) + '%'}`).join('; ') + '.');
+      t('');
+    }
     t('## Xác suất thắng nếu mua tại ngày phân tích');
     t('| Giữ | Xác suất thắng | Khoảng tin cậy 95% | Trung bình mọi lúc | Lãi trung vị | Một nửa số lần trong | Số lần tương tự |' + (isToday ? '' : ' Thực tế sau đó |'));
     t('|---|---|---|---|---|---|---|' + (isToday ? '' : '---|'));
@@ -398,7 +465,7 @@ const B3 = (() => {
     return csv(head, rows);
   }
 
-  return { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, TP, NHOM_TP, SELL_VERDICT, zoneOf, analyze, search, report, compareOptions, csvWeekly, csvOptions, sellSide, csvSell };
+  return { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, TP, NHOM_TP, SELL_VERDICT, LV, zoneOf, analyze, search, report, compareOptions, csvWeekly, csvOptions, sellSide, csvSell, scoreAtPrice, findLevel, priceLevels, levelText, levelNotes };
 })();
 // ===== B3 END =====
 if (typeof module !== 'undefined') module.exports = B3;
