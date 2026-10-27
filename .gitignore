@@ -1,0 +1,6 @@
+du_lieu_tam/
+__pycache__/
+dist/
+tests/out/
+config.json
+.DS_Store

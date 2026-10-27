@@ -1,0 +1,44 @@
+BOT XÁC SUẤT BTC – HƯỚNG DẪN CHẠY TRÊN MACBOOK
+================================================
+
+TRONG THƯ MỤC
+  Mo-Bot-BTC.command     Bấm đúp để chạy bot (khuyên dùng)
+  bot-xac-suat.html      Giao diện bot; cũng mở trực tiếp được bằng trình duyệt
+  chay_bot_xac_suat.py   Máy chủ nhỏ chạy trên máy, tự lấy dữ liệu thay trình duyệt
+  du_lieu_tam/           Tự tạo sau lần chạy đầu: bản sao dữ liệu đã tải
+
+CÁCH CHẠY
+1. Giải nén, đặt thư mục BotBTC ở chỗ cố định (ví dụ trong Tài liệu / Documents).
+2. Lần đầu tiên: bấm CHUỘT PHẢI vào Mo-Bot-BTC.command, chọn "Mở" (Open), rồi
+   bấm "Mở" lần nữa. macOS cần bước này vì file được tải từ mạng.
+   Nếu vẫn bị chặn: vào Cài đặt hệ thống > Quyền riêng tư & Bảo mật, kéo xuống,
+   bấm "Vẫn mở" (Open Anyway) cạnh tên file.
+3. Một cửa sổ Terminal hiện ra và trình duyệt tự mở bot tại http://127.0.0.1:8789
+   Giữ cửa sổ Terminal mở trong lúc dùng. Đóng cửa sổ đó là tắt bot.
+4. Từ lần sau chỉ cần bấm đúp Mo-Bot-BTC.command.
+
+NẾU MÁY CHƯA CÓ PYTHON
+- macOS có thể hiện hộp thoại đề nghị cài "Command Line Tools". Bấm Cài đặt,
+  đợi xong (khoảng 5–15 phút) rồi bấm đúp Mo-Bot-BTC.command lần nữa.
+- Hoặc cài Python 3 từ https://www.python.org/downloads/macos/
+- Trong lúc chưa có Python, file .command sẽ mở thẳng bot-xac-suat.html trong
+  trình duyệt. Cách này vẫn chạy, nhưng một số nguồn dữ liệu có thể bị trình
+  duyệt chặn. Khi đó nên dùng Google Chrome thay vì Safari.
+
+DỮ LIỆU
+- Mỗi lần mở, bot tải dữ liệu thật từ Coin Metrics, Alternative.me và Binance.
+- Bản sao được lưu vào du_lieu_tam/. Nếu mất mạng hoặc một nguồn lỗi, bot dùng
+  bản lưu gần nhất và ghi rõ giờ lưu trong mục "Nguồn dữ liệu" cuối trang.
+- Muốn tải lại toàn bộ từ đầu: xóa thư mục du_lieu_tam rồi mở lại bot.
+
+CLAUDE
+- Cách 1: trong bot bấm "Tải báo cáo (.md)", rồi kéo file vào claude.ai.
+- Cách 2: dán khóa API (console.anthropic.com) vào phần "Gọi Claude API" trong bot.
+  Nếu chọn ghi nhớ, khóa được lưu trong trình duyệt của máy này.
+
+GẶP LỖI
+- "Cổng đang bận" / bot đã chạy: file .command sẽ chỉ mở lại trình duyệt.
+- Báo lỗi chứng chỉ SSL: máy chủ tự chuyển sang dùng lệnh curl của macOS.
+- Muốn gỡ: tắt bot rồi xóa cả thư mục BotBTC.
+
+Đây là công cụ tham khảo, không phải lời khuyên đầu tư.

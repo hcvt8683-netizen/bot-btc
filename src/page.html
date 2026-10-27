@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bot mua bán BTC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #EEF1F4; --panel: #FFFFFF; --ink: #17212C; --muted: #5C6773; --line: #D5DCE2; --soft: #F4F6F8;
+    --jade: #1E7B57; --brass: #9A6B12; --cinnabar: #B23A27; --blue: #2B5BA8;
+    --font: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --bg: #0F151C; --panel: #18212B; --ink: #E5EAEF; --muted: #98A4B0; --line: #2C3946; --soft: #1F2a35;
+      --jade: #5BC496; --brass: #DDB160; --cinnabar: #EB8570; --blue: #84A9EC; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 18px 70px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .good { color: var(--jade); } .mid { color: var(--brass); } .bad { color: var(--cinnabar); } .muted { color: var(--muted); }
+  [hidden] { display: none !important; }
+
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 14px; }
+  .top h1 { margin: 0 auto 0 0; font-size: 18px; font-weight: 700; }
+  .top .price { font-size: 24px; font-weight: 700; }
+  .top .when { color: var(--muted); font-size: 14px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel + .panel, section + section, .panel + section, section + .panel { margin-top: 16px; }
+  h2 { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .lead { margin: 0 0 14px; color: var(--muted); max-width: 52em; font-size: 14px; }
+
+  /* điều khiển */
+  .ctrl { display: grid; gap: 14px; }
+  .row { display: grid; grid-template-columns: 128px 1fr; gap: 10px; align-items: start; }
+  .row > .lab { font-weight: 600; padding-top: 7px; font-size: 14px; }
+  .row .help { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+  @media (max-width: 680px) { .row { grid-template-columns: 1fr; } .row > .lab { padding-top: 0; } }
+  .inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  input[type=date] { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 10px; }
+  .btn { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
+  .btn:hover { border-color: var(--muted); }
+  .btn.main { background: var(--ink); color: var(--panel); border-color: var(--ink); font-weight: 600; padding: 9px 20px; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; padding: 6px 13px; cursor: pointer; font-size: 14px; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .inds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .inds label { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; padding: 4px 10px 4px 8px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--soft); }
+  .inds label:has(input:checked) { border-color: var(--ink); background: var(--panel); }
+  .inds label.na { opacity: .45; cursor: not-allowed; }
+  .inds input { accent-color: var(--ink); }
+  .using { font-size: 14px; margin-top: 8px; }
+  .progress { color: var(--muted); font-size: 14px; }
+  .warn { background: color-mix(in srgb, var(--brass) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--brass) 40%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+
+  /* mua / bán */
+  .duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+  .duo > .panel { margin-top: 0; }
+  .cons { background: var(--soft); border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 0 0 12px; }
+  .sm { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+  .nowrap { white-space: nowrap; }
+  .zlab b { font-weight: 600; color: var(--ink); }
+  .gauge h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .gauge .big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 2px 0 10px; }
+  .gauge .big b { font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
+  .gauge .big span { font-size: 26px; font-weight: 700; }
+  .zbar { position: relative; display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 4px 0 4px; }
+  .zbar i { display: block; height: 100%; }
+  .zmark { position: relative; height: 0; }
+  .zmark b { position: absolute; top: -22px; width: 4px; height: 22px; margin-left: -2px; background: var(--ink); border-radius: 2px; }
+  .zlab { display: flex; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .zlab span { text-align: center; }
+  .gauge p { margin: 0 0 6px; font-size: 14px; }
+
+  /* xác suất theo kỳ giữ */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+  .tile { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+  .tile .h { font-size: 14px; font-weight: 600; }
+  .tile .p { font-size: 40px; font-weight: 700; line-height: 1.1; margin: 4px 0 2px; }
+  .tile .c { font-size: 13px; color: var(--muted); }
+  .rng { position: relative; height: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 4px; margin: 8px 0 6px; }
+  .rng i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: currentColor; opacity: .35; }
+  .rng b { position: absolute; top: -3px; width: 3px; height: 14px; background: currentColor; border-radius: 1px; }
+  .rng s { position: absolute; top: -5px; width: 2px; height: 18px; background: var(--ink); opacity: .6; }
+  .act { margin-top: 8px; font-size: 13.5px; padding: 6px 10px; border-radius: 8px; background: var(--panel); }
+
+  /* bảng */
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 500; font-size: 13px; color: var(--muted); background: var(--soft); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.r, th.r { text-align: right; }
+  td .sub { display: block; font-size: 12px; color: var(--muted); }
+  tr.base td { color: var(--muted); }
+  tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  tr.here td:first-child { font-weight: 700; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; background: color-mix(in srgb, var(--blue) 16%, transparent); color: var(--blue); }
+  .zdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: 0; }
+  ul.crit { margin: 14px 0 0; padding-left: 20px; font-size: 14px; max-width: 60em; } ul.crit li { margin-bottom: 4px; }
+
+  .chart { position: relative; }
+  #t-pa td:nth-child(2), #t-pa th:nth-child(2) { min-width: 250px; }
+  #t-pa td:nth-child(2) .sub { max-width: 34em; }
+  #t-pa td, #t-pa th { padding-left: 10px; padding-right: 10px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+  .mode { text-align: left; border: 1.5px solid var(--line); background: var(--soft); border-radius: 12px; padding: 10px 14px; cursor: pointer; display: grid; gap: 2px; }
+  .mode b { font-size: 16px; } .mode span { font-size: 13px; color: var(--muted); }
+  #mode-buy[aria-pressed="true"] { border-color: var(--jade); background: color-mix(in srgb, var(--jade) 12%, var(--panel)); }
+  #mode-sell[aria-pressed="true"] { border-color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); }
+  .verdict-big { font-size: 52px; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; margin: 4px 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .chip { font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); }
+  .chip.on { border-color: var(--cinnabar); color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); font-weight: 600; }
+  .pl { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .pl label { display: grid; gap: 3px; font-size: 13px; color: var(--muted); } .pl input { width: 150px; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 9px; color: var(--ink); }
+  #t-tp td:first-child, #t-tp th:first-child, #t-tplv td:first-child { min-width: 260px; }
+  #t-tp td, #t-tp th { padding-left: 10px; padding-right: 10px; }
+  .ind-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 14px; }
+  .ind-card { background: var(--soft); border-radius: 12px; padding: 10px 12px 6px; }
+  .ind-card .h { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; margin-bottom: 4px; }
+  .ind-card canvas { display: block; width: 100%; }
+  .chart canvas { display: block; width: 100%; cursor: crosshair; }
+  .tip { position: absolute; pointer-events: none; display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.12); white-space: nowrap; z-index: 2; }
+  .tip b { display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  details { margin-top: 10px; } summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+  details p { margin: 6px 0; font-size: 14px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 16px; }
+  .field { display: grid; gap: 4px; margin-bottom: 10px; font-size: 14px; }
+  .field input, .field select, textarea { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 8px 10px; width: 100%; }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 6px; }
+  .chat { display: grid; gap: 12px; margin: 14px 0; }
+  .msg { padding: 12px 14px; border-radius: 12px; max-width: 56em; }
+  .msg.user { background: color-mix(in srgb, var(--blue) 12%, var(--panel)); justify-self: end; }
+  .msg.assistant { background: var(--soft); }
+  .msg p, .msg h4 { margin: 0 0 8px; } .msg ul, .msg ol { margin: 0 0 8px; padding-left: 20px; }
+  .msg table { margin-bottom: 10px; background: var(--panel); }
+  .srcs { margin: 4px 0 0; padding-left: 20px; font-size: 13px; } .srcs a { color: var(--blue); word-break: break-word; }
+  .err { color: var(--cinnabar); }
+  .status { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 13.5px; }
+  .status li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: var(--muted); vertical-align: middle; }
+  .status li.ok::before { background: var(--jade); } .status li.err::before { background: var(--cinnabar); }
+  .loading { padding: 50px 0; color: var(--muted); }
+  .foot { margin-top: 26px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Bot mua bán BTC</h1>
+    <span class="price num" id="price">—</span>
+    <span class="when" id="when"></span>
+  </div>
+
+  <div class="panel ctrl">
+    <div class="row"><span class="lab">Bạn đang</span>
+      <div class="modes" role="group" aria-label="Chế độ">
+        <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>Bên mua</b><span>Tôi muốn mua thêm BTC</span></button>
+        <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>Bên bán</b><span>Tôi đang giữ BTC: nên giữ hay chốt lời?</span></button>
+      </div></div>
+    <div class="row"><span class="lab">Ngày phân tích</span>
+      <div><div class="inline"><input type="date" id="date"><button class="btn" type="button" id="today">Hôm nay</button></div>
+        <span class="help">Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.</span></div></div>
+    <div class="row"><span class="lab">Bộ chỉ số</span>
+      <div><div class="seg" id="sets"></div>
+        <div class="inds" id="inds"></div>
+        <div class="using" id="using"></div></div></div>
+    <div class="row"><span class="lab"></span>
+      <div class="inline"><button class="btn main" type="button" id="run" disabled>Chạy bot</button>
+        <button class="btn" type="button" id="research" disabled>Tìm lại bộ có tỷ lệ thắng cao nhất</button>
+        <span class="progress" id="progress">Đang tải dữ liệu thật từ web…</span></div></div>
+  </div>
+
+  <div class="loading" id="loading">Đang tải giá BTC, Fear &amp; Greed, MVRV, dữ liệu thợ đào và khối lượng từ 2010 đến nay. Lần đầu mất khoảng 10–40 giây.</div>
+
+  <div id="app" hidden>
+    <p class="warn" id="lookahead" hidden></p>
+
+    <div id="sell-view" hidden>
+      <section class="panel" id="s-hero"></section>
+
+      <section class="panel">
+        <h2 id="s-hold-title">Giữ tiếp có lợi không</h2>
+        <p class="lead">Tỷ lệ giá cao hơn hôm nay sau mỗi kỳ, ở những lúc điều kiện giống ngày phân tích. Trên 50% nghĩa là giữ tiếp thường có lợi hơn bán ngay. Vạch đen nhỏ là mức trung bình mọi lúc.</p>
+        <div class="tiles" id="s-tiles"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Bộ tiêu chí chốt lời, xếp theo độ chính xác</h2>
+        <p class="lead" id="s-tp-lead"></p>
+        <div class="scroll"><table id="t-tp"></table></div>
+        <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-tp">Tải bộ tiêu chí chốt lời (.csv)</button></div>
+      </section>
+
+      <section class="panel">
+        <h2>Mốc giá chốt lời</h2>
+        <p class="lead">Giá BTC cần đạt để từng tiêu chí bật, tính từ số liệu ngày phân tích. Các mốc dịch chuyển dần theo thời gian. Pi Cycle, RSI và Fear &amp; Greed không quy đổi thẳng ra giá được.</p>
+        <div class="scroll"><table id="t-tplv"></table></div>
+      </section>
+
+      <section class="panel">
+        <h2>Các lần tiêu chí chốt lời bật trong lịch sử</h2>
+        <p class="lead">Mỗi vạch màu là một tuần có tiêu chí đáng tin bật, mỗi hàng là một nhóm. Nền đỏ càng đậm, càng nhiều nhóm cùng bật. Bấm vào biểu đồ để phân tích lại tại ngày đó.</p>
+        <div class="chart" id="s-chart-box"><canvas id="s-chart" height="360"></canvas><div class="tip" id="s-tip"></div></div>
+        <div class="legend" id="s-legend"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Nếu đã giữ 1 BTC và chốt lời theo quy tắc này</h2>
+        <p class="lead">Quy tắc: 1 nhóm bật thì giữ 90% vị thế, 2 nhóm thì 70%, từ 3 nhóm thì 50%. Mua lại toàn bộ khi không còn nhóm nào bật và bên mua báo từ Cân nhắc mua. Chỉ dùng dữ liệu có đến từng tuần.</p>
+        <div class="scroll"><table id="t-sim"></table></div>
+      </section>
+    </div>
+
+    <div class="duo" style="margin-top:16px">
+      <div class="panel gauge" id="g-buy"></div>
+      <div class="panel gauge" id="g-sell"></div>
+    </div>
+
+    <div id="buy-view">
+    <section class="panel" id="pa-sec">
+      <h2>So sánh các phương án</h2>
+      <p class="lead" id="pa-lead"></p>
+      <p class="cons" id="pa-cons"></p>
+      <div class="scroll"><table id="t-pa"></table></div>
+      <div class="two" style="margin-top:16px">
+        <div><p class="sm">Tỷ lệ thắng ở khung Phải mua, theo kỳ giữ</p><div class="chart"><canvas id="c-pa-win" height="300"></canvas></div><div class="legend" id="l-pa-win"></div></div>
+        <div><p class="sm">Tỷ lệ nên mua và nên bán tại ngày phân tích</p><div class="chart"><canvas id="c-pa-today" height="300"></canvas></div><div class="legend" id="l-pa-today"></div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="hold-title">Xác suất thắng nếu mua và giữ</h2>
+      <p class="lead">"Thắng" là giá sau kỳ giữ cao hơn giá mua. Con số là tỷ lệ thắng thực tế trong lịch sử ở những lúc điều kiện giống ngày phân tích. Vạch đen nhỏ là tỷ lệ thắng trung bình nếu mua bất kỳ lúc nào.</p>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Bộ tiêu chí đánh giá: tỷ lệ thắng thực tế theo từng khung</h2>
+      <p class="lead" id="crit-lead"></p>
+      <div class="scroll"><table id="t-buy"></table></div>
+      <div class="scroll" style="margin-top:12px"><table id="t-sell"></table></div>
+      <ul class="crit">
+        <li><b>Tỷ lệ nên mua</b>: điều kiện ngày phân tích thuận lợi hơn bao nhiêu phần trăm số tuần trong lịch sử, tính trung bình cho 4 kỳ giữ 1 tháng, 3 tháng, 6 tháng, 1 năm. Từ 80% là <b>Phải mua</b>, 60–80% là <b>Cân nhắc mua</b>, dưới 60% là <b>Không nên mua</b>.</li>
+        <li><b>Tỷ lệ nên bán</b>: nguy cơ giá giảm hơn 10% sau 3 tháng và sau 6 tháng cao hơn bao nhiêu phần trăm số tuần trong lịch sử. Từ 85% là <b>Nên bán</b>, 70–85% là <b>Cân nhắc bán</b>, dưới 70% là <b>Không nên bán</b>.</li>
+        <li>Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua đã biết kết quả tại thời điểm đó. Các ngưỡng 60, 70, 80, 85 cố định, không dò cho đẹp.</li>
+        <li>Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử</h2>
+      <p class="lead" id="rec-lead"></p>
+      <div class="scroll"><table id="t-rec"></table></div>
+      <p class="lead" id="rec-weak" style="margin:10px 0 0"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Tỷ lệ nên mua, nên bán qua thời gian</h2>
+      <p class="lead">Nền màu là khung mua mỗi tuần; dải dưới là khung bán. Bấm vào một điểm để phân tích lại tại ngày đó.</p>
+      <div class="chart" id="chart-box"><canvas id="chart" height="340"></canvas><div class="tip" id="tip"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+    </div>
+
+
+
+    <section class="panel">
+      <h2>Giá trị các chỉ số tại ngày phân tích</h2>
+      <p class="lead">Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.</p>
+      <div class="scroll"><table id="t-feat"></table></div>
+      <p class="lead" id="vol-line" style="margin:12px 0 0"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Biểu đồ từng chỉ số trong bộ đang dùng</h2>
+      <p class="lead">Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.</p>
+      <div class="ind-grid" id="ind-charts"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Hỏi Claude về nhận định của bot</h2>
+      <p class="lead">Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.</p>
+      <div class="two">
+        <div>
+          <p style="margin:0 0 8px;font-weight:600">Cách 1: xuất file, kéo vào claude.ai</p>
+          <div class="inline"><button class="btn main" type="button" id="dl-md">Tải báo cáo (.md)</button><button class="btn" type="button" id="dl-csv">Dữ liệu từng tuần (.csv)</button><button class="btn" type="button" id="dl-pa">So sánh phương án (.csv)</button><button class="btn" type="button" id="copy-md">Sao chép báo cáo</button></div>
+          <p class="muted" style="font-size:13px;margin:8px 0 0">Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.</p>
+          <p class="muted" id="copy-msg" style="font-size:13px"></p>
+        </div>
+        <div>
+          <p style="margin:0 0 8px;font-weight:600">Cách 2: gọi Claude API ngay tại đây</p>
+          <label class="field">Khóa API (console.anthropic.com)<input type="password" id="ck" placeholder="sk-ant-…" autocomplete="off"></label>
+          <label class="check"><input type="checkbox" id="ck-remember">Ghi nhớ khóa trên máy này</label>
+          <label class="field">Mô hình<select id="cmodel"><option value="claude-sonnet-5-5">Claude Sonnet 5.5 (khuyên dùng)</option><option value="claude-opus-5-5">Claude Opus 5.5 (suy luận sâu nhất)</option><option value="claude-haiku-5-5">Claude Haiku 5.5 (nhanh, rẻ)</option></select></label>
+          <label class="check"><input type="checkbox" id="cweb" checked>Cho Claude tìm tin tức hiện tại trên web</label>
+        </div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <label class="field">Câu hỏi thêm<textarea id="ai-q" rows="2" placeholder="Ví dụ: Với kết quả này nên chia tiền mua thế nào?"></textarea></label>
+      <div class="inline"><button class="btn main" type="button" id="ai-first">Nhờ Claude nhận định</button><button class="btn" type="button" id="ai-send">Gửi câu hỏi</button><span class="progress" id="ai-busy" hidden>Claude đang đọc báo cáo…</span></div>
+      <p class="err" id="ai-err" hidden></p>
+    </section>
+
+    <section class="panel">
+      <h2>Nguồn dữ liệu</h2>
+      <ul class="status" id="status"></ul>
+    </section>
+    <p class="foot">Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.</p>
+  </div>
+</div>
+<script>
+/*CORE*/
+</script>
+<script>
+/*B3*/
+</script>
+<script>
+/*UI*/
+</script>
+</body>
+</html>

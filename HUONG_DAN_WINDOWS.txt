@@ -1,0 +1,53 @@
+﻿BOT XÁC SUẤT BTC – HƯỚNG DẪN CHẠY TRÊN WINDOWS
+=================================================
+
+TRONG THƯ MỤC
+  Mo-Bot-BTC.bat         Bấm đúp để chạy bot (khuyên dùng)
+  bot-xac-suat.html      Giao diện bot; cũng mở trực tiếp được bằng trình duyệt
+  chay_bot_xac_suat.py   Máy chủ nhỏ chạy trên máy, tự lấy dữ liệu thay trình duyệt
+  du_lieu_tam\           Tự tạo sau lần chạy đầu: bản sao dữ liệu đã tải
+
+BƯỚC 1: GIẢI NÉN TRƯỚC KHI CHẠY
+  Bấm chuột phải vào file zip, chọn "Extract All..." (Giải nén tất cả).
+  Đừng chạy thẳng bên trong file zip, vì Windows sẽ không lưu được dữ liệu.
+  Đặt thư mục BotBTC ở chỗ cố định, ví dụ trong Documents.
+
+BƯỚC 2: CÀI PYTHON (một lần)
+  1. Vào https://www.python.org/downloads/windows/ và tải bản Python 3 mới nhất.
+  2. Khi cài, ĐÁNH DẤU ô "Add python.exe to PATH" ở màn hình đầu tiên,
+     rồi bấm "Install Now".
+  Không cài Python vẫn mở được bot (xem phần cuối), nhưng một số nguồn
+  dữ liệu có thể bị trình duyệt chặn.
+
+BƯỚC 3: CHẠY BOT
+  1. Bấm đúp Mo-Bot-BTC.bat.
+  2. Lần đầu, Windows có thể hiện "Windows protected your PC" (SmartScreen):
+     bấm "More info" (Thông tin thêm) rồi "Run anyway" (Vẫn chạy).
+  3. Một cửa sổ đen hiện ra và trình duyệt tự mở bot tại http://127.0.0.1:8789
+     Giữ cửa sổ đen mở trong lúc dùng. Đóng cửa sổ đó là tắt bot.
+  4. Nếu tường lửa Windows hỏi quyền cho Python, chọn "Allow" (Cho phép).
+     Bot chỉ chạy trong máy bạn, không mở ra mạng ngoài.
+
+KHÔNG CÓ PYTHON
+  Mo-Bot-BTC.bat sẽ tự mở bot-xac-suat.html bằng trình duyệt mặc định.
+  Nên dùng Google Chrome hoặc Microsoft Edge.
+
+DỮ LIỆU
+- Mỗi lần mở, bot tải dữ liệu thật từ Coin Metrics, Alternative.me và Binance.
+- Bản sao được lưu vào du_lieu_tam\. Nếu mất mạng hoặc một nguồn lỗi, bot dùng
+  bản lưu gần nhất và ghi rõ giờ lưu trong mục "Nguồn dữ liệu" cuối trang.
+- Muốn tải lại toàn bộ từ đầu: xóa thư mục du_lieu_tam rồi mở lại bot.
+
+CLAUDE
+- Cách 1: trong bot bấm "Tải báo cáo (.md)", rồi kéo file vào claude.ai.
+- Cách 2: dán khóa API (console.anthropic.com) vào phần "Gọi Claude API" trong bot.
+  Nếu chọn ghi nhớ, khóa được lưu trong trình duyệt của máy này.
+
+GẶP LỖI
+- Cửa sổ đen hiện "Python was not found": Python chưa được cài, hoặc lúc cài
+  quên đánh dấu "Add python.exe to PATH". Cài lại và nhớ đánh dấu ô đó.
+- Bot đã chạy sẵn: bấm đúp lần nữa chỉ mở lại trình duyệt.
+- Lỗi chứng chỉ SSL: máy chủ tự chuyển sang dùng lệnh curl có sẵn trong Windows 10/11.
+- Muốn gỡ: tắt bot rồi xóa cả thư mục BotBTC.
+
+Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
