@@ -59,13 +59,14 @@ Bảng kết quả từ máy chủ nằm ở phần tóm tắt (Summary) của m
 
 ## 5. Các bước triển khai (tôi làm sau khi bạn nói "OK deploy")
 1. Nối kho trên máy với `https://github.com/hcvt8683-netizen/bot-btc.git`, đẩy thẻ `v1-before-upgrade` và nhánh `upgrade/best-roi`. CI chạy trên nhánh và cho bản tải về để bạn xem lại.
-2. Gộp vào `main`. Nhánh `main` trên GitHub có lịch sử khác (các lần tải `index.html` bằng tay), nên tôi gộp trên máy bằng `git merge --allow-unrelated-histories` và giữ lại lịch sử cũ. GitHub không cho tạo pull request giữa hai lịch sử khác nhau.
+2. Gộp vào `main`. Nhánh `main` trên GitHub có lịch sử khác (một lần tải `index.html` bằng tay), nên tôi gộp trên máy bằng `git merge --allow-unrelated-histories` và giữ lại lịch sử cũ. GitHub không cho tạo pull request giữa hai lịch sử khác nhau. Trang vẫn chạy bản cũ cho tới khi bạn đổi nguồn Pages sang "GitHub Actions".
 3. Bạn đổi cài đặt ở mục 4 (bước 2–4).
 4. Chạy tay workflow `Daily` (Actions → Daily → Run workflow). Kiểm tra trang, rồi điền bảng ở mục 3 bằng kết quả từ máy chủ.
 
 ## 6. Quay lại bản cũ (rollback)
-- **Cách 1, hủy lần gộp:** trên máy, `git revert -m 1 <mã commit gộp>` rồi đẩy `main`. Lần chạy `Daily` kế tiếp (hoặc chạy tay) đăng lại bản trước.
-- **Cách 2, đăng lại thẻ cũ:** Actions → Rollback → Run workflow, ô `ref` để `v1-before-upgrade` (hoặc thẻ, commit khác) → trang về đúng bản trước nâng cấp sau 1–3 phút. Lưu ý: nếu workflow `Daily` vẫn bật, sáng hôm sau nó đăng lại bản trên `main`. Muốn giữ bản cũ lâu dài thì dùng cách 1, hoặc tắt `Daily` (Actions → Daily → … → Disable workflow).
+Khi gộp, file `index.html` cũ ở thư mục gốc của `main` được giữ nguyên (giống từng byte với `v1-before-upgrade`). File `.nojekyll` ở thư mục gốc giúp GitHub phục vụ file đúng như cũ.
+- **Cách 1, hủy hẳn nâng cấp:** trên máy chạy `git revert -m 1 <mã commit gộp>`, rồi đẩy `main`. Sau đó vào **Settings → Pages → Source: "Deploy from a branch", nhánh `main`, thư mục `/ (root)`**. Trang quay về đúng `index.html` cũ sau 1–3 phút. Bước revert xóa cả các workflow, nên không còn chạy hằng ngày.
+- **Cách 2, giữ mã mới, chỉ đăng lại trang cũ:** Actions → Rollback → Run workflow, ô `ref` để `v1-before-upgrade` (hoặc thẻ, commit khác). Trang về bản trước nâng cấp sau 1–3 phút. Nếu workflow `Daily` vẫn bật, sáng hôm sau nó đăng lại bản trên `main`; muốn giữ bản cũ thì tắt `Daily` (Actions → Daily → … → Disable workflow).
 
 ## 7. Riêng tư
 Trang là công khai. Trang chỉ ghi hệ số mua và số tiền trên mỗi 100 $ ngân sách. Ngân sách, số BTC đang giữ và giá vốn của bạn chỉ nằm trong trình duyệt (ô nhập ở bên bán) hoặc trong `config/personal.yaml` trên máy (không lưu git, chỉ dùng cho `python -m bot.cli report`). Khóa Claude API chỉ lưu trong trình duyệt khi bạn chọn ghi nhớ.
