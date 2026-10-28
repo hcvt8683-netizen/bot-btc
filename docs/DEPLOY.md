@@ -10,7 +10,7 @@
 | Workflow | Khi nào chạy | Làm gì |
 |---|---|---|
 | `CI` (`.github/workflows/ci.yml`) | mỗi lần đẩy mã, mỗi pull request | Cài thư viện, chạy `make test` (đơn vị, ảnh chụp báo cáo và giao diện, không gọi mạng), dựng trang, để lại bản tải về `trang-web-<mã commit>` trong 30 ngày. |
-| `Daily` (`daily.yml`) | 01:00 UTC mỗi ngày (08:00 giờ Việt Nam) và chạy tay | Kiểm tra từng nguồn từ máy chủ GitHub → tải dữ liệu và kiểm tra chất lượng → bảng chỉ số → khuyến nghị tuần → dựng trang → chạy kiểm tra → lưu dữ liệu mới vào `main` (`data: cập nhật dd/mm/yyyy`, tên `github-actions[bot]`) → đăng lên Pages. |
+| `Daily` (`daily.yml`) | 01:00 UTC mỗi ngày (08:00 giờ Việt Nam), mỗi lần đẩy mã lên `main`, và chạy tay | Kiểm tra từng nguồn từ máy chủ GitHub → tải dữ liệu và kiểm tra chất lượng → bảng chỉ số → khuyến nghị tuần → dựng trang → chạy kiểm tra → lưu dữ liệu mới vào `main` (`data: cập nhật dd/mm/yyyy`, tên `github-actions[bot]`) → đăng lên Pages. |
 | `Rollback` (`rollback.yml`) | chạy tay | Dựng và đăng lại một phiên bản cũ (mặc định `v1-before-upgrade`). |
 
 - Chỉ đăng từ `main`, và chỉ khi các bài kiểm tra trong lần chạy đó đạt. Kiểm tra lỗi thì trang giữ bản tốt gần nhất.

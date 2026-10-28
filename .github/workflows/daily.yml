@@ -1,4 +1,5 @@
-# Chạy mỗi ngày lúc 01:00 UTC (08:00 giờ Việt Nam), sau khi nến ngày và nến tuần thứ Hai đóng lúc 00:00 UTC.
+# Chạy mỗi ngày lúc 01:00 UTC (08:00 giờ Việt Nam), sau khi nến ngày và nến tuần thứ Hai đóng lúc 00:00 UTC,
+# và mỗi khi có mã mới đẩy lên main.
 # Lịch chạy theo giờ UTC; giờ Việt Nam chỉ dùng để hiển thị. GitHub có thể chạy trễ vào giờ cao điểm.
 # Một nguồn lỗi không làm hỏng cả lần chạy: bot dùng bản gần nhất, khuyến nghị về mua đều và trang hiện cảnh báo.
 name: Daily
@@ -7,6 +8,8 @@ on:
   schedule:
     - cron: "0 1 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]   # mã mới trên main được đăng ngay; lần lưu dữ liệu của bot (GITHUB_TOKEN) không kích hoạt lại
 
 concurrency:
   group: btc-bot
