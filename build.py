@@ -14,7 +14,7 @@ def read(name):
         return f.read()
 
 
-def build():
+def build(out=None):
     page = read("page.html")
     engine = read("engine.js").replace("if (typeof module !== 'undefined') module.exports = BOT;\n", "")
     analysis = read("analysis.js").replace("if (typeof module !== 'undefined') module.exports = B3;\n", "")
@@ -22,7 +22,7 @@ def build():
         if page.count(mark) != 1:
             sys.exit(f"Lỗi: page.html phải có đúng một chỗ {mark}")
     html = page.replace("/*CORE*/", engine).replace("/*B3*/", analysis).replace("/*UI*/", read("ui.js"))
-    out = os.path.join(ROOT, "bot-xac-suat.html")
+    out = out or os.path.join(ROOT, "bot-xac-suat.html")
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)
     print(f"Đã tạo {out} ({len(html):,} ký tự)")

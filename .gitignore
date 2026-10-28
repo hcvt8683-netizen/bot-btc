@@ -4,3 +4,7 @@ dist/
 tests/out/
 config.json
 .DS_Store
+.env
+config/personal.yaml
+.pytest_cache/
+tests/snapshots/*.new
