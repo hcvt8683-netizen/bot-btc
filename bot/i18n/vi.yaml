@@ -1,0 +1,27 @@
+# Toàn bộ chữ người dùng nhìn thấy (tiếng Việt). Mã chỉ dùng khóa, ví dụ t("quality.stale").
+# Giữ đúng thuật ngữ: Tỷ lệ nên mua, Tỷ lệ nên bán, Phải mua, Cân nhắc mua, Không nên mua, Nên bán,
+# Cân nhắc bán, Không nên bán, Giữ, Chốt lời, Mốc, Khoảng tin cậy, Trung vị, Số đợt.
+
+quality:
+  empty: "không có dữ liệu"
+  duplicates: "trùng ngày: {n} dòng"
+  not_sorted: "ngày không tăng dần"
+  gaps: "{n} khoảng trống (lớn nhất {max} ngày): {where}"
+  non_positive: "{col}: có giá trị ≤ 0"
+  outliers: "{col}: {n} biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất {last}"
+  stale: "dữ liệu cũ: dòng mới nhất {last}, đã {days} ngày"
+
+sources:
+  coinmetrics: "Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành)"
+  fng: "Fear & Greed (Alternative.me)"
+  binance_spot: "Binance (giá và khối lượng ngày)"
+  binance_funding: "Binance (funding rate hợp đồng vĩnh cửu)"
+  binance_oi: "Binance (khối lượng hợp đồng mở)"
+  binance_basis: "Binance (hợp đồng tương lai quý)"
+  stablecoins: "DefiLlama (tổng cung stablecoin)"
+  fred_DTWEXBGS: "FRED (chỉ số đô la Mỹ rộng)"
+  fred_DFII10: "FRED (lợi suất thực 10 năm)"
+  fred_NASDAQCOM: "FRED (Nasdaq Composite)"
+  fred_M2SL: "FRED (cung tiền M2)"
+  status_ok: "đến {last}"
+  status_err: "lỗi: {err}"
