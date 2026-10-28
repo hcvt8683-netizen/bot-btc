@@ -1,7 +1,7 @@
 """Point-in-time store.
 
 Raw snapshots are immutable files `data/raw/<source>/<YYYY-MM-DD>.parquet`: what a source returned on that day.
-The first snapshot holds the full history; later ones keep only the recent rows (default 90 days), which is
+The first snapshot holds the full history; later ones keep only the recent rows (default 30 days), which is
 where publications and revisions happen, so the folder stays small. History = union of snapshots, latest
 vintage per key, with `first_seen` = date of the first snapshot that contained the row.
 
@@ -17,7 +17,7 @@ import pandas as pd
 from bot.config import DATA, cfg
 
 RAW = DATA / "raw"
-RECENT_DAYS = 90
+RECENT_DAYS = 30
 
 
 def _dir(source: str, root: pathlib.Path | None = None) -> pathlib.Path:

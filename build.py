@@ -2,6 +2,7 @@
 """Ghép mã nguồn trong src/ thành một file bot-xac-suat.html chạy được.
 Chạy: python build.py          -> tạo bot-xac-suat.html ở thư mục gốc
       python build.py --zip    -> tạo thêm dist/BotBTC-Windows.zip và dist/BotBTC-Mac.zip
+      python build.py --site   -> tạo site/index.html để đăng GitHub Pages
 """
 import json, os, re, sys, time, zipfile
 
@@ -82,7 +83,17 @@ def package():
         print("Đã đóng gói", os.path.join("dist", zname))
 
 
+def site():
+    """site/index.html for GitHub Pages (relative paths only, so it works under /bot-btc/)."""
+    d = os.path.join(ROOT, "site"); os.makedirs(d, exist_ok=True)
+    open(os.path.join(d, ".nojekyll"), "w").close()
+    return build(os.path.join(d, "index.html"))
+
+
 if __name__ == "__main__":
+    if "--site" in sys.argv:
+        site()
+        sys.exit(0)
     build()
     if "--zip" in sys.argv:
         package()

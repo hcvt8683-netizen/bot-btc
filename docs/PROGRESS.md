@@ -251,3 +251,20 @@ Số lần thử trong sổ: 133.
 **File thay đổi.** `src/i18n.js`, `src/vi.json`, `src/page.html`, `src/engine.js`, `src/analysis.js`, `src/ui.js`, `build.py`, `bot/i18n/vi.yaml`, `bot/report/vi_report.py`, `bot/cli.py` (lệnh `report`), `data/recommendation.json`, `tools/migrate_strings.py`, `tests/test_report.py`, `tests/fixtures/recommendation.json`, `tests/snapshot_report.js`, `tests/test_ui_snapshot.py`, `tests/snapshots/*`, `CLAUDE.md`.
 
 **Kết quả kiểm tra.** `python -m pytest`: 42/42 đạt. Chạy với dữ liệu thật (giá 80.952 $): không lỗi JavaScript; điện thoại 390 px không cuộn ngang.
+
+## Giai đoạn 9: Triển khai (đã chuẩn bị xong 28/10/2026, chờ "OK deploy")
+
+**Tóm tắt.** Ba workflow GitHub Actions, mọi action chính thức ghim theo mã commit:
+- `ci.yml`: kiểm tra mỗi lần đẩy mã và để lại bản trang tải về;
+- `daily.yml`: chạy 01:00 UTC = 08:00 giờ Việt Nam; tải dữ liệu, kiểm tra chất lượng, khuyến nghị, dựng trang, kiểm tra, lưu dữ liệu, đăng Pages; không bao giờ chạy chồng nhau;
+- `rollback.yml`: đăng lại một phiên bản cũ, mặc định `v1-before-upgrade`.
+
+Thêm `python build.py --site`, `requirements.txt`, lệnh `features`. Bản chụp dữ liệu hằng ngày giảm còn 30 ngày cho nhẹ. Hướng dẫn đầy đủ, danh sách cài đặt GitHub cần đổi tay và cách quay lại bản cũ: `docs/DEPLOY.md`.
+
+**Chưa đẩy lên GitHub, chưa gộp, chưa đăng gì** (đúng mục 11). Thẻ `v1-before-upgrade` khớp từng byte với trang đang chạy. Kho trên máy chưa nối với GitHub, nên bản dựng để duyệt được đóng gói trên máy: `dist/trang-web-ban-nang-cap.zip`. Đây là bản tương đương "artifact"; sau khi đẩy nhánh lên, CI cũng sẽ tạo bản này.
+
+**Kiểm tra.** `python -m pytest`: 42/42 đạt. Trang dựng sẵn chạy với dữ liệu thật (giá 80.970 $): không lỗi JavaScript, điện thoại 390 px không cuộn ngang. 9/9 nguồn truy cập được từ máy ở Việt Nam. Kết quả từ máy chủ GitHub sẽ có sau lần chạy đầu.
+
+**Cài đặt GitHub bạn cần đổi tay.** Pages → Source "GitHub Actions"; Actions → Workflow permissions "Read and write"; môi trường `github-pages` chỉ cho `main`; nên bật bắt buộc kiểm tra `test` trước khi gộp vào `main`; `FRED_API_KEY` không bắt buộc. Chi tiết ở mục 4 của `docs/DEPLOY.md`.
+
+**Câu hỏi còn mở.** Chờ bạn duyệt khác biệt giao diện (tiêu chí 8) và nói **"OK deploy"**.
