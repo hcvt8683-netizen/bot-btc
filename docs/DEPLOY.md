@@ -6,6 +6,8 @@
 - **Đã triển khai ngày 28/10/2026**: bản nâng cấp đã gộp vào `main` (commit 377b7bf) và đẩy lên GitHub cùng thẻ `v1-before-upgrade` và nhánh `upgrade/best-roi`. Nguồn Pages là "GitHub Actions". Lần chạy `Daily` đầu tiên thành công: lưu dữ liệu (`data: cập nhật 28/10/2026`) và đăng trang mới.
 - Giữ nguyên địa chỉ trang. Không có tên miền riêng. Trang chỉ dùng đường dẫn tương đối và là một file duy nhất, nên chạy đúng dưới `/bot-btc/`.
 
+**Kiểm tra nguồn Pages:** nếu trong thẻ Actions vẫn thấy lần chạy "pages build and deployment" sau mỗi lần `main` thay đổi, nghĩa là nguồn Pages vẫn là "Deploy from a branch". Khi đó GitHub đăng lại `index.html` cũ ở thư mục gốc, và trang có thể quay về bản cũ cho tới lần chạy Daily kế tiếp. Cách sửa: Settings → Pages → Source → **GitHub Actions**.
+
 ## 2. Cách trang tự cập nhật sau khi triển khai
 | Workflow | Khi nào chạy | Làm gì |
 |---|---|---|
@@ -35,7 +37,9 @@ Máy chủ GitHub đặt ở Mỹ. Binance thường trả HTTP 451/403 cho `api
 |---|---|---|
 | Coin Metrics | 200 OK | OK |
 | Alternative.me | 200 OK | OK |
-| Binance spot (api hoặc dự phòng data-api.binance.vision) | 200 OK | OK |
+| Binance api.binance.com (spot) | 200 OK | **bị chặn, HTTP 451** |
+| Binance data-api.binance.vision (spot, dự phòng) | 200 OK | OK (bot tự chuyển sang địa chỉ này) |
+| CoinGecko | 200 OK | OK |
 | Binance fapi (funding, khối lượng hợp đồng mở) | 200 OK | **bị chặn, HTTP 451** |
 | Binance dapi (hợp đồng quý) | 200 OK | **bị chặn, HTTP 451** |
 | DefiLlama | 200 OK | OK |
