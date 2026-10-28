@@ -196,3 +196,22 @@ Số lần thử trong sổ: 133.
 **Kết quả kiểm tra.** `python -m pytest`: 38/38 đạt.
 
 **Câu hỏi còn mở.** Không có.
+
+## Giai đoạn 7: Giai đoạn kiểm tra cuối (xong 28/10/2026)
+
+**Tóm tắt.** Chạy đúng một lần `python -m bot.cli final --final` (ghi trong `experiments/final_runs.log`) trên dữ liệu đến 27/10/2026, với mô hình đã chốt ở giai đoạn 4–6. Kết quả đầy đủ: `docs/RESULTS.md`; số liệu gốc: `data/results/final_summary.json`. Tổng số lần thử: 135.
+
+**Kết luận: mô hình mới KHÔNG ĐẠT** (không đạt tiêu chí 1, 2, 4, 6; đạt 3, 5, 7; tiêu chí 8 chờ bạn duyệt).
+
+| | Mô hình mới | Bot hiện tại |
+|---|---|---|
+| Kiểm định: trung vị / P10 | 1,000 / 1,000 | 0,974 / 0,967 |
+| Kiểm tra cuối: trung vị / P10 | 1,000 / 1,000 | 0,940 / 0,898 |
+| Chu kỳ trọn vẹn có tỷ số > 1 | 1/4 | 0/4 |
+| Hơn tín hiệu ngẫu nhiên (kiểm tra cuối) | 50% | 87% |
+
+**Quyết định (điểm dừng 2, bạn đã đồng ý làm tiếp).** Không giao mô hình mới; giữ logic bot hiện tại; chỉ giao phần an toàn (chữ tập trung ở `vi.yaml`, định dạng Việt Nam, chế độ an toàn, triển khai). Phần khuyến nghị mới luôn là hệ số 1,0 (mua đều), kèm lý do.
+
+**File thay đổi.** `bot/validation/final.py`, `bot/cli.py` (lệnh `final`), `docs/RESULTS.md`, `data/results/final_summary.json`, `experiments/final_runs.log`, `experiments/registry.csv`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 38/38 đạt.

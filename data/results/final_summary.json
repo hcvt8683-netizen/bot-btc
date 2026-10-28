@@ -1,0 +1,536 @@
+{
+ "run_at": "2026-10-28T02:19:58Z",
+ "data_from": "2011-01-04",
+ "data_to": "2026-10-27",
+ "trials": 135,
+ "passed": false,
+ "criteria": [
+  {
+   "id": 1,
+   "ok": false,
+   "val": [
+    1.0,
+    1.0
+   ],
+   "hold": [
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "id": 2,
+   "ok": false,
+   "n": 1,
+   "cycles": {
+    "01/2011–11/2012": 1.0,
+    "11/2012–07/2016": 1.0,
+    "07/2016–05/2020": 1.014585,
+    "05/2020–04/2024": 1.0
+   }
+  },
+  {
+   "id": 3,
+   "ok": true,
+   "gap": 0.0
+  },
+  {
+   "id": 4,
+   "ok": false,
+   "val": 0.5,
+   "hold": 0.5
+  },
+  {
+   "id": 5,
+   "ok": true,
+   "idle": 0.002635
+  },
+  {
+   "id": 6,
+   "ok": false,
+   "eps": {
+    "0.5": 3,
+    "1.25": 19,
+    "2.0": 9
+   }
+  },
+  {
+   "id": 7,
+   "ok": true,
+   "bench_c1": false,
+   "bench_cycles": 0,
+   "bench_val": [
+    0.973863,
+    0.966611
+   ],
+   "bench_hold": [
+    0.940077,
+    0.897765
+   ]
+  },
+  {
+   "id": 8,
+   "ok": null
+  }
+ ],
+ "candidate": {
+  "splits": {
+   "Huấn luyện": {
+    "equity_ratio": 1.000029,
+    "cba": 2.9e-05,
+    "idle_avg": 0.002635,
+    "idle_weeks_3b": 0.129787,
+    "mdd": -0.900081,
+    "mdd_dca": -0.900081,
+    "tuw": 167,
+    "tuw_dca": 167,
+    "sortino": 3.354479,
+    "sortino_dca": 3.354464,
+    "calmar": 2.286099,
+    "calmar_dca": 2.286088,
+    "weeks": 470,
+    "avg_mult": 1.020745,
+    "roll_n": 92,
+    "roll_er_median": 1.0,
+    "roll_er_p10": 1.0,
+    "roll_er_min": 0.996316,
+    "roll_cba_median": 0.0,
+    "roll_idle_avg": 0.018839,
+    "roll_share_above_1": 0.25
+   },
+   "Kiểm định": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.759056,
+    "mdd_dca": -0.759056,
+    "tuw": 59,
+    "tuw_dca": 59,
+    "sortino": 1.100527,
+    "sortino_dca": 1.100527,
+    "calmar": 0.355398,
+    "calmar_dca": 0.355398,
+    "weeks": 156,
+    "avg_mult": 1.296474,
+    "roll_n": 14,
+    "roll_er_median": 1.0,
+    "roll_er_p10": 1.0,
+    "roll_er_min": 1.0,
+    "roll_cba_median": 0.0,
+    "roll_idle_avg": 0.0,
+    "roll_share_above_1": 0.0
+   },
+   "Kiểm tra cuối": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.518764,
+    "mdd_dca": -0.518764,
+    "tuw": 55,
+    "tuw_dca": 55,
+    "sortino": 1.936504,
+    "sortino_dca": 1.936504,
+    "calmar": 0.97878,
+    "calmar_dca": 0.97878,
+    "weeks": 200,
+    "avg_mult": 1.1875,
+    "roll_n": 25,
+    "roll_er_median": 1.0,
+    "roll_er_p10": 1.0,
+    "roll_er_min": 1.0,
+    "roll_cba_median": 0.0,
+    "roll_idle_avg": 0.0,
+    "roll_share_above_1": 0.0
+   }
+  },
+  "cycles": {
+   "01/2011–11/2012": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.900081,
+    "mdd_dca": -0.900081,
+    "tuw": 77,
+    "tuw_dca": 77,
+    "sortino": 5.042411,
+    "sortino_dca": 5.042411,
+    "calmar": 6.651757,
+    "calmar_dca": 6.651757,
+    "weeks": 100,
+    "avg_mult": 1.0,
+    "complete": true
+   },
+   "11/2012–07/2016": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.798896,
+    "mdd_dca": -0.798896,
+    "tuw": 135,
+    "tuw_dca": 135,
+    "sortino": 3.221377,
+    "sortino_dca": 3.221377,
+    "calmar": 2.457259,
+    "calmar_dca": 2.457259,
+    "weeks": 188,
+    "avg_mult": 1.0,
+    "complete": true
+   },
+   "07/2016–05/2020": {
+    "equity_ratio": 1.014585,
+    "cba": 0.014585,
+    "idle_avg": 0.024609,
+    "idle_weeks_3b": 0.305,
+    "mdd": -0.805056,
+    "mdd_dca": -0.810119,
+    "tuw": 124,
+    "tuw_dca": 124,
+    "sortino": 2.223921,
+    "sortino_dca": 2.204526,
+    "calmar": 1.212226,
+    "calmar_dca": 1.193807,
+    "weeks": 200,
+    "avg_mult": 1.0975,
+    "complete": true
+   },
+   "05/2020–04/2024": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.759103,
+    "mdd_dca": -0.759103,
+    "tuw": 121,
+    "tuw_dca": 121,
+    "sortino": 1.842478,
+    "sortino_dca": 1.842478,
+    "calmar": 0.854829,
+    "calmar_dca": 0.854829,
+    "weeks": 206,
+    "avg_mult": 1.225728,
+    "complete": true
+   },
+   "04/2024–10/2026": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.518961,
+    "mdd_dca": -0.518961,
+    "tuw": 55,
+    "tuw_dca": 55,
+    "sortino": 0.618599,
+    "sortino_dca": 0.618599,
+    "calmar": 0.149737,
+    "calmar_dca": 0.149737,
+    "weeks": 132,
+    "avg_mult": 1.208333,
+    "complete": false
+   }
+  },
+  "bootstrap": {
+   "er": 1.0,
+   "er_ci": [
+    1.0,
+    1.0
+   ],
+   "er_median": 1.0,
+   "er_p10": 1.0,
+   "cba": 0.0,
+   "cba_ci": [
+    0.0,
+    0.0
+   ],
+   "n": 2000,
+   "block": 26
+  },
+  "bootstrap_holdout": {
+   "er": 1.0,
+   "er_ci": [
+    1.0,
+    1.0
+   ],
+   "er_median": 1.0,
+   "er_p10": 1.0,
+   "cba": 0.0,
+   "cba_ci": [
+    0.0,
+    0.0
+   ],
+   "n": 2000,
+   "block": 26
+  },
+  "placebo": {
+   "er": 1.0,
+   "percentile": 0.5,
+   "placebo_median": 1.0,
+   "placebo_p95": 1.0,
+   "n": 1000
+  },
+  "placebo_holdout": {
+   "er": 1.0,
+   "percentile": 0.5,
+   "placebo_median": 1.0,
+   "placebo_p95": 1.0,
+   "n": 1000
+  },
+  "dsr": {
+   "sr": null,
+   "sr0": null,
+   "dsr": null,
+   "T": 155
+  },
+  "sr_active": null
+ },
+ "current_bot": {
+  "splits": {
+   "Huấn luyện": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.900081,
+    "mdd_dca": -0.900081,
+    "tuw": 167,
+    "tuw_dca": 167,
+    "sortino": 3.354464,
+    "sortino_dca": 3.354464,
+    "calmar": 2.286088,
+    "calmar_dca": 2.286088,
+    "weeks": 470,
+    "avg_mult": 1.0,
+    "roll_n": 92,
+    "roll_er_median": 1.0,
+    "roll_er_p10": 1.0,
+    "roll_er_min": 1.0,
+    "roll_cba_median": 0.0,
+    "roll_idle_avg": 0.0,
+    "roll_share_above_1": 0.0
+   },
+   "Kiểm định": {
+    "equity_ratio": 0.987876,
+    "cba": -0.016256,
+    "idle_avg": 0.052817,
+    "idle_weeks_3b": 0.423077,
+    "mdd": -0.756225,
+    "mdd_dca": -0.759056,
+    "tuw": 59,
+    "tuw_dca": 59,
+    "sortino": 1.079712,
+    "sortino_dca": 1.100527,
+    "calmar": 0.345894,
+    "calmar_dca": 0.355398,
+    "weeks": 156,
+    "avg_mult": 1.022436,
+    "roll_n": 14,
+    "roll_er_median": 0.973863,
+    "roll_er_p10": 0.966611,
+    "roll_er_min": 0.965302,
+    "roll_cba_median": -0.027833,
+    "roll_idle_avg": 0.1407,
+    "roll_share_above_1": 0.0
+   },
+   "Kiểm tra cuối": {
+    "equity_ratio": 0.967442,
+    "cba": -0.031354,
+    "idle_avg": 0.081234,
+    "idle_weeks_3b": 0.735,
+    "mdd": -0.50178,
+    "mdd_dca": -0.518764,
+    "tuw": 55,
+    "tuw_dca": 55,
+    "sortino": 1.937734,
+    "sortino_dca": 1.936504,
+    "calmar": 0.96391,
+    "calmar_dca": 0.97878,
+    "weeks": 200,
+    "avg_mult": 1.2025,
+    "roll_n": 25,
+    "roll_er_median": 0.940077,
+    "roll_er_p10": 0.897765,
+    "roll_er_min": 0.879665,
+    "roll_cba_median": -0.03635,
+    "roll_idle_avg": 0.252562,
+    "roll_share_above_1": 0.16
+   }
+  },
+  "cycles": {
+   "01/2011–11/2012": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.900081,
+    "mdd_dca": -0.900081,
+    "tuw": 77,
+    "tuw_dca": 77,
+    "sortino": 5.042411,
+    "sortino_dca": 5.042411,
+    "calmar": 6.651757,
+    "calmar_dca": 6.651757,
+    "weeks": 100,
+    "avg_mult": 1.0,
+    "complete": true
+   },
+   "11/2012–07/2016": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.798896,
+    "mdd_dca": -0.798896,
+    "tuw": 135,
+    "tuw_dca": 135,
+    "sortino": 3.221377,
+    "sortino_dca": 3.221377,
+    "calmar": 2.457259,
+    "calmar_dca": 2.457259,
+    "weeks": 188,
+    "avg_mult": 1.0,
+    "complete": true
+   },
+   "07/2016–05/2020": {
+    "equity_ratio": 1.0,
+    "cba": 0.0,
+    "idle_avg": 0.0,
+    "idle_weeks_3b": 0.0,
+    "mdd": -0.810119,
+    "mdd_dca": -0.810119,
+    "tuw": 124,
+    "tuw_dca": 124,
+    "sortino": 2.204526,
+    "sortino_dca": 2.204526,
+    "calmar": 1.193807,
+    "calmar_dca": 1.193807,
+    "weeks": 200,
+    "avg_mult": 1.0,
+    "complete": true
+   },
+   "05/2020–04/2024": {
+    "equity_ratio": 0.971118,
+    "cba": 0.009531,
+    "idle_avg": 0.057569,
+    "idle_weeks_3b": 0.417476,
+    "mdd": -0.754629,
+    "mdd_dca": -0.759103,
+    "tuw": 121,
+    "tuw_dca": 121,
+    "sortino": 1.823821,
+    "sortino_dca": 1.842478,
+    "calmar": 0.830698,
+    "calmar_dca": 0.854829,
+    "weeks": 206,
+    "avg_mult": 1.15534,
+    "complete": true
+   },
+   "04/2024–10/2026": {
+    "equity_ratio": 0.97942,
+    "cba": -0.020649,
+    "idle_avg": 0.283595,
+    "idle_weeks_3b": 0.939394,
+    "mdd": -0.466952,
+    "mdd_dca": -0.518961,
+    "tuw": 55,
+    "tuw_dca": 55,
+    "sortino": 0.463394,
+    "sortino_dca": 0.618599,
+    "calmar": 0.09762,
+    "calmar_dca": 0.149737,
+    "weeks": 132,
+    "avg_mult": 0.994318,
+    "complete": false
+   }
+  },
+  "bootstrap": {
+   "er": 0.987876,
+   "er_ci": [
+    0.818593,
+    1.051208
+   ],
+   "er_median": 0.961347,
+   "er_p10": 0.875777,
+   "cba": -0.016256,
+   "cba_ci": [
+    -0.153619,
+    0.048427
+   ],
+   "n": 2000,
+   "block": 26
+  },
+  "bootstrap_holdout": {
+   "er": 0.967442,
+   "er_ci": [
+    0.859424,
+    1.045209
+   ],
+   "er_median": 0.963142,
+   "er_p10": 0.897176,
+   "cba": -0.031354,
+   "cba_ci": [
+    -0.117851,
+    0.053896
+   ],
+   "n": 2000,
+   "block": 26
+  },
+  "placebo": {
+   "er": 0.987876,
+   "percentile": 0.6245,
+   "placebo_median": 0.96024,
+   "placebo_p95": 1.0445,
+   "n": 1000
+  },
+  "placebo_holdout": {
+   "er": 0.967442,
+   "percentile": 0.874,
+   "placebo_median": 0.933005,
+   "placebo_p95": 0.977778,
+   "n": 1000
+  },
+  "dsr": {
+   "sr": -0.099259,
+   "sr_annual": -0.715767,
+   "sr0": 0.164104,
+   "skew": -2.441961,
+   "kurt": 17.847624,
+   "T": 155,
+   "n_trials": 135,
+   "dsr": 0.000128
+  },
+  "sr_active": -0.099259
+ },
+ "candidate_model": {
+  "layer_a": {
+   "model": "composite",
+   "features": [
+    "pi_ratio",
+    "p_200wma",
+    "hash_ribbon_buy"
+   ],
+   "table": [
+    [
+     0.8,
+     2.0
+    ],
+    [
+     0.6,
+     1.25
+    ],
+    [
+     0.2,
+     1.0
+    ],
+    [
+     0.0,
+     0.5
+    ]
+   ]
+  },
+  "layer_b": [],
+  "layer_c": [],
+  "sell": "advisory"
+ }
+}

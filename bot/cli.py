@@ -4,6 +4,7 @@ fetch           fetch all sources, check quality, save snapshots (daily job)
 record          forward-record open interest and funding only
 check-sources   reachability of every endpoint
 backtest        current bot vs DCA (add --final for the logged holdout run)
+final --final   phase 7: the single logged run on the locked holdout + acceptance criteria
 """
 from __future__ import annotations
 
@@ -34,6 +35,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "backtest":
         from bot.backtest import benchmark
         print(benchmark.table(benchmark.run(final=args.final)))
+        return 0
+    if args.command == "final":
+        if not args.final:
+            ap.error("the holdout is locked: run `python -m bot.cli final --final` (logged in experiments/final_runs.log)")
+        import pickle
+        from bot.config import DATA
+        from bot.validation import final
+        res = final.run()
+        (DATA / "derived").mkdir(parents=True, exist_ok=True)
+        with open(DATA / "derived" / "final_result.pkl", "wb") as f:
+            pickle.dump(res, f)
+        print("passed:", res["passed"], [(c["id"], c["ok"]) for c in res["criteria"]])
         return 0
     if args.command == "check-sources":
         from bot.data import check_sources
