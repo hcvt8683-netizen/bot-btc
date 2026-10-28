@@ -12,7 +12,7 @@
    ],
    "last": "2026-10-27",
    "rows": 5946,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fng": {
    "ok": true,
@@ -24,7 +24,7 @@
    ],
    "last": "2026-10-28",
    "rows": 3188,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_spot": {
    "ok": true,
@@ -36,38 +36,28 @@
    ],
    "last": "2026-10-27",
    "rows": 3359,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_funding": {
-   "ok": true,
-   "source": "binance_funding",
-   "errors": [],
-   "warnings": [
-    "funding_rate: 44 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
+   "ok": false,
+   "errors": [
+    "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)"
    ],
-   "last": "2026-10-28",
-   "rows": 7815,
-   "snapshot": "2026-10-28.parquet"
+   "trace": "       ^^^^^^^^^\n  File \"/home/runner/work/bot-btc/bot-btc/bot/data/fetchers/binance.py\", line 60, in fetch_funding\n    j = http.get_json(f\"{FUNDING}?symbol=BTCUSDT&startTime={s}&limit=1000\")\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)\n"
   },
   "binance_oi": {
-   "ok": true,
-   "source": "binance_oi",
-   "errors": [],
-   "warnings": [],
-   "last": "2026-10-28",
-   "rows": 30,
-   "snapshot": "2026-10-28.parquet"
+   "ok": false,
+   "errors": [
+    "FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)"
+   ],
+   "trace": "  ^^^^^^^^^\n  File \"/home/runner/work/bot-btc/bot-btc/bot/data/fetchers/binance.py\", line 79, in fetch_oi\n    return parse_oi(http.get_json(f\"{OI_HIST}?symbol=BTCUSDT&period=1d&limit=500\"))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)\n"
   },
   "binance_basis": {
-   "ok": true,
-   "source": "binance_basis",
-   "errors": [],
-   "warnings": [
-    "fut_close: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/11/2022"
+   "ok": false,
+   "errors": [
+    "FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)"
    ],
-   "last": "2026-10-27",
-   "rows": 2279,
-   "snapshot": "2026-10-28.parquet"
+   "trace": "ot-btc/bot/data/fetchers/binance.py\", line 87, in fetch_basis\n    j = http.get_json(f\"{DAPI_CONT}?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d\"\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)\n"
   },
   "stablecoins": {
    "ok": true,
@@ -78,19 +68,19 @@
    ],
    "last": "2026-10-28",
    "rows": 3256,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DTWEXBGS": {
    "ok": true,
    "source": "fred_DTWEXBGS",
    "errors": [],
    "warnings": [
-    "2 khoảng trống (lớn nhất 7 ngày): 11/03/2010→12/03/2010, 07/06/2016→08/06/2016",
+    "2 khoảng trống (lớn nhất 7 ngày): 05/02/2010→12/02/2010, 21/01/2016→27/01/2016",
     "usd_broad: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 26/03/2020"
    ],
    "last": "2026-10-23",
    "rows": 5217,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFII10": {
    "ok": true,
@@ -101,19 +91,19 @@
    ],
    "last": "2026-10-26",
    "rows": 5958,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_NASDAQCOM": {
    "ok": true,
    "source": "fred_NASDAQCOM",
    "errors": [],
    "warnings": [
-    "1 khoảng trống (lớn nhất 7 ngày): 20/09/2002→23/09/2002",
+    "1 khoảng trống (lớn nhất 7 ngày): 10/09/2001→17/09/2001",
     "nasdaq: 43 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/04/2025"
    ],
-   "last": "2026-10-26",
-   "rows": 14049,
-   "snapshot": "2026-10-28.parquet"
+   "last": "2026-10-27",
+   "rows": 14050,
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_M2SL": {
    "ok": true,
@@ -124,8 +114,8 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "2026-10-28.parquet"
+   "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-10-28T01:48:46Z"
+ "fetched_at": "2026-10-28T05:41:08Z"
 }

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T02:49:25Z",
+ "generated_at": "2026-10-28T05:41:14Z",
  "multiplier": 1.0,
  "mode": "safe",
  "layer": null,
@@ -43,22 +43,22 @@
    "error": ""
   },
   "binance_funding": {
-   "last": "2026-10-28",
-   "ok": true,
-   "age_days": 0,
-   "error": ""
+   "last": null,
+   "ok": false,
+   "age_days": null,
+   "error": "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)"
   },
   "binance_oi": {
-   "last": "2026-10-28",
-   "ok": true,
-   "age_days": 0,
-   "error": ""
+   "last": null,
+   "ok": false,
+   "age_days": null,
+   "error": "FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)"
   },
   "binance_basis": {
-   "last": "2026-10-27",
-   "ok": true,
-   "age_days": 1,
-   "error": ""
+   "last": null,
+   "ok": false,
+   "age_days": null,
+   "error": "FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)"
   },
   "stablecoins": {
    "last": "2026-10-28",
@@ -79,9 +79,9 @@
    "error": ""
   },
   "fred_NASDAQCOM": {
-   "last": "2026-10-26",
+   "last": "2026-10-27",
    "ok": true,
-   "age_days": 2,
+   "age_days": 1,
    "error": ""
   },
   "fred_M2SL": {
