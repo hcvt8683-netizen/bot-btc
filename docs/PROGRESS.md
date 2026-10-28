@@ -268,3 +268,11 @@ Thêm `python build.py --site`, `requirements.txt`, lệnh `features`. Bản ch�
 **Cài đặt GitHub bạn cần đổi tay.** Pages → Source "GitHub Actions"; Actions → Workflow permissions "Read and write"; môi trường `github-pages` chỉ cho `main`; nên bật bắt buộc kiểm tra `test` trước khi gộp vào `main`; `FRED_API_KEY` không bắt buộc. Chi tiết ở mục 4 của `docs/DEPLOY.md`.
 
 **Câu hỏi còn mở.** Chờ bạn duyệt khác biệt giao diện (tiêu chí 8) và nói **"OK deploy"**.
+
+## Triển khai (xong 28/10/2026, sau khi bạn nói "OK deploy")
+
+- Nối kho trên máy với `hcvt8683-netizen/bot-btc`. Gộp nâng cấp vào `main` (giữ lịch sử và `index.html` cũ của GitHub để quay lại được). Đẩy `main`, thẻ `v1-before-upgrade` và nhánh `upgrade/best-roi`. Bạn tự đăng nhập GitHub bằng mã thiết bị.
+- CI trên máy chủ GitHub đạt hết. Bạn đổi Pages sang "GitHub Actions" và bật quyền ghi cho workflow.
+- `Daily` giờ chạy cả khi có mã mới trên `main` (trừ khi chỉ sửa tài liệu). Lần chạy đầu thành công: lưu dữ liệu, dựng trang, đăng lên https://hcvt8683-netizen.github.io/bot-btc/ (tiêu đề "Báo cáo bot BTC", có phần khuyến nghị).
+- Từ máy chủ GitHub ở Mỹ, Binance chặn hợp đồng tương lai (HTTP 451): funding, khối lượng hợp đồng mở, hợp đồng quý. Ba nguồn này không dùng trong khuyến nghị. Trên trang, thông báo lỗi giờ là tiếng Việt dễ hiểu. Khối lượng hợp đồng mở không ghi tiếp được từ máy chủ GitHub; muốn ghi thì cần chạy trên máy ở Việt Nam (self-hosted runner, xem `docs/DEPLOY.md`).
+- Kết quả kiểm tra từng nguồn được lưu mỗi ngày ở `data/endpoint_check.json`.

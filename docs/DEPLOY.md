@@ -1,9 +1,9 @@
 # Triển khai trang web bot BTC (giai đoạn 9)
 
-## 1. Hiện trạng (28/10/2026)
+## 1. Hiện trạng (cập nhật 28/10/2026, sau khi triển khai)
 - Trang đang chạy: https://hcvt8683-netizen.github.io/bot-btc/. Kho công khai `hcvt8683-netizen/bot-btc` chỉ có một file `index.html` tải lên bằng tay, Pages lấy từ nhánh `main`, thư mục gốc.
 - Bản đang chạy giống từng byte với `bot-xac-suat.html` ở thẻ `v1-before-upgrade`, nên quay lại bản cũ luôn làm được.
-- Bản nâng cấp nằm trên nhánh `upgrade/best-roi` trong máy. **Chưa đẩy lên GitHub, chưa gộp vào `main`, chưa đăng gì.** Bản dựng sẵn để bạn xem: `dist/trang-web-ban-nang-cap.zip`.
+- **Đã triển khai ngày 28/10/2026**: bản nâng cấp đã gộp vào `main` (commit 377b7bf) và đẩy lên GitHub cùng thẻ `v1-before-upgrade` và nhánh `upgrade/best-roi`. Nguồn Pages là "GitHub Actions". Lần chạy `Daily` đầu tiên thành công: lưu dữ liệu (`data: cập nhật 28/10/2026`) và đăng trang mới.
 - Giữ nguyên địa chỉ trang. Không có tên miền riêng. Trang chỉ dùng đường dẫn tương đối và là một file duy nhất, nên chạy đúng dưới `/bot-btc/`.
 
 ## 2. Cách trang tự cập nhật sau khi triển khai
@@ -31,19 +31,18 @@
 ## 3. Nguồn dữ liệu từ máy chủ GitHub
 Máy chủ GitHub đặt ở Mỹ. Binance thường trả HTTP 451/403 cho `api.binance.com`, `fapi.binance.com` và `dapi.binance.com` từ đó.
 
-| Nguồn | Từ máy ở Việt Nam (28/10/2026) | Từ máy chủ GitHub |
+| Nguồn | Từ máy ở Việt Nam (28/10/2026) | Từ máy chủ GitHub (lần chạy đầu, 28/10/2026) |
 |---|---|---|
-| Coin Metrics | 200 OK | điền sau lần chạy đầu |
-| Alternative.me | 200 OK | điền sau lần chạy đầu |
-| Binance api (spot) | 200 OK | điền sau lần chạy đầu |
-| Binance data-api.binance.vision (spot) | 200 OK | điền sau lần chạy đầu |
-| Binance fapi (funding, OI) | 200 OK | điền sau lần chạy đầu |
-| Binance dapi (hợp đồng quý) | 200 OK | điền sau lần chạy đầu |
-| CoinGecko | 200 OK | điền sau lần chạy đầu |
-| DefiLlama | 200 OK | điền sau lần chạy đầu |
-| FRED (CSV) | 200 OK | điền sau lần chạy đầu |
+| Coin Metrics | 200 OK | OK |
+| Alternative.me | 200 OK | OK |
+| Binance spot (api hoặc dự phòng data-api.binance.vision) | 200 OK | OK |
+| Binance fapi (funding, khối lượng hợp đồng mở) | 200 OK | **bị chặn, HTTP 451** |
+| Binance dapi (hợp đồng quý) | 200 OK | **bị chặn, HTTP 451** |
+| DefiLlama | 200 OK | OK |
+| FRED (CSV) | 200 OK | OK |
 
-Bảng kết quả từ máy chủ nằm ở phần tóm tắt (Summary) của mỗi lần chạy `Daily`. Nếu Binance bị chặn:
+Từ lần chạy sau, kết quả kiểm tra từng địa chỉ được lưu mỗi ngày trong `data/endpoint_check.json`; trạng thái tải của từng nguồn nằm trong `data/status.json`.
+Bảng kết quả từ máy chủ cũng nằm ở phần tóm tắt (Summary) của mỗi lần chạy `Daily`. Vì Binance chặn hợp đồng tương lai:
 - Giá và khối lượng spot tự chuyển sang `data-api.binance.vision`; giá lịch sử chính vẫn lấy từ Coin Metrics.
 - Funding, khối lượng hợp đồng mở và basis không lấy được. Cả ba **không dùng trong khuyến nghị**: lớp B không qua kiểm định. Riêng khối lượng hợp đồng mở sẽ không ghi tiếp được. Muốn ghi tiếp, chạy bước dữ liệu trên máy của bạn hoặc một VPS ở Việt Nam (self-hosted runner: Settings → Actions → Runners → New self-hosted runner, rồi đổi `runs-on: self-hosted` cho job `data`).
 - Phần tính trực tiếp trên trang (tỷ lệ nên mua, nên bán…) chạy trong trình duyệt của người xem ở Việt Nam, nên **không bị ảnh hưởng**.

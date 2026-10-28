@@ -1,8 +1,11 @@
 """Reachability check of every data endpoint (used on the GitHub runner, logged into docs/DEPLOY.md)."""
 from __future__ import annotations
 
+import datetime as dt
+import json
 import time
 
+from bot.config import DATA
 from bot.data import http
 
 ENDPOINTS = {
@@ -28,6 +31,9 @@ def run() -> list[tuple[str, str, float]]:
         except http.FetchError as e:
             res = f"HTTP {e.status}" if e.status else str(e)[:60]
         rows.append((name, res, round(time.time() - t0, 1)))
+    (DATA / "endpoint_check.json").write_text(json.dumps(
+        {"checked_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+         "results": [{"source": n, "result": r, "seconds": s} for n, r, s in rows]}, ensure_ascii=False, indent=1), encoding="utf-8")
     print("| Nguồn | Kết quả | Giây |\n|---|---|---|")
     for r in rows:
         print(f"| {r[0]} | {r[1]} | {r[2]} |")

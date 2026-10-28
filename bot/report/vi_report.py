@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 
 from bot.config import DATA, cfg, personal
 from bot.i18n import fmt, t
@@ -30,6 +31,14 @@ def _events(now: dt.datetime, days: int = 7) -> list[dict]:
     return sorted(keep, key=lambda e: e["time"])
 
 
+def _friendly(err: str) -> str:
+    """Vietnamese message for a source error shown on the page (raw details stay in data/status.json)."""
+    if not err:
+        return ""
+    m = re.search(r"HTTP (451|403)", err)
+    return t("sources.err_blocked", code=m.group(1)) if m else t("sources.err_other")
+
+
 def _freshness(now: dt.datetime) -> tuple[dict, bool]:
     """Per source: last row, ok, age; and whether a required source is missing or stale."""
     path = DATA / "status.json"
@@ -39,7 +48,7 @@ def _freshness(now: dt.datetime) -> tuple[dict, bool]:
     for name, s in st.get("sources", {}).items():
         last = s.get("last")
         age = (now.date() - dt.date.fromisoformat(last)).days if last else None
-        out[name] = {"last": last, "ok": bool(s.get("ok")), "age_days": age, "error": "; ".join(s.get("errors") or [])[:160]}
+        out[name] = {"last": last, "ok": bool(s.get("ok")), "age_days": age, "error": _friendly("; ".join(s.get("errors") or []))}
     for name, conf in cfg()["sources"].items():
         if conf.get("required"):
             s = out.get(name)

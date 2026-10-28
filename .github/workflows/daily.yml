@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]   # mã mới trên main được đăng ngay; lần lưu dữ liệu của bot (GITHUB_TOKEN) không kích hoạt lại
+    paths-ignore: ["docs/**", "**/*.md"]
 
 concurrency:
   group: btc-bot
@@ -57,7 +58,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw data/status.json data/recommendation.json data/features.parquet
+          git add data/raw data/status.json data/recommendation.json data/features.parquet data/endpoint_check.json
           if git diff --cached --quiet; then
             echo "Không có dữ liệu mới."
           else

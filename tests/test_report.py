@@ -66,3 +66,10 @@ def test_every_text_key_exists_and_vi_json_is_in_sync():
     missing = sorted(k for k in used if not has(k))
     assert not missing, missing
     assert json.loads((ROOT / "src" / "vi.json").read_text(encoding="utf-8")) == {"web": vi["web"], "sources": vi["sources"]}, "run python build.py"
+
+
+def test_source_errors_are_shown_in_vietnamese():
+    assert vi_report._friendly("FetchError: HTTP 451 (https://fapi.binance.com/...)") == \
+        "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
+    assert vi_report._friendly("TimeoutError: timed out") == "không tải được, đang dùng bản gần nhất"
+    assert vi_report._friendly("") == ""

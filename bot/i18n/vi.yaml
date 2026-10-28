@@ -25,6 +25,8 @@ sources:
   fred_M2SL: "FRED (cung tiền M2)"
   status_ok: "đến {last}"
   status_err: "lỗi: {err}"
+  err_blocked: "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP {code}); không dùng trong khuyến nghị"
+  err_other: "không tải được, đang dùng bản gần nhất"
 
 report:
   title: "Khuyến nghị giải ngân tuần này"
