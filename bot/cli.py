@@ -3,6 +3,7 @@
 fetch           fetch all sources, check quality, save snapshots (daily job)
 record          forward-record open interest and funding only
 check-sources   reachability of every endpoint
+backtest        current bot vs DCA (add --final for the logged holdout run)
 """
 from __future__ import annotations
 
@@ -29,6 +30,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "record":
         from bot.data import update
         update.run(["binance_oi", "binance_funding"])
+        return 0
+    if args.command == "backtest":
+        from bot.backtest import benchmark
+        print(benchmark.table(benchmark.run(final=args.final)))
         return 0
     if args.command == "check-sources":
         from bot.data import check_sources

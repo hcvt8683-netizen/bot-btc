@@ -43,3 +43,52 @@ Mỗi giai đoạn ghi: tóm tắt, file thay đổi, kết quả kiểm tra, b�
 **Kết quả kiểm tra.** `python -m pytest`: 13/13 đạt (7 bài mới cho dữ liệu, không gọi mạng).
 
 **Câu hỏi còn mở.** Việc ghi khối lượng hợp đồng mở mỗi ngày đã chạy lần đầu trên máy này. Từ giai đoạn 9 sẽ do GitHub Actions chạy hằng ngày. Từ máy chủ GitHub ở Mỹ, Binance có thể chặn (HTTP 451); khi đó các chỉ số phái sinh tạm không dùng được (xem giai đoạn 9).
+
+## Giai đoạn 2: Mô phỏng so với mua đều (xong 28/10/2026)
+
+**Tóm tắt.** Bộ mô phỏng theo mục 2.1. Mỗi tuần nạp ngân sách B và mua `clip(m × B, 0, tiền mặt)` với hệ số m trong [0,25; 2]. Phần chưa tiêu vào quỹ dự trữ. Quỹ quá 12 × B thì buộc m ≥ 1. Phí 0,10% và trượt giá 0,05%. Mua đều (DCA) là mốc. Đã có đủ các thước đo của mục 2.2: tỷ số tài sản so với mua đều, lợi thế giá vốn, tiền mặt chờ, sụt giảm lớn nhất (theo lợi suất loại bỏ dòng tiền nạp), thời gian dưới đỉnh, Sortino, Calmar, khung trượt 104 tuần mỗi 4 tuần (trung vị và kịch bản xấu P10). Tỷ lệ thắng chỉ để tham khảo, luôn kèm số đợt và khoảng tin cậy.
+
+**Quy ước thời điểm (không nhìn trước).** Quyết định lúc 01:00 UTC thứ Ba, chỉ dùng số liệu đã công bố lúc đó (Coin Metrics của Chủ nhật công bố sớm nhất 00:00 thứ Ba). Mua ở giá đóng cửa thứ Ba. Điểm của bot hiện tại tính cho Chủ nhật, nên chỉ được dùng từ thứ Ba.
+
+**Dựng lại bot hiện tại.** Chạy chính mã JavaScript của bot (`tools/export_current_bot.js`) trên dữ liệu thật. Lấy điểm tỷ lệ nên mua từng tuần (đi tới, không nhìn trước), rồi đổi khung thành hệ số: Phải mua → 2,0, Cân nhắc mua → 1,25, Không nên mua → 0,25. Chế độ mặc định "Tự động: phương án tốt nhất" được chọn lại mỗi 4 tuần từ 01/2021, chỉ với dữ liệu có đến lúc đó. Bot đổi lựa chọn nhiều lần: tất cả chỉ số → PA6 [Khối lượng] (07/2022) → PA3 → PA6 [RSI + MVRV Z] → PA3. Trước khi có điểm, hệ số = 1 (mua đều).
+
+**Bảng mốc đầu tiên** (dữ liệu đến 31/12/2022; giai đoạn kiểm tra cuối từ 01/01/2023 vẫn khóa):
+
+| Chiến lược | Giai đoạn | Tỷ số tài sản so với mua đều | Trung vị khung 2 năm | Kịch bản xấu (10% tệ nhất) | Số khung | Lợi thế giá vốn | Tiền mặt chờ TB | Sụt giảm lớn nhất (bot / mua đều) |
+|---|---|---|---|---|---|---|---|---|
+| Bot hiện tại (Tự động: phương án tốt nhất, chọn lại mỗi 4 tuần) | Huấn luyện | 1,000 | 1,000 | 1,000 | 92 | 0,0% | 0% | -90% / -90% |
+| Bot hiện tại (Tự động: phương án tốt nhất, chọn lại mỗi 4 tuần) | Kiểm định | 0,988 | 0,974 | 0,967 | 14 | -1,6% | 5% | -76% / -76% |
+| PA3 cố định (Pi + MVRV + F&G) | Huấn luyện | 1,000 | 1,000 | 1,000 | 92 | 0,0% | 0% | -90% / -90% |
+| PA3 cố định (Pi + MVRV + F&G) | Kiểm định | 0,943 | 0,882 | 0,856 | 14 | -5,7% | 10% | -74% / -76% |
+| PA1 (Pi + MVRV) | Huấn luyện | 1,000 | 1,000 | 0,895 | 92 | +2,7% | 1% | -90% / -90% |
+| PA1 (Pi + MVRV) | Kiểm định | 0,973 | 1,001 | 0,963 | 14 | -2,8% | 5% | -76% / -76% |
+| PA2 (Pi + MVRV Z) | Huấn luyện | 1,000 | 1,000 | 0,897 | 92 | +2,7% | 2% | -90% / -90% |
+| PA2 (Pi + MVRV Z) | Kiểm định | 0,962 | 1,001 | 0,946 | 14 | -4,1% | 8% | -76% / -76% |
+| PA4 (Pi + Puell) | Huấn luyện | 0,999 | 0,989 | 0,775 | 92 | +2,7% | 2% | -90% / -90% |
+| PA4 (Pi + Puell) | Kiểm định | 0,856 | 0,805 | 0,783 | 14 | -14,4% | 20% | -75% / -76% |
+| PA5 (F&G + MVRV + MA200) | Huấn luyện | 1,000 | 1,000 | 1,000 | 92 | 0,0% | 0% | -90% / -90% |
+| PA5 (F&G + MVRV + MA200) | Kiểm định | 0,957 | 0,910 | 0,884 | 14 | -4,3% | 9% | -74% / -76% |
+| Tất cả chỉ số | Huấn luyện | 1,000 | 1,000 | 1,000 | 92 | 0,0% | 0% | -90% / -90% |
+| Tất cả chỉ số | Kiểm định | 1,018 | 1,037 | 0,988 | 14 | +1,7% | 7% | -75% / -76% |
+
+| Chiến lược | 01/2011–11/2012 | 11/2012–07/2016 | 07/2016–05/2020 | 05/2020–12/2022 |
+|---|---|---|---|---|
+| Bot hiện tại (Tự động: phương án tốt nhất, chọn lại mỗi 4 tuần) | 1,000 | 1,000 | 1,000 | 0,983 (chưa trọn) |
+| PA3 cố định (Pi + MVRV + F&G) | 1,000 | 1,000 | 1,000 | 0,922 (chưa trọn) |
+| PA1 (Pi + MVRV) | 1,000 | 0,987 | 0,986 | 1,001 (chưa trọn) |
+| PA2 (Pi + MVRV Z) | 1,000 | 0,987 | 0,986 | 1,001 (chưa trọn) |
+| PA4 (Pi + Puell) | 1,000 | 0,981 | 0,786 | 0,858 (chưa trọn) |
+| PA5 (F&G + MVRV + MA200) | 1,000 | 1,000 | 1,000 | 0,941 (chưa trọn) |
+| Tất cả chỉ số | 1,000 | 1,000 | 1,000 | 1,024 (chưa trọn) |
+
+**Đọc kết quả.**
+- Bot hiện tại ở chế độ mặc định **kém mua đều** trong giai đoạn kiểm định: tỷ số 0,988, trung vị khung 2 năm 0,974, kịch bản xấu 0,967.
+- PA3 cố định (phương án đang đứng đầu, chọn bằng dữ liệu đến hôm nay) còn kém hơn: 0,943. PA4 kém nhất (0,856, chu kỳ 2016–2020 chỉ 0,786).
+- Ở giai đoạn huấn luyện, phần lớn phương án chưa có điểm (cần Fear & Greed từ 2018), nên bằng đúng mua đều.
+- Đây là mốc mà mô hình mới phải vượt (tiêu chí 7).
+
+**File thay đổi.** `bot/backtest/` (engine, metrics, baselines, current_bot, benchmark), `bot/features/panel.py`, `bot/validation/splits.py` (chia giai đoạn, chu kỳ halving, khóa giai đoạn kiểm tra cuối), `tools/export_current_bot.js`, `bot/cli.py` (lệnh `backtest`), `tests/test_backtest.py`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 21/21 đạt (8 bài mới cho mô phỏng, thước đo, ghép điểm theo thời điểm, khóa giai đoạn kiểm tra cuối).
+
+**Câu hỏi còn mở.** Không có.

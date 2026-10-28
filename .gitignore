@@ -8,3 +8,4 @@ config.json
 config/personal.yaml
 .pytest_cache/
 tests/snapshots/*.new
+data/derived/
