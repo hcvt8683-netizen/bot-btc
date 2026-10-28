@@ -120,3 +120,28 @@ Bot hiện tại không đạt các tiêu chí mới. Lợi thế của nó khô
 **Kết quả kiểm tra.** `python -m pytest`: 26/26 đạt.
 
 **Câu hỏi còn mở.** Không có.
+
+## Giai đoạn 4: Lõi lớp chu kỳ (lớp A) (xong 28/10/2026)
+
+**Tóm tắt.** Dựng lại lõi trên dữ liệu từ 2011 với 10 chỉ số nhóm A (`bot/features/catalogue.py`): MVRV, MVRV Z, Pi, Giá/MA 200 tuần, Mayer, Puell, giảm từ đỉnh, NUPL, pha halving, Hash Ribbon. Chuẩn hóa thành phân vị theo thời điểm trong 208 tuần (trống trước 104 tuần), rồi đổi chiều thành "độ rẻ". Bảng chỉ số theo tuần lưu ở `data/features.parquet` kèm `available_at`. Thử theo đúng thứ tự mục 4.2: mô hình 1 (tổng hợp đều) → mô hình 2 (ridge ràng buộc dấu, đi tới, cắt bỏ nhãn chồng) → mô hình 3 (boosting đơn điệu). Chỉ chọn bằng giai đoạn huấn luyện. Chi tiết: `docs/ABLATION_A.md`.
+
+**Phát hiện chính.**
+- Các chỉ số định giá gần như đo cùng một thứ trong giai đoạn huấn luyện: MVRV tương quan 0,99 với MVRV Z, 1,00 với NUPL, 0,94 với giảm từ đỉnh, 0,91 với MA 200 tuần. Với quy tắc |ρ| > 0,8, tối đa giữ được 3 chỉ số.
+- Với bảng hệ số mặc định của tài liệu (T0), mọi chỉ số riêng đều **kém mua đều** trên giai đoạn huấn luyện (trung vị khung 2 năm 0,92–0,97). Lý do: hệ số trung bình dưới 1 nên tiền nằm chờ khi giá lên, và mua gấp đôi lúc rẻ chỉ làm được khi đã để dành từ trước.
+- Hồi quy đi tới: hệ số của mọi chỉ số định giá trên lợi suất 26/52 tuần **đổi dấu** giữa các lần học hoặc ngược chiều kinh tế ("rẻ" đi kèm lợi suất thấp hơn). Theo quy tắc mục 4.2 phải bỏ, nên mô hình 2 và 3 không hơn mô hình 1.
+- Bộ thắng theo quy tắc định trước: bảng T1 (≥ 0,8 → 2,0; 0,6–0,8 → 1,25; 0,2–0,6 → 1,0; < 0,2 → 0,5) với Pi + Giá/MA 200 tuần + Hash Ribbon. Bộ này **gần như mua đều**.
+
+| Chiến lược (dữ liệu đến 31/12/2022) | Huấn luyện: trung vị / P10 | Kiểm định: tỷ số | Kiểm định: trung vị / P10 | Chu kỳ halving có tỷ số > 1 |
+|---|---|---|---|---|
+| Lớp A chọn được (T1: Pi + MA200 tuần + Hash Ribbon) | 1,000 / 1,000 | 1,000 | 1,000 / 1,000 | 1/4 (2016–2020: 1,015) |
+| Lớp A, bảng mặc định T0 (Hash Ribbon) | 0,960 / 0,879 | 1,010 | 1,026 / 0,980 | 1/4 |
+| Lớp A, bảng T2 (Puell + Hash Ribbon) | 0,998 / 0,981 | 1,006 | 1,012 / 1,009 | 1/4 |
+| Bot hiện tại (Tự động) | 1,000 / 1,000 (chưa có điểm) | 0,988 | 0,974 / 0,967 | 0/4 |
+
+Số lần thử trong sổ đến hết giai đoạn này: 119.
+
+**File thay đổi.** `bot/features/` (catalogue, normalize, build), `bot/models/core.py`, `bot/models/ablation_a.py`, `config/bot.yaml` (mục `model`), `docs/ABLATION_A.md`, `data/features.parquet`, `experiments/registry.csv`, `tests/test_features.py`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 31/31 đạt.
+
+**Câu hỏi còn mở.** Lớp A không có lợi thế vững so với mua đều trên dữ liệu phát triển. Theo quy trình, vẫn làm tiếp lớp B/C, bên bán, rồi chạy một lần giai đoạn kiểm tra cuối để quyết định.

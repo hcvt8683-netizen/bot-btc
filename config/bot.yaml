@@ -51,3 +51,11 @@ sources:
 features:
   disabled:
     - etf_flow_5d        # nguồn tùy chọn (bảng Farside), lấy bằng đọc trang web nên dễ hỏng; chưa bật
+# Mô hình đang được đánh giá (chọn ở giai đoạn 4–6 chỉ bằng dữ liệu huấn luyện; xem docs/ABLATION_A.md)
+model:
+  layer_a:
+    model: composite
+    features: [pi_ratio, p_200wma, hash_ribbon_buy]
+    table: [[0.80, 2.0], [0.60, 1.25], [0.20, 1.0], [0.0, 0.5]]
+  layer_b: []
+  layer_c: []
