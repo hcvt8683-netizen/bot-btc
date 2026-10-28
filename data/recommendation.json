@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T05:41:14Z",
+ "generated_at": "2026-10-28T05:46:46Z",
  "multiplier": 1.0,
  "mode": "safe",
  "layer": null,
@@ -46,19 +46,19 @@
    "last": null,
    "ok": false,
    "age_days": null,
-   "error": "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)"
+   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
   },
   "binance_oi": {
    "last": null,
    "ok": false,
    "age_days": null,
-   "error": "FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)"
+   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
   },
   "binance_basis": {
    "last": null,
    "ok": false,
    "age_days": null,
-   "error": "FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)"
+   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
   },
   "stablecoins": {
    "last": "2026-10-28",
