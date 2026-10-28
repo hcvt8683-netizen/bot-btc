@@ -3,10 +3,33 @@
 Chạy: python build.py          -> tạo bot-xac-suat.html ở thư mục gốc
       python build.py --zip    -> tạo thêm dist/BotBTC-Windows.zip và dist/BotBTC-Mac.zip
 """
-import os, sys, time, zipfile
+import json, os, re, sys, time, zipfile
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
+VI_YAML = os.path.join(ROOT, "bot", "i18n", "vi.yaml")
+
+
+def web_strings():
+    """The `web` part of bot/i18n/vi.yaml (all text of the page); also written to src/vi.json for the node tests."""
+    sys.path.insert(0, ROOT)
+    from bot.config import load_yaml
+    y = load_yaml(VI_YAML)
+    vi = {"web": y["web"], "sources": y["sources"]}
+    with open(os.path.join(SRC, "vi.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(vi, f, ensure_ascii=False, indent=1, sort_keys=True)
+        f.write("\n")
+    return vi
+
+
+def fill_page(page, vi):
+    """Replace {{web.page.key}} placeholders with the text from vi.yaml (missing keys stop the build)."""
+    def one(m):
+        node = vi
+        for k in m.group(1).split("."):
+            node = node[k]
+        return node
+    return re.sub(r"\{\{(web\.[a-z0-9_.]+)\}\}", one, page)
 
 
 def read(name):
@@ -14,14 +37,26 @@ def read(name):
         return f.read()
 
 
-def build(out=None):
-    page = read("page.html")
+def recommendation(path=None):
+    """data/recommendation.json from the daily job (python -m bot.cli report), or None when it does not exist yet."""
+    path = path or os.path.join(ROOT, "data", "recommendation.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build(out=None, kn_path=None):
+    vi = web_strings()
+    page = fill_page(read("page.html"), vi)
+    i18n = read("i18n.js").replace("if (typeof module !== 'undefined') module.exports = I18N;\n", "").replace(
+        "/*VI_JSON*/null", json.dumps(vi, ensure_ascii=False, sort_keys=True))
     engine = read("engine.js").replace("if (typeof module !== 'undefined') module.exports = BOT;\n", "")
     analysis = read("analysis.js").replace("if (typeof module !== 'undefined') module.exports = B3;\n", "")
-    for mark in ("/*CORE*/", "/*B3*/", "/*UI*/"):
+    for mark in ("/*I18N*/", "/*CORE*/", "/*B3*/", "/*UI*/"):
         if page.count(mark) != 1:
             sys.exit(f"Lỗi: page.html phải có đúng một chỗ {mark}")
-    html = page.replace("/*CORE*/", engine).replace("/*B3*/", analysis).replace("/*UI*/", read("ui.js"))
+    html = page.replace("/*I18N*/", i18n).replace("/*CORE*/", engine).replace("/*B3*/", analysis).replace("/*UI*/", read("ui.js").replace("/*KN_JSON*/null", json.dumps(recommendation(kn_path), ensure_ascii=False)))
     out = out or os.path.join(ROOT, "bot-xac-suat.html")
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)

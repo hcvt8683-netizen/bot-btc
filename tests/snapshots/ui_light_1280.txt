@@ -2,6 +2,7 @@
 Bot mua bán BTC
 1.102 $
 giá trực tiếp
+Cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam)
 Tỷ lệ nên mua, ngày 28/10/2026
 87%
 Phải mua
@@ -30,6 +31,55 @@ Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn 22% số tuần 
 
 Lịch sử ở khung không nên bán: giá thấp hơn sau 6 tháng 25%, giảm hơn 10% 22% (279 tuần). Bất kỳ lúc nào: 38% và 32%.
 
+Khuyến nghị giải ngân tuần này
+
+Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.
+
+Hệ số mua: 1,0 — 100 $ trên mỗi 100 $ ngân sách tuần. Chế độ an toàn: mua đều
+
+Vì sao: mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều. Các khung Phải mua, Cân nhắc mua ở trên vẫn là cách đọc tham khảo của bot hiện tại; kiểm định cho thấy mua theo khung (Phải mua × 2,0, Cân nhắc mua × 1,25, Không nên mua × 0,25) chưa hơn mua đều.
+
+So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)
+
+Cách mua	Tỷ số tài sản, trung vị	Kịch bản xấu (10% tệ nhất)	Lợi thế giá vốn	Sụt giảm lớn nhất / mua đều	Hơn ngẫu nhiên
+Mua theo khung của bot hiện tại
+Kiểm định 2020–2022
+	0,974	0,967	−1,6%	−76% / −76%	—
+Mua theo khung của bot hiện tại
+Kiểm tra cuối từ 2023
+	0,940	0,898	−3,1%	−50% / −52%	87%
+Mô hình mới (chưa đạt)
+Kiểm định 2020–2022
+	1,000	1,000	0,0%	−76% / −76%	—
+Mô hình mới (chưa đạt)
+Kiểm tra cuối từ 2023
+	1,000	1,000	0,0%	−52% / −52%	50%
+Hệ số 2,00: 9 đợt độc lập — Ít bằng chứng
+Hệ số 1,25: 19 đợt độc lập
+Hệ số 0,50: 3 đợt độc lập — Ít bằng chứng
+Khoảng tin cậy 95% của tỷ số tài sản, giai đoạn kiểm tra cuối: mô hình mới 1,000–1,000; mua theo khung 0,859–1,045.
+Số lần thử khi nghiên cứu: 135. Chi tiết trong docs/RESULTS.md.
+
+Sự kiện vĩ mô trong 7 ngày tới
+
+01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC
+19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE
+15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng
+Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.
+
+Độ mới của dữ liệu
+
+Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành): đến 27/10/2026
+Fear & Greed (Alternative.me): đến 28/10/2026
+Binance (giá và khối lượng ngày): đến 27/10/2026
+Binance (funding rate hợp đồng vĩnh cửu): đến 28/10/2026
+Binance (khối lượng hợp đồng mở): đến 28/10/2026
+Binance (hợp đồng tương lai quý): đến 27/10/2026
+DefiLlama (tổng cung stablecoin): đến 28/10/2026
+FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026
+FRED (lợi suất thực 10 năm): đến 26/10/2026
+FRED (Nasdaq Composite): đến 26/10/2026
+FRED (cung tiền M2): đến 01/09/2026
 Giá đề xuất mua và bán
 
 Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày 28/10/2026. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.
@@ -116,12 +166,13 @@ Phải mua
 Không nên bán
 So sánh các phương án
 
-Bot chạy cả 6 phương án tại ngày 28/10/2026 và chấm trên cùng giai đoạn từ 01/01/2021. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút "Tự động: phương án tốt nhất" luôn dùng phương án hạng 1.
+Bot chạy cả 6 phương án tại ngày 28/10/2026 và chấm trên cùng giai đoạn từ 01/01/2021. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút "Tự động: phương án tốt nhất" luôn dùng phương án hạng 1. ⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.
 
 Đồng thuận của 6 phương án: 1 phải mua, 1 cân nhắc mua, 4 không nên mua; 2 nên bán, 2 cân nhắc bán, 2 không nên bán. Trung bình tỷ lệ nên mua 54%, nên bán 67%. Các phương án đang bất đồng (có phương án báo Phải mua và có phương án báo Không nên mua), nên độ chắc chắn thấp. Hạng 1 là Phương án 6: phải mua (87%).
 
 Hạng	Phương án	Nên mua hôm nay	Nên bán hôm nay	Thắng 1 tháng	Thắng 3 tháng	Thắng 6 tháng	Thắng 1 năm	Nửa đầu / nửa sau	Khi Nên bán, giá thấp hơn sau 6 tháng	
-1	Phương án 6tốt nhất
+1	⚠ Phương án 6tốt nhất
+Ít bằng chứng: 4 đợt độc lập
 Mayer Multiple + Giá / MA 200 tuần. Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.
 	87%
 Phải mua
@@ -138,7 +189,8 @@ Không nên bán
 	98% / —	48%
 mốc 51%, 85 lần
 	Dùng
-2	Phương án 2
+2	⚠ Phương án 2
+Ít bằng chứng: 2 đợt độc lập
 Tỉ số Pi Cycle + MVRV Z-Score. Như phương án 1 nhưng dùng MVRV Z-Score.
 	27%
 Không nên mua
@@ -155,7 +207,8 @@ Cân nhắc bán
 	89% / 7%	49%
 mốc 51%, 69 lần
 	Dùng
-3	Phương án 4
+3	⚠ Phương án 4
+Hai nửa lệch 86 điểm %
 Tỉ số Pi Cycle + Puell Multiple. Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving.
 	73%
 Cân nhắc mua
@@ -206,7 +259,8 @@ Nên bán
 	100% / —	36%
 mốc 51%, 64 lần
 	Dùng
-—	Phương án 1
+—	⚠ Phương án 1
+Ít bằng chứng: 1 đợt độc lập
 Tỉ số Pi Cycle + MVRV. Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.
 	29%
 Không nên mua
@@ -340,12 +394,13 @@ Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua 
 Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.
 Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử
 
-Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ 01/01/2021 đến 28/10/2026, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa.
+Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ 01/01/2021 đến 28/10/2026, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa. ⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.
 
 Bộ chỉ số	Thắng 1 tháng	Thắng 3 tháng	Thắng 6 tháng	Thắng 1 năm	Nửa đầu, 6 tháng	Nửa sau, 6 tháng	
 Mua bất kỳ lúc nào (mốc)	56%	52%	49%	51%			
-Bộ bot tìm đượccao nhất
+⚠ Bộ bot tìm đượccao nhất
 Mayer Multiple, Giá / MA 200 tuần
+Ít bằng chứng: 4 đợt độc lập
 	94%
 54 lần
 	100%
@@ -355,8 +410,9 @@ Mayer Multiple, Giá / MA 200 tuần
 	100%
 48 lần
 	98% (48)	không có tín hiệu	Dùng bộ này
-Xu hướng giá
+⚠ Xu hướng giá
 Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle
+Ít bằng chứng: 2 đợt độc lập
 	94%
 70 lần
 	96%
@@ -366,8 +422,9 @@ Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle
 	99%
 67 lần
 	95% (61)	0% (6)	Dùng bộ này
-Mayer Multiple (riêng)
+⚠ Mayer Multiple (riêng)
 Mayer Multiple
+Ít bằng chứng: 4 đợt độc lập
 	93%
 46 lần
 	93%
@@ -377,8 +434,9 @@ Mayer Multiple
 	98%
 46 lần
 	93% (40)	0% (6)	Dùng bộ này
-MVRV Z-Score (riêng)
+⚠ MVRV Z-Score (riêng)
 MVRV Z-Score
+Ít bằng chứng: 3 đợt độc lập
 	94%
 36 lần
 	86%
@@ -388,8 +446,9 @@ MVRV Z-Score
 	92%
 36 lần
 	89% (28)	0% (8)	Dùng bộ này
-MVRV (riêng)
+⚠ MVRV (riêng)
 MVRV
+Ít bằng chứng: 3 đợt độc lập
 	91%
 32 lần
 	75%
@@ -399,8 +458,9 @@ MVRV
 	84%
 32 lần
 	86% (21)	0% (11)	Dùng bộ này
-Khối lượng tương đối (riêng)
+⚠ Khối lượng tương đối (riêng)
 Khối lượng tương đối
+Hai nửa lệch 48 điểm %
 	47%
 76 lần
 	42%
@@ -410,8 +470,9 @@ Khối lượng tương đối
 	46%
 52 lần
 	55% (33)	6% (31)	Dùng bộ này
-Tất cả chỉ số
+⚠ Tất cả chỉ số
 Fear & Greed, MVRV, MVRV Z-Score, Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle, Puell Multiple, Giảm từ đỉnh, Khối lượng tương đối
+Hai nửa lệch 56 điểm %
 	41%
 39 lần
 	43%
@@ -421,8 +482,9 @@ Fear & Greed, MVRV, MVRV Z-Score, Giá / MA 200 tuần, Mayer Multiple, RSI 14 t
 	64%
 11 lần
 	86% (7)	30% (20)	Dùng bộ này
-Giảm từ đỉnh (riêng)
+⚠ Giảm từ đỉnh (riêng)
 Giảm từ đỉnh
+Hai nửa lệch 25 điểm %
 	29%
 28 lần
 	7%

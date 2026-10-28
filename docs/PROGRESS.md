@@ -215,3 +215,39 @@ Số lần thử trong sổ: 133.
 **File thay đổi.** `bot/validation/final.py`, `bot/cli.py` (lệnh `final`), `docs/RESULTS.md`, `data/results/final_summary.json`, `experiments/final_runs.log`, `experiments/registry.csv`.
 
 **Kết quả kiểm tra.** `python -m pytest`: 38/38 đạt.
+
+## Giai đoạn 8: Giao phần an toàn (xong 28/10/2026)
+
+**Tóm tắt.** Theo điểm dừng 2, giữ logic bot hiện tại, chỉ giao phần an toàn.
+- Xóa mã cũ không còn dùng trong `engine.js` (625 → 254 dòng; giao diện không gọi tới).
+- **Chuyển toàn bộ 461 chuỗi chữ của trang web vào `bot/i18n/vi.yaml`**, đọc qua `tx()` (`src/i18n.js`). Trang chỉ còn khóa `{{web.page.…}}`. Chuyển bằng công cụ một lần (`tools/migrate_strings.py`). Sau khi chuyển, báo cáo .md, CSV, chữ trên trang, kiểu dáng và cả ảnh chụp giao diện **giống hệt từng byte và từng điểm ảnh** với trước.
+- Phần mới **"Khuyến nghị giải ngân tuần này"**, ngay dưới hai đồng hồ:
+  - hệ số 1,0 (Chế độ an toàn: mua đều), số tiền trên mỗi 100 $ ngân sách, lý do;
+  - bảng so với mua đều (trung vị, kịch bản xấu, lợi thế giá vốn, sụt giảm, kiểm tra ngẫu nhiên);
+  - mức bằng chứng (số đợt, cờ "Ít bằng chứng", khoảng tin cậy, số lần thử);
+  - sự kiện vĩ mô 7 ngày tới theo giờ Việt Nam, và việc lệnh không bị hoãn;
+  - độ mới của từng nguồn.
+  
+  Số liệu tính bởi `python -m bot.cli report` → `data/recommendation.json`, được `build.py` nhúng vào trang. Báo cáo .md có thêm phần này.
+- Chế độ an toàn:
+  - mô hình chưa đạt, hoặc dữ liệu bắt buộc thiếu/cũ hơn 3 ngày → hệ số 1,0 kèm lý do;
+  - trang mở khi khuyến nghị đã cũ hơn 3 ngày → băng "⚠ Dữ liệu chưa cập nhật, đang hiển thị báo cáo gần nhất…";
+  - chưa có khuyến nghị → "Chưa có dữ liệu khuyến nghị → mua đều".
+- Đầu trang: "Cập nhật lúc HH:mm dd/mm/yyyy (giờ Việt Nam)". Tiêu đề tab "Báo cáo bot BTC", thêm mô tả trang (meta description).
+- Dấu **⚠** cho bộ chỉ số có dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa lệch hơn 20 điểm %. Áp dụng ở bảng phương án, bảng bộ chỉ số khuyến cáo và báo cáo .md, kèm lý do và một câu chú thích.
+- Định dạng: cột "Quy ra BTC" trong báo cáo .md đổi `1.246` → `1,246`. Các định dạng khác vốn đã đúng kiểu Việt Nam. Dấu âm trên trang giữ "−" như cũ.
+- Quyền riêng tư: trang công khai chỉ ghi số tiền trên mỗi 100 $. Ngân sách cá nhân (nếu có) để ở `config/personal.yaml` (không lưu git) và chỉ in ra dòng lệnh.
+
+**Khác biệt so với giao diện cũ (cần bạn duyệt, tiêu chí 8).** CSS và kiểu dáng của mọi thành phần **không đổi**: `theme.css` và `ui_styles_*.json` không đổi. Chữ thay đổi ở đúng các chỗ sau:
+1. Phần mới "Khuyến nghị giải ngân tuần này" (trang web và báo cáo .md).
+2. Dòng "Cập nhật lúc … (giờ Việt Nam)" ở đầu trang; tiêu đề tab "Bot mua bán BTC" → "Báo cáo bot BTC".
+3. Dấu ⚠, dòng lý do dưới tên bộ chỉ số, và câu chú thích ⚠ ở cuối dòng dẫn của hai bảng xếp hạng.
+4. Báo cáo .md: cột "Quy ra BTC" dùng dấu phẩy thập phân.
+
+Ảnh chụp giao diện mới: `tests/snapshots/ui/win32/`.
+
+**Ngoại lệ có chủ ý.** `chay_bot_xac_suat.py`, `Mo-Bot-BTC.command` (4–5 thông báo) và `HUONG_DAN_*.txt` giữ chữ tại chỗ, vì chúng phải chạy độc lập trong gói zip, không có `vi.yaml`. `build.py` chỉ in thông báo cho người phát triển. Các file tạo tài liệu nghiên cứu (`docs/*.md`) cũng giữ chữ trong mã.
+
+**File thay đổi.** `src/i18n.js`, `src/vi.json`, `src/page.html`, `src/engine.js`, `src/analysis.js`, `src/ui.js`, `build.py`, `bot/i18n/vi.yaml`, `bot/report/vi_report.py`, `bot/cli.py` (lệnh `report`), `data/recommendation.json`, `tools/migrate_strings.py`, `tests/test_report.py`, `tests/fixtures/recommendation.json`, `tests/snapshot_report.js`, `tests/test_ui_snapshot.py`, `tests/snapshots/*`, `CLAUDE.md`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 42/42 đạt. Chạy với dữ liệu thật (giá 80.952 $): không lỗi JavaScript; điện thoại 390 px không cuộn ngang.

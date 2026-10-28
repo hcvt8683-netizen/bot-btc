@@ -66,7 +66,7 @@ def built_page() -> pathlib.Path:
     sys.path.insert(0, str(ROOT))
     import build  # noqa: PLC0415
     out = pathlib.Path(tempfile.mkdtemp()) / "page.html"
-    build.build(str(out))
+    build.build(str(out), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"))
     return out
 
 

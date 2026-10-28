@@ -12,6 +12,13 @@ Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu
 - Tỷ lệ nên mua: **87%**, khung **Phải mua** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn 87% số tuần trước đó.
 - Tỷ lệ nên bán: **22%**, khung **Không nên bán** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn 22% số tuần trước đó.
 
+## Khuyến nghị giải ngân tuần này
+- Hệ số mua: **1,0** (Chế độ an toàn: mua đều). Số tiền: 100 $ trên mỗi 100 $ ngân sách tuần.
+- Vì sao: mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều.
+- So với mua đều, giai đoạn kiểm tra cuối: mô hình mới trung vị 1,000, kịch bản xấu 1,000; mua theo khung của bot hiện tại trung vị 0,940, kịch bản xấu 0,898, lợi thế giá vốn -3,1%, sụt giảm lớn nhất -50% (mua đều -52%).
+- Sự kiện vĩ mô trong 7 ngày tới: 01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC; 19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE; 15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng. Lệnh không bị hoãn.
+- Dữ liệu cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam).
+
 ## Giá đề xuất mua và bán (ngày 27/10/2026, giá 1.102 $)
 Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.
 | Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |
@@ -52,24 +59,24 @@ Nếu giá ngày phân tích là: 771 $ (-30%): nên mua 61%, nên bán 54%; 881
 Đồng thuận hôm nay: 1/6 phải mua, 1/6 cân nhắc mua, 4/6 không nên mua; trung bình tỷ lệ nên mua 54%, nên bán 67%.
 | Hạng | Phương án | Chỉ số | Nên mua hôm nay | Nên bán hôm nay | Thắng khi Phải mua (1t/3t/6t/1n) | Nửa đầu / nửa sau (6t) | Khi Nên bán, giá thấp hơn sau 6t |
 |---|---|---|---|---|---|---|---|
-| 1 | Phương án 6 | Mayer Multiple, Giá / MA 200 tuần | 87% Phải mua | 22% Không nên bán | 94% / 100% / 98% / 100% | 98% / — | 48% (mốc 51%) |
-| 2 | Phương án 2 | Tỉ số Pi Cycle, MVRV Z-Score | 27% Không nên mua | 73% Cân nhắc bán | 86% / 74% / 62% / 81% | 89% / 7% | 49% (mốc 51%) |
-| 3 | Phương án 4 | Tỉ số Pi Cycle, Puell Multiple | 73% Cân nhắc mua | 35% Không nên bán | 100% / 100% / 75% / 100% | 86% / 0% | 46% (mốc 51%) |
+| 1 | ⚠ Phương án 6 | Mayer Multiple, Giá / MA 200 tuần | 87% Phải mua | 22% Không nên bán | 94% / 100% / 98% / 100% | 98% / — | 48% (mốc 51%) |
+| 2 | ⚠ Phương án 2 | Tỉ số Pi Cycle, MVRV Z-Score | 27% Không nên mua | 73% Cân nhắc bán | 86% / 74% / 62% / 81% | 89% / 7% | 49% (mốc 51%) |
+| 3 | ⚠ Phương án 4 | Tỉ số Pi Cycle, Puell Multiple | 73% Cân nhắc mua | 35% Không nên bán | 100% / 100% / 75% / 100% | 86% / 0% | 46% (mốc 51%) |
 | 4 | Phương án 5 | Fear & Greed, MVRV, Giá / MA 200 tuần | 54% Không nên mua | 100% Nên bán | — / — / — / — | — / — | 36% (mốc 51%) |
 | 5 | Phương án 3 | Tỉ số Pi Cycle, MVRV, Fear & Greed | 53% Không nên mua | 100% Nên bán | 100% / 100% / 100% / 100% | 100% / — | 36% (mốc 51%) |
-| — | Phương án 1 | Tỉ số Pi Cycle, MVRV | 29% Không nên mua | 73% Cân nhắc bán | 77% / 65% / 63% / 77% | 88% / 28% | 48% (mốc 51%) |
+| — | ⚠ Phương án 1 | Tỉ số Pi Cycle, MVRV | 29% Không nên mua | 73% Cân nhắc bán | 77% / 65% / 63% / 77% | 88% / 28% | 48% (mốc 51%) |
 
 ## Bộ chỉ số có tỷ lệ thắng cao nhất (tìm với dữ liệu đến 27/10/2026, chấm từ 01/01/2021)
 | Bộ | Thắng 1 tháng | Thắng 3 tháng | Thắng 6 tháng | Thắng 1 năm | Nửa đầu 6 tháng | Nửa sau 6 tháng |
 |---|---|---|---|---|---|---|
-| Bộ bot tìm được: Mayer Multiple, Giá / MA 200 tuần | 94% | 100% | 98% | 100% | 98% | — |
-| Xu hướng giá: Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle | 94% | 96% | 87% | 99% | 95% | 0% |
-| Mayer Multiple (riêng): Mayer Multiple | 93% | 93% | 80% | 98% | 93% | 0% |
-| MVRV Z-Score (riêng): MVRV Z-Score | 94% | 86% | 69% | 92% | 89% | 0% |
-| MVRV (riêng): MVRV | 91% | 75% | 56% | 84% | 86% | 0% |
-| Khối lượng tương đối (riêng): Khối lượng tương đối | 47% | 42% | 31% | 46% | 55% | 6% |
-| Tất cả chỉ số: Fear & Greed, MVRV, MVRV Z-Score, Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle, Puell Multiple, Giảm từ đỉnh, Khối lượng tương đối | 41% | 43% | 44% | 64% | 86% | 30% |
-| Giảm từ đỉnh (riêng): Giảm từ đỉnh | 29% | 7% | 7% | 27% | 25% | 0% |
+| ⚠ Bộ bot tìm được: Mayer Multiple, Giá / MA 200 tuần | 94% | 100% | 98% | 100% | 98% | — |
+| ⚠ Xu hướng giá: Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle | 94% | 96% | 87% | 99% | 95% | 0% |
+| ⚠ Mayer Multiple (riêng): Mayer Multiple | 93% | 93% | 80% | 98% | 93% | 0% |
+| ⚠ MVRV Z-Score (riêng): MVRV Z-Score | 94% | 86% | 69% | 92% | 89% | 0% |
+| ⚠ MVRV (riêng): MVRV | 91% | 75% | 56% | 84% | 86% | 0% |
+| ⚠ Khối lượng tương đối (riêng): Khối lượng tương đối | 47% | 42% | 31% | 46% | 55% | 6% |
+| ⚠ Tất cả chỉ số: Fear & Greed, MVRV, MVRV Z-Score, Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle, Puell Multiple, Giảm từ đỉnh, Khối lượng tương đối | 41% | 43% | 44% | 64% | 86% | 30% |
+| ⚠ Giảm từ đỉnh (riêng): Giảm từ đỉnh | 29% | 7% | 7% | 27% | 25% | 0% |
 
 ## Bên bán: nên giữ hay chốt lời (ngày 27/10/2026)
 - Kết luận: **Giữ**. Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.
@@ -92,9 +99,9 @@ Nếu giá ngày phân tích là: 771 $ (-30%): nên mua 61%, nên bán 54%; 881
 Mô phỏng giữ 1 BTC và chốt lời theo quy tắc (giữ 90/70/50% khi 1/2/3 nhóm bật, mua lại khi bên mua báo từ Cân nhắc mua):
 | Bắt đầu | Giữ nguyên | Theo quy tắc | Quy ra BTC | Bán/mua lại | Sụt giảm lớn nhất giữ/quy tắc |
 |---|---|---|---|---|---|
-| 05/11/2017 | 1.129 $ | 1.406 $ | 1.246 | 3/3 | -82% / -76% |
-| 07/01/2018 | 1.129 $ | 1.399 $ | 1.239 | 3/3 | -82% / -76% |
-| 03/01/2021 | 1.129 $ | 1.449 $ | 1.284 | 2/2 | -82% / -76% |
+| 05/11/2017 | 1.129 $ | 1.406 $ | 1,246 | 3/3 | -82% / -76% |
+| 07/01/2018 | 1.129 $ | 1.399 $ | 1,239 | 3/3 | -82% / -76% |
+| 03/01/2021 | 1.129 $ | 1.449 $ | 1,284 | 2/2 | -82% / -76% |
 
 ## Giá trị chỉ số tại ngày phân tích
 - Mayer Multiple: 1,25

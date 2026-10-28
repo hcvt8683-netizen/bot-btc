@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bot mua bán BTC</title>
+<title>Báo cáo bot BTC</title>
+<meta name="description" content="Bot thống kê tham khảo cho việc mua thêm và chốt lời BTC: tỷ lệ nên mua, nên bán, giá đề xuất và khuyến nghị giải ngân hằng tuần so với mua đều. Không phải lời khuyên đầu tư.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -160,6 +161,7 @@
     <h1>Bot mua bán BTC</h1>
     <span class="price num" id="price">—</span>
     <span class="when" id="when"></span>
+    <span class="when" id="updated" hidden></span>
   </div>
 
   <div class="panel ctrl">
@@ -185,6 +187,7 @@
 
   <div id="app" hidden>
     <p class="warn" id="lookahead" hidden></p>
+    <p class="warn" id="stale" hidden></p>
 
     <div id="sell-view" hidden>
       <section class="panel" id="s-hero"></section>
@@ -226,6 +229,20 @@
       <div class="panel gauge" id="g-buy"></div>
       <div class="panel gauge" id="g-sell"></div>
     </div>
+
+    <section class="panel" id="kn-sec" style="margin:16px 0">
+      <h2>Khuyến nghị giải ngân tuần này</h2>
+      <p class="lead">Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.</p>
+      <p class="cons" id="kn-sum"></p>
+      <div id="kn-notes"></div>
+      <p class="sm" style="margin-top:16px">So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)</p>
+      <div class="scroll"><table id="t-kn"></table></div>
+      <ul class="crit" id="kn-ev"></ul>
+      <div class="two" style="margin-top:16px">
+        <div><p class="sm">Sự kiện vĩ mô trong 7 ngày tới</p><ul class="status" id="kn-events"></ul></div>
+        <div><p class="sm">Độ mới của dữ liệu</p><ul class="status" id="kn-fresh"></ul></div>
+      </div>
+    </section>
 
     <section class="panel" id="lv-sec" style="margin:16px 0">
       <h2>Giá đề xuất mua và bán</h2>
@@ -330,42 +347,63 @@
   </div>
 </div>
 <script>
+// ===== I18N START =====
+// User-facing text lookup for the web page. Source of truth: bot/i18n/vi.yaml (build.py writes src/vi.json and
+// inlines it into the page). Usage: tx('web.ui.key', arg0, arg1) fills {0}, {1} exactly like a template literal.
+const I18N = (() => {
+  const VI = typeof window === 'undefined' && typeof require !== 'undefined' ? require('./vi.json') : {"sources": {"binance_basis": "Binance (hợp đồng tương lai quý)", "binance_funding": "Binance (funding rate hợp đồng vĩnh cửu)", "binance_oi": "Binance (khối lượng hợp đồng mở)", "binance_spot": "Binance (giá và khối lượng ngày)", "coinmetrics": "Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành)", "fng": "Fear & Greed (Alternative.me)", "fred_DFII10": "FRED (lợi suất thực 10 năm)", "fred_DTWEXBGS": "FRED (chỉ số đô la Mỹ rộng)", "fred_M2SL": "FRED (cung tiền M2)", "fred_NASDAQCOM": "FRED (Nasdaq Composite)", "stablecoins": "DefiLlama (tổng cung stablecoin)", "status_err": "lỗi: {err}", "status_ok": "đến {last}"}, "web": {"analysis": {"ba_goc_nhin_xu_huong_dinh": "Ba góc nhìn: xu hướng, định giá, tâm lý. Lịch sử ngắn hơn vì Fear & Greed có từ 2018.", "ban_phan_lon": "Bán phần lớn", "bao_cao_bot_btc_phan_tich": "# Báo cáo bot BTC, phân tích tại ngày {0}", "bat_dau_giu_nguyen_theo_quy": "| Bắt đầu | Giữ nguyên | Theo quy tắc | Quy ra BTC | Bán/mua lại | Sụt giảm lớn nhất giữ/quy tắc |", "bat_ky_luc_nao_moc": "Bất kỳ lúc nào (mốc)", "ben_ban_nen_giu_hay_chot": "## Bên bán: nên giữ hay chốt lời (ngày {0})", "bo_bot_tim_duoc": "Bộ bot tìm được", "bo_bot_tu_tim_co_ty": "Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.", "bo_can_bang_khong_dung_pi": "Bộ cân bằng không dùng Pi Cycle, để so sánh.", "bo_chi_so_0": "- Bộ chỉ số: {0}", "bo_chi_so_co_ty_le": "## Bộ chỉ số có tỷ lệ thắng cao nhất (tìm với dữ liệu đến {0}, chấm từ {1})", "bo_thang_1_thang_thang_3": "| Bộ | Thắng 1 tháng | Thắng 3 tháng | Thắng 6 tháng | Thắng 1 năm | Nửa đầu 6 tháng | Nửa sau 6 tháng |", "bo_tieu_chi_ty_le_thang": "## Bộ tiêu chí: tỷ lệ thắng thực tế theo từng khung mua (từ ", "boi_canh": "## Bối cảnh", "boi_canh_vi_mo_va_tin": "- Bối cảnh vĩ mô và tin tức hiện tại ủng hộ hay mâu thuẫn với kết luận?", "bot_bao_nen_ban_ty_le": "Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)", "bot_thong_ke_khong_co_tri": "Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải trên web, bằng kiểm chứng đi tới (chỉ dùng dữ liệu có đến từng thời điểm).", "can_nhac_ban": "Cân nhắc bán", "can_nhac_mua": "Cân nhắc mua", "cau_hoi_goi_y_cho_claude": "## Câu hỏi gợi ý cho Claude", "chot_khoang_10_30_de_khoa": "Chốt khoảng 10–30% để khóa lợi nhuận, giữ phần còn lại.", "chot_khoang_50_luong_dang_giu": "Chốt khoảng 50% lượng đang giữ, phần còn lại đặt mốc chốt tiếp.", "chot_loi_mot_phan": "Chốt lời một phần", "chua": "chưa", "chua_co_tieu_chi_chot_loi": "Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.", "chua_dat": "chưa đạt", "chua_dat_du_gia_giam_toi": "chưa đạt dù giá giảm tới {0}", "chua_dat_du_gia_tang_toi": "chưa đạt dù giá tăng tới {0}", "chua_du_du_lieu_de_tim": "Chưa đủ dữ liệu để tìm bộ chỉ số tại ngày này.", "chua_du_lich_su_de_cham": "Chưa đủ lịch sử để chấm điểm tại ngày này. Hãy chọn ngày muộn hơn hoặc bớt các chỉ số mới có dữ liệu gần đây (Fear & Greed, Khối lượng).", "chua_du_thoi_gian": "chưa đủ thời gian", "chua_tim_duoc_bo_khuyen_cao": "Chưa tìm được bộ khuyến cáo.", "co": "có", "dang_bat": "đang bật", "dang_dat": "đang đạt", "dinh_gia_on_chain": "Định giá on-chain", "dong_thuan_hom_nay_0_trung": "Đồng thuận hôm nay: {0}; trung bình tỷ lệ nên mua {1}%, nên bán {2}%.", "gia_btc_de_bot_chuyen_khung": "Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.", "gia_btc_tai_ngay_phan_tich": "- Giá BTC tại ngày phân tích: {0} $", "gia_de_xuat_mua_va_ban": "## Giá đề xuất mua và bán (ngày {0}, giá {1})", "gia_ma_200_tuan_thuoc_5": "Giá / MA 200 tuần thuộc 5% cao nhất 4 năm", "gia_thap_hon_sau_0_giam": "Giá thấp hơn sau {0} | Giảm hơn 10% sau {1}", "gia_tri_chi_so_tai_ngay": "## Giá trị chỉ số tại ngày phân tích", "gia_truc_tiep": " (giá trực tiếp)", "giai_doan_cham_diem_tu_0": "- Giai đoạn chấm điểm: từ {0} đến {1}, kiểm tra mỗi tuần", "giu": "Giữ", "giu_xac_suat_thang_khoang_tin": "| Giữ | Xác suất thắng | Khoảng tin cậy 95% | Trung bình mọi lúc | Lãi trung vị | Một nửa số lần trong | Số lần tương tự |", "hang_phuong_an_chi_so_nen": "| Hạng | Phương án | Chỉ số | Nên mua hôm nay | Nên bán hôm nay | Thắng khi Phải mua (1t/3t/6t/1n) | Nửa đầu / nửa sau (6t) | Khi Nên bán, giá thấp hơn sau 6t |", "hay_chon_it_nhat_mot_chi": "Hãy chọn ít nhất một chỉ số có dữ liệu.", "hien_tai": "hiện tại", "it_tin_hieu": "ít tín hiệu", "it_tin_hieu_phai_mua_xep": "ít tín hiệu Phải mua, xếp theo khung từ Cân nhắc mua", "ket_hop": "kết hợp", "ket_luan": "## Kết luận", "ket_luan_0_1": "- Kết luận: **{0}**. {1}", "ket_luan_cua_bot_co_dang": "- Kết luận của bot có đáng tin không, xét theo số đợt độc lập và khoảng tin cậy?", "khi_gia_0_1": "khi giá {0} {1}", "khoi_luong_giao_dich": "## Khối lượng giao dịch", "khong": "không", "khong_nen_ban": "Không nên bán", "khong_nen_mua": "Không nên mua", "khung_ban_gia_co_giam_that": "## Khung bán: giá có giảm thật không", "khung_so_tuan": "| Khung | Số tuần | ", "khuyen_cao_dieu_kien_gia_cach": "| Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |", "mayer_multiple_thuoc_5_cao_nhat": "Mayer Multiple thuộc 5% cao nhất 4 năm", "mo_hinh_cua_bo_chi_so": "Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.", "mo_hinh_cua_bo_chi_so_2": "Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.", "mo_hinh_cua_bot": "Mô hình của bot", "mo_phong_giu_1_btc_va": "Mô phỏng giữ 1 BTC và chốt lời theo quy tắc (giữ 90/70/50% khi 1/2/3 nhóm bật, mua lại khi bên mua báo từ Cân nhắc mua):", "moc": " (mốc ", "moc_ban_vao_mot_tuan_bat": "- Mốc: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn {0} số lần, 1 năm sau {1}.", "mua_bat_ky_luc_nao_moc": "Mua bất kỳ lúc nào (mốc)", "mvrv_thuoc_5_cao_nhat_4": "MVRV thuộc 5% cao nhất 4 năm", "mvrv_z_score_thuoc_5_cao": "MVRV Z-Score thuộc 5% cao nhất 4 năm", "nen_ban": "Nên bán", "nen_chia_tien_mua_the_nao": "- Nên chia tiền mua thế nào theo các khung trên?", "neu_gia_ngay_phan_tich_la": "Nếu giá ngày phân tích là: ", "ngay_trong_qua_khu": " (ngày trong quá khứ)", "nguon_0": "- Nguồn: {0}", "nhu_phuong_an_1_nhung_dung": "Như phương án 1 nhưng dùng MVRV Z-Score.", "o_moi_muc_gia_den_0": "ở mọi mức giá đến {0}", "o_moi_muc_gia_tu_0": "ở mọi mức giá từ {0}", "phai_mua": "Phải mua", "phuong_an_1": "Phương án 1", "phuong_an_2": "Phương án 2", "phuong_an_3": "Phương án 3", "phuong_an_4": "Phương án 4", "phuong_an_5": "Phương án 5", "phuong_an_6": "Phương án 6", "pi_cycle_cat_len_ti_so": "Pi Cycle cắt lên (tỉ số ≥ 1)", "puell_multiple_thuoc_5_cao_nhat": "Puell Multiple thuộc 5% cao nhất 4 năm", "rieng": " (riêng)", "rsi_14_tuan_80": "RSI 14 tuần ≥ 80", "s_0_1_2_3_4_5": "| {0} | {1} | {2}–{3} | {4} | {5} | {6} đến {7} | {8} ({9} đợt) |", "s_0_1_2_dot": "| {0} | {1} ({2} đợt) | ", "s_0_1_nen_mua_2_nen": "{0} ({1}): nên mua {2}, nên bán {3}", "s_1_nam": "1 năm", "s_1_thang": "1 tháng", "s_3_thang": "3 tháng", "s_6_thang": "6 tháng", "so_nhom_tieu_chi_dang_tin": "- Số nhóm tiêu chí đáng tin đang bật: {0}{1}. Quy tắc: từ 1 nhóm chốt lời một phần, từ 3 nhóm bán phần lớn.", "so_sanh_cac_phuong_an_cham": "## So sánh các phương án (chấm trên cùng giai đoạn từ {0})", "tai_ngay_phan_tich_mot_so": "Tại ngày phân tích, một số chỉ số đã chọn chưa có số liệu.", "tam_ly": "Tâm lý", "tam_ly_va_dinh_gia": "Tâm lý và định giá", "tat_ca_chi_so": "Tất cả chỉ số", "thang_sau": "Thắng sau ", "thieu_du_lieu_cho_cac_chi": "Thiếu dữ liệu cho các chỉ số của phương án này.", "tho_dao": "Thợ đào", "thuc_te_sau_do": " Thực tế sau đó |", "tieu_chi_dang_tin_hom_nay": "| Tiêu chí | Đáng tin | Hôm nay | Số đợt | Giá thấp hơn sau 6 tháng | Khoảng tin cậy | Sau 1 năm | Còn tăng thêm (TV) | Giảm sâu nhất 1 năm (TV) | Giá BTC để bật |", "trong_so_trong_mo_hinh_6": "- Trọng số trong mô hình 6 tháng (dương: chỉ số báo rẻ làm tăng xác suất thắng): ", "trung": "trùng ", "tu_0_nhom_tieu_chi_dang": "Từ {0} nhóm tiêu chí đáng tin cùng bật", "tuan_gan_nhat_da_dong_0": "Tuần gần nhất đã đóng ({0}): giá {1}, khối lượng bằng {2} lần trung bình 20 tuần, loại \"{3}\".", "ty_le_nen_ban_0_khung": "- Tỷ lệ nên bán: **{0}%**, khung **{1}** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn {2}% số tuần trước đó.", "ty_le_nen_mua_0_khung": "- Tỷ lệ nên mua: **{0}%**, khung **{1}** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn {2}% số tuần trước đó.", "voi_bo_chi_so_nay_ty": "Với bộ chỉ số này, tỷ lệ nên mua và nên bán gần như không đổi khi giá trong ngày thay đổi, vì các chỉ số là trung bình dài hạn (ví dụ Pi Cycle dùng trung bình 111 và 350 ngày). Khuyến cáo đổi chủ yếu theo thời gian, không theo một mức giá cụ thể.", "xac_suat_thang_neu_mua_tai": "## Xác suất thắng nếu mua tại ngày phân tích", "xu_huong_gia": "Xu hướng giá", "xu_huong_gia_dinh_gia_on": "Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.", "xu_huong_gia_doanh_thu_tho": "Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving."}, "engine": {"chenh_lech_von_hoa_thi_truong": "Chênh lệch vốn hóa thị trường và vốn hóa thực, chia cho độ lệch chuẩn lịch sử.", "chu_ky": "Chu kỳ", "chua_du_lich_su_khoi_luong": "Chưa đủ lịch sử khối lượng để so sánh.", "dinh_gia_on_chain": "Định giá on-chain", "gia_chia_cho_gia_von_trung": "Giá chia cho giá vốn trung bình của toàn bộ BTC đang lưu hành. Dưới 1 là người giữ trung bình đang lỗ.", "gia_ma_200_tuan": "Giá / MA 200 tuần", "gia_so_voi_trung_binh_200": "Giá so với trung bình 200 ngày.", "gia_so_voi_trung_binh_khoang": "Giá so với trung bình khoảng 4 năm; đường này từng là đáy của nhiều chu kỳ.", "gia_thap_hon_dinh_cao_nhat": "Giá thấp hơn đỉnh cao nhất bao nhiêu phần trăm. Đáy các chu kỳ trước giảm 77–84%, chu kỳ 2026 khoảng 54%.", "gia_tri_btc_moi_phat_hanh": "Giá trị BTC mới phát hành cho thợ đào so với trung bình 365 ngày. Halving làm chỉ số tụt cơ học.", "giam_kem_khoi_luong_lon": "Giảm kèm khối lượng lớn", "giam_kem_khoi_luong_lon_ap": "Giảm kèm khối lượng lớn: áp lực bán thật.", "giam_tu_dinh": "Giảm từ đỉnh", "giam_voi_khoi_luong_thap": "Giảm với khối lượng thấp", "giam_voi_khoi_luong_thap_chu": "Giảm với khối lượng thấp: chủ yếu do cạn lực mua.", "khoi_luong": "Khối lượng", "khoi_luong_binh_thuong": "Khối lượng bình thường.", "khoi_luong_don_manh_ve_cuoi": "Khối lượng dồn mạnh về cuối đợt: dấu hiệu bán tháo đầu hàng, thường gần đáy.", "khoi_luong_giao_dich_trung_binh": "Khối lượng giao dịch trung bình 30 ngày chia cho trung bình 365 ngày, cặp BTC/USDT trên Binance (có từ 08/2017). Trên 1 là sôi động hơn bình thường. Không dùng trong biểu quyết vì khối lượng cao xuất hiện cả ở đỉnh lẫn đáy; để mô hình tự học chiều tác động.", "khoi_luong_lon_nhung_giam_dan": "Khối lượng lớn nhưng giảm dần về cuối đợt: lực mua yếu đi.", "khoi_luong_tuong_doi": "Khối lượng tương đối", "khoi_luong_va_gia_binh_thuong": "Khối lượng và giá bình thường", "khong_co_du_lieu_gia_lich": "Không có dữ liệu giá lịch sử", "ma_111_ngay_chia_cho_2": "MA 111 ngày chia cho 2 lần MA 350 ngày. Chạm 1 từng báo đỉnh 2013, 2017, 4/2021, nhưng không chạm ở đỉnh 2025.", "moi_tuan_moc_so_sanh": "Mọi tuần (mốc so sánh)", "rsi_14_tuan": "RSI 14 tuần", "suc_manh_gia_tren_khung_tuan": "Sức mạnh giá trên khung tuần, 0–100. Dưới 30 là bán quá đà, trên 80 là mua quá đà.", "tam_ly": "Tâm lý", "tam_ly_dam_dong_0_100": "Tâm lý đám đông 0–100 của Alternative.me, có từ 02/2018. Thấp là sợ hãi.", "tang_co_khoi_luong_xac_nhan": "Tăng có khối lượng xác nhận", "tang_kem_khoi_luong_lon_va": "Tăng kèm khối lượng lớn và tăng dần: có lực mua thật.", "tang_nhung_khoi_luong_thap": "Tăng nhưng khối lượng thấp", "tang_voi_khoi_luong_thap_thieu": "Tăng với khối lượng thấp: thiếu xác nhận, dễ bị đảo chiều.", "tho_dao": "Thợ đào", "ti_so_pi_cycle": "Tỉ số Pi Cycle", "xu_huong_gia": "Xu hướng giá"}, "kn": {"amount": "{0} trên mỗi {1} ngân sách tuần", "bucket": "Hệ số {0}", "ci_line": "Khoảng tin cậy 95% của tỷ số tài sản, giai đoạn kiểm tra cuối: mô hình mới {0}–{1}; mua theo khung {2}–{3}.", "cmp_title": "So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)", "col_cba": "Lợi thế giá vốn", "col_mdd": "Sụt giảm lớn nhất / mua đều", "col_median": "Tỷ số tài sản, trung vị", "col_p10": "Kịch bản xấu (10% tệ nhất)", "col_period": "Giai đoạn", "col_placebo": "Hơn ngẫu nhiên", "col_strategy": "Cách mua", "current_zone_note": "Các khung Phải mua, Cân nhắc mua ở trên vẫn là cách đọc tham khảo của bot hiện tại; kiểm định cho thấy mua theo khung (Phải mua × 2,0, Cân nhắc mua × 1,25, Không nên mua × 0,25) chưa hơn mua đều.", "ev_cpi": "Chỉ số giá tiêu dùng Mỹ (CPI)", "ev_fomc": "Quyết định lãi suất FOMC", "ev_opex": "Đáo hạn quyền chọn BTC hằng tháng", "ev_pce": "Chỉ số giá chi tiêu PCE", "event_line": "{0} (giờ Việt Nam): {1}", "events_none": "Không có sự kiện vĩ mô trong 7 ngày tới.", "events_title": "Sự kiện vĩ mô trong 7 ngày tới", "evidence_line": "{0}: {1} đợt độc lập", "evidence_title": "Mức bằng chứng", "fresh_err": "{0}: lỗi, {1}", "fresh_ok": "{0}: đến {1}", "fresh_title": "Độ mới của dữ liệu", "layer_A": "Lớp chu kỳ", "layer_B": "Lớp ngắn hạn", "layer_C": "Lớp vĩ mô", "lead": "Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.", "low_evidence": "Ít bằng chứng", "m_label": "Hệ số mua", "md_cmp": "- So với mua đều, giai đoạn kiểm tra cuối: mô hình mới trung vị {0}, kịch bản xấu {1}; mua theo khung của bot hiện tại trung vị {2}, kịch bản xấu {3}, lợi thế giá vốn {4}, sụt giảm lớn nhất {5} (mua đều {6}).", "md_events": "- Sự kiện vĩ mô trong 7 ngày tới: {0}. Lệnh không bị hoãn.", "md_fresh": "- Dữ liệu cập nhật lúc {0} (giờ Việt Nam).", "md_m": "- Hệ số mua: **{0}** ({1}). Số tiền: {2} trên mỗi {3} ngân sách tuần.", "md_title": "## Khuyến nghị giải ngân tuần này", "md_why": "- Vì sao: {0}", "mode_model": "Theo mô hình, lớp quyết định: {0}", "mode_safe": "Chế độ an toàn: mua đều", "no_delay": "Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.", "period_holdout": "Kiểm tra cuối từ 2023", "period_validation": "Kiểm định 2020–2022", "reason_data_stale": "Dữ liệu thiếu hoặc cũ → mua đều như DCA (hệ số 1,0).", "reason_missing": "Chưa có dữ liệu khuyến nghị → mua đều như DCA (hệ số 1,0).", "reason_model_failed": "mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều.", "row_candidate": "Mô hình mới (chưa đạt)", "row_current": "Mua theo khung của bot hiện tại", "stale_banner": "⚠ Dữ liệu chưa cập nhật, đang hiển thị báo cáo gần nhất ({0}). Khuyến nghị: mua đều như DCA (hệ số 1,0).", "title": "Khuyến nghị giải ngân tuần này", "trials_line": "Số lần thử khi nghiên cứu: {0}. Chi tiết trong docs/RESULTS.md.", "updated": "Cập nhật lúc {0} (giờ Việt Nam)", "warn_eps": "Ít bằng chứng: {0} đợt độc lập", "warn_halves": "Hai nửa lệch {0} điểm %", "warn_legend": "⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.", "warn_mark": "⚠ ", "why": "Vì sao: "}, "page": {"ban_dang": "Bạn đang", "ben_ban": "Bên bán", "ben_mua": "Bên mua", "bieu_do_tung_chi_so_trong": "Biểu đồ từng chỉ số trong bộ đang dùng", "bo_chi_so": "Bộ chỉ số", "bo_chi_so_khuyen_cao_ty": "Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử", "bo_tieu_chi_chot_loi_xep": "Bộ tiêu chí chốt lời, xếp theo độ chính xác", "bo_tieu_chi_danh_gia_ty": "Bộ tiêu chí đánh giá: tỷ lệ thắng thực tế theo từng khung", "bot_chi_lam_thong_ke_claude": "Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.", "bot_mua_ban_btc": "Bot mua bán BTC", "cac_lan_tieu_chi_chot_loi": "Các lần tiêu chí chốt lời bật trong lịch sử", "cach_1_xuat_file_keo_vao": "Cách 1: xuất file, kéo vào claude.ai", "cach_2_goi_claude_api_ngay": "Cách 2: gọi Claude API ngay tại đây", "can_nhac_ban": "Cân nhắc bán", "can_nhac_mua": "Cân nhắc mua", "cau_hoi_them": "Câu hỏi thêm", "chay_bot": "Chạy bot", "che_do": "Chế độ", "cho_claude_tim_tin_tuc_hien": "Cho Claude tìm tin tức hiện tại trên web", "chon_ngay_trong_qua_khu_hoac": "Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.", "claude_dang_doc_bao_cao": "Claude đang đọc báo cáo…", "claude_haiku_5_5_nhanh_re": "Claude Haiku 5.5 (nhanh, rẻ)", "claude_opus_5_5_suy_luan": "Claude Opus 5.5 (suy luận sâu nhất)", "claude_sonnet_5_5_khuyen_dung": "Claude Sonnet 5.5 (khuyên dùng)", "dang_tai_du_lieu_that_tu": "Đang tải dữ liệu thật từ web…", "dang_tai_gia_btc_fear_amp": "Đang tải giá BTC, Fear &amp; Greed, MVRV, dữ liệu thợ đào và khối lượng từ 2010 đến nay. Lần đầu mất khoảng 10–40 giây.", "dieu_kien_ngay_phan_tich_thuan": ": điều kiện ngày phân tích thuận lợi hơn bao nhiêu phần trăm số tuần trong lịch sử, tính trung bình cho 4 kỳ giữ 1 tháng, 3 tháng, 6 tháng, 1 năm. Từ 80% là", "du_lieu_tung_tuan_csv": "Dữ liệu từng tuần (.csv)", "duoi_60_la": ", dưới 60% là", "duoi_70_la": ", dưới 70% là", "ghi_nho_khoa_tren_may_nay": "Ghi nhớ khóa trên máy này", "gia_btc_can_dat_de_tung": "Giá BTC cần đạt để từng tiêu chí bật, tính từ số liệu ngày phân tích. Các mốc dịch chuyển dần theo thời gian. Pi Cycle, RSI và Fear &amp; Greed không quy đổi thẳng ra giá được.", "gia_de_xuat_mua_va_ban": "Giá đề xuất mua và bán", "gia_tri_cac_chi_so_tai": "Giá trị các chỉ số tại ngày phân tích", "gia_tri_theo_tuan_tu_2014": "Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.", "giu_tiep_co_loi_khong": "Giữ tiếp có lợi không", "gui_ca_bao_cao_va_hai": "Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.", "gui_cau_hoi": "Gửi câu hỏi", "hoi_claude_ve_nhan_dinh_cua": "Hỏi Claude về nhận định của bot", "hom_nay": "Hôm nay", "ket_qua_trong_qua_khu_khong": "Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.", "khoa_api_console_anthropic_com": "Khóa API (console.anthropic.com)", "khong_nen_ban": "Không nên bán", "khong_nen_mua": "Không nên mua", "meta_description": "Bot thống kê tham khảo cho việc mua thêm và chốt lời BTC: tỷ lệ nên mua, nên bán, giá đề xuất và khuyến nghị giải ngân hằng tuần so với mua đều. Không phải lời khuyên đầu tư.", "mo_hinh": "Mô hình", "mo_hinh_hoc_lai_moi_4": "Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua đã biết kết quả tại thời điểm đó. Các ngưỡng 60, 70, 80, 85 cố định, không dò cho đẹp.", "moc_gia_chot_loi": "Mốc giá chốt lời", "moi_vach_mau_la_mot_tuan": "Mỗi vạch màu là một tuần có tiêu chí đáng tin bật, mỗi hàng là một nhóm. Nền đỏ càng đậm, càng nhiều nhóm cùng bật. Bấm vào biểu đồ để phân tích lại tại ngày đó.", "mot_khung_dang_tin_khi_ty": "Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.", "nen_ban": "Nên bán", "nen_mau_la_khung_mua_moi": "Nền màu là khung mua mỗi tuần; dải dưới là khung bán. Bấm vào một điểm để phân tích lại tại ngày đó.", "neu_da_giu_1_btc_va": "Nếu đã giữ 1 BTC và chốt lời theo quy tắc này", "neu_gia_ngay_phan_tich_la": "Nếu giá ngày phân tích là…", "ngay_phan_tich": "Ngày phân tích", "nguon_du_lieu": "Nguồn dữ liệu", "nguy_co_gia_giam_hon_10": ": nguy cơ giá giảm hơn 10% sau 3 tháng và sau 6 tháng cao hơn bao nhiêu phần trăm số tuần trong lịch sử. Từ 85% là", "nho_claude_nhan_dinh": "Nhờ Claude nhận định", "phai_mua": "Phải mua", "quy_tac_1_nhom_bat_thi": "Quy tắc: 1 nhóm bật thì giữ 90% vị thế, 2 nhóm thì 70%, từ 3 nhóm thì 50%. Mua lại toàn bộ khi không còn nhóm nào bật và bên mua báo từ Cân nhắc mua. Chỉ dùng dữ liệu có đến từng tuần.", "s_60_80_la": ", 60–80% là", "s_70_85_la": ", 70–85% là", "sao_chep_bao_cao": "Sao chép báo cáo", "so_sanh_cac_phuong_an": "So sánh các phương án", "so_sanh_phuong_an_csv": "So sánh phương án (.csv)", "tai_bao_cao_md": "Tải báo cáo (.md)", "tai_bo_tieu_chi_chot_loi": "Tải bộ tiêu chí chốt lời (.csv)", "thang_la_gia_sau_ky_giu": "\"Thắng\" là giá sau kỳ giữ cao hơn giá mua. Con số là tỷ lệ thắng thực tế trong lịch sử ở những lúc điều kiện giống ngày phân tích. Vạch đen nhỏ là tỷ lệ thắng trung bình nếu mua bất kỳ lúc nào.", "tim_lai_bo_co_ty_le": "Tìm lại bộ có tỷ lệ thắng cao nhất", "title": "Báo cáo bot BTC", "toi_dang_giu_btc_nen_giu": "Tôi đang giữ BTC: nên giữ hay chốt lời?", "toi_muon_mua_them_btc": "Tôi muốn mua thêm BTC", "trong_so_lay_tu_mo_hinh": "Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.", "ty_le_gia_cao_hon_hom": "Tỷ lệ giá cao hơn hôm nay sau mỗi kỳ, ở những lúc điều kiện giống ngày phân tích. Trên 50% nghĩa là giữ tiếp thường có lợi hơn bán ngay. Vạch đen nhỏ là mức trung bình mọi lúc.", "ty_le_nen_ban": "Tỷ lệ nên bán", "ty_le_nen_mua": "Tỷ lệ nên mua", "ty_le_nen_mua_nen_ban": "Tỷ lệ nên mua, nên bán qua thời gian", "ty_le_nen_mua_va_nen": "Tỷ lệ nên mua và nên bán tại ngày phân tích", "ty_le_thang_o_khung_phai": "Tỷ lệ thắng ở khung Phải mua, theo kỳ giữ", "vi_du_voi_ket_qua_nay": "Ví dụ: Với kết quả này nên chia tiền mua thế nào?", "xac_suat_thang_neu_mua_va": "Xác suất thắng nếu mua và giữ"}, "ui": {"bam_chay_bot_de_tinh_lai": " (bấm Chạy bot để tính lại)", "bam_de_phan_tich_ngay_nay": "Bấm để phân tích ngày này", "ban": "bán", "ban_2": "Bán", "ban_co_loi_hon": "bán có lợi hơn", "ban_dang": "Bạn đang ", "ban_la_chuyen_gia_phan_tich": "Bạn là chuyên gia phân tích định lượng thị trường Bitcoin. Người dùng gửi báo cáo của một bot thống kê (không có trí tuệ AI): bot tính xác suất có lãi bằng kiểm chứng đi tới trên dữ liệu lịch sử.\nNhiệm vụ của bạn:\n1. Đánh giá độ tin cậy của nhận định: chú ý tỷ lệ thắng của từng khung so với dòng mốc, số đợt độc lập, độ rộng khoảng tin cậy, và kết quả nửa đầu so với nửa sau của bộ chỉ số.\n2. Giải thích các chỉ số đang nói gì, chỉ ra chỗ các kỳ giữ (1 tháng đến 1 năm) hoặc các chỉ số mâu thuẫn nhau, và giữa tỷ lệ nên mua với tỷ lệ nên bán.\n3. Nhận xét phần khối lượng giao dịch: xu hướng giá hiện tại có được khối lượng xác nhận không.\n4. Nếu có công cụ tìm kiếm, đối chiếu với tin tức và bối cảnh vĩ mô hiện tại, ghi rõ nguồn.\nQuy tắc: không bịa số; tách rõ \"số liệu của bot\" và \"nhận định của Claude\"; nói thẳng khi dữ liệu yếu. Viết tiếng Việt, gọn, có tiêu đề ngắn, kết thúc bằng phần \"Tóm tắt\" 3 dòng. Nhắc rằng đây không phải lời khuyên đầu tư.", "ban_luu_tren_may": "bản lưu trên máy", "ban_nen_ban": "Bán: Nên bán", "ban_vao_mot_tuan_bat_ky": "Bán vào một tuần bất kỳ (mốc)", "bat_dau": "Bắt đầu", "bat_ky": "Bất kỳ", "bat_ky_luc_nao_moc": "Bất kỳ lúc nào (mốc)", "binance_gia_khoi_luong_ngay": "Binance (giá, khối lượng ngày)", "binh_thuong": ", bình thường", "bo_chi_so": "Bộ chỉ số", "bot_chay_ca_6_phuong_an": "Bot chạy cả 6 phương án tại ngày {0} và chấm trên cùng giai đoạn từ {1}. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút \"Tự động: phương án tốt nhất\" luôn dùng phương án hạng 1.", "bot_thu_them_dan_tung_chi": "Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ {0} đến {1}, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa.", "bot_tu_tim": "Bot tự tìm", "cac_phuong_an_dang_bat_dong": "Các phương án đang bất đồng (có phương án báo Phải mua và có phương án báo Không nên mua), nên độ chắc chắn thấp.", "cac_phuong_an_khong_mau_thuan": "Các phương án không mâu thuẫn nhau về chiều mua.", "cach_gia_hien_tai": "Cách giá hiện tại", "can_nhac": "Cân nhắc", "can_nhac_ban_0_nen_ban": "Cân nhắc bán {0}; Nên bán {1}.", "can_nhac_mua": "Cân nhắc mua", "can_nhac_mua_0_phai_mua": "Cân nhắc mua {0}; Phải mua {1}. ", "cao_nhat": "cao nhất", "chi_so": "Chỉ số", "chua_bat": "Chưa bật", "chua_chay_duoc_cac_phuong_an": "Chưa chạy được các phương án tại ngày này.", "chua_chon_chi_so_nao": "chưa chọn chỉ số nào", "chua_co_du_lieu_khoi_luong": "Chưa có dữ liệu khối lượng cho ngày này.", "chua_co_ket_qua_so_sanh": "Chưa có kết quả so sánh phương án; bấm Chạy bot trước.", "chua_co_tuan_nao_o_khung": "Chưa có tuần nào ở khung này.", "chua_co_tuan_nao_trong_lich": "Chưa có tuần nào trong lịch sử thuộc khung này.", "chua_dang_tin": "chưa đáng tin", "chua_dat": "chưa đạt", "chua_du_3_dot_co_ket": "Chưa đủ 3 đợt có kết quả để đánh giá: ", "chua_du_du_lieu": "Chưa đủ dữ liệu.", "chua_du_du_lieu_de_mo": "Chưa đủ dữ liệu để mô phỏng.", "chua_tim_duoc_bo_khuyen_cao": "Chưa tìm được bộ khuyến cáo. Bấm \"Tìm lại bộ có tỷ lệ thắng cao nhất\".", "claude_api_bao_loi_0_1": "Claude API báo lỗi {0}: {1}", "claude_dang_gioi_han_so_luot": "Claude đang giới hạn số lượt gọi, đợi một lát rồi thử lại.", "claude_khong_tra_loi_noi_dung": "(Claude không trả lời nội dung)", "con_tang_them_truoc_khi_giam": "Còn tăng thêm trước khi giảm (TV)", "da_sao_chep_dan_vao_khung": "Đã sao chép. Dán vào khung chat Claude.", "dai_duoi_can_nhac_ban": "Dải dưới: Cân nhắc bán", "dai_duoi_nen_ban": "Dải dưới: Nên bán", "dang_bat": "Đang bật: ", "dang_bat_2": "Đang bật", "dang_chay_6_phuong_an": "Đang chạy 6 phương án…", "dang_chay_6_phuong_an_0": "Đang chạy 6 phương án… {0}/6", "dang_dat": "đang đạt", "dang_dung": "Đang dùng: ", "dang_o_day": "đang ở đây", "dang_phan_tich": "Đang phân tích…", "dang_tai_du_lieu_that_tu": "Đang tải dữ liệu thật từ web…", "dang_thu_cac_bo_chi_so": "Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất…", "dang_thu_cac_bo_chi_so_2": "Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất… đã thử {0} bộ", "dang_tin": "đáng tin", "day_la_bao_cao_moi_nhat": "Đây là báo cáo mới nhất của bot:\n\n{0}\n\n{1}", "den_0": "đến {0}", "dieu_kien_ngay_nay_thuan_loi": "Điều kiện ngày này thuận lợi hơn {0}% số tuần trong lịch sử, tính chung cho 4 kỳ giữ.", "dong_thuan_cua_0_phuong_an": "Đồng thuận của {0} phương án: ", "du_lieu_luu_tren_may": "Dữ liệu lưu trên máy", "du_lieu_vua_tai_da_duoc": "dữ liệu vừa tải đã được lưu vào thư mục du_lieu_tam để dùng khi mất mạng", "dung": "Dùng", "dung_bo_nay": "Dùng bộ này", "gia_6_thang_sau_tin_hieu": "Giá 6 tháng sau tín hiệu (TV)", "gia_btc": "Giá BTC", "gia_btc_de_bat": "Giá BTC để bật", "gia_btc_de_bot_chuyen_sang": "Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày {0}. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.", "gia_cao_hon_sau": "Giá cao hơn sau ", "gia_de_xuat_ban": "Giá đề xuất bán: ", "gia_de_xuat_mua": "Giá đề xuất mua: ", "gia_dong_cua_0": "giá đóng cửa {0}", "gia_lich_su_mvrv_tho_dao": "Giá lịch sử, MVRV, thợ đào (Coin Metrics)", "gia_ngay_phan_tich": "Giá ngày phân tích", "gia_thap_hon_sau_0": "Giá thấp hơn sau {0}", "gia_thap_hon_sau_6_thang": "Giá thấp hơn sau 6 tháng {0}, giảm hơn 10%: {1} (bất kỳ lúc nào: {2}, {3})", "gia_thap_hon_sau_6_thang_2": "Giá thấp hơn sau 6 tháng", "gia_tri": "Giá trị", "gia_truc_tiep": "giá trực tiếp", "gia_truc_tiep_2": "Giá trực tiếp", "gia_truc_tiep_binance_coingecko": "giá trực tiếp Binance/CoinGecko", "gia_va_khoi_luong_ngay_binance": "Giá và khối lượng ngày (Binance)", "gia_va_khoi_luong_ngay_tu": "giá và khối lượng ngày từ 08/2017 ({0} ngày)", "gia_von_trung_binh": "Giá vốn trung bình ($)", "giam_hon_10_sau_0": "Giảm hơn 10% sau {0}", "giam_sau_nhat_trong_1_nam": "Giảm sâu nhất trong 1 năm (TV)", "giam_tu_dinh": "Giảm từ đỉnh", "giu": "Giữ ", "giu_co_loi_hon": "giữ có lợi hơn", "giu_nguyen_1_btc": "Giữ nguyên 1 BTC", "giu_tiep_co_loi_khong_tinh": "Giữ tiếp có lợi không, tính từ ngày {0}", "giu_tiep_lai_trung_vi_0": "Giữ tiếp: lãi trung vị {0}, một nửa số lần trong {1} đến {2}. Mọi lúc: {3}.", "hang": "Hạng", "hang_1_la_0_1_2": " Hạng 1 là {0}: {1} ({2}%).", "hang_2": "hạng ", "hay_dan_khoa_api_cua_claude": "Hãy dán khóa API của Claude (lấy tại console.anthropic.com).", "hay_nhan_dinh_ve_ket_luan": "Hãy nhận định về kết luận của bot theo các nhiệm vụ đã nêu.", "het_thoi_gian_cho": "hết thời gian chờ", "hien_tai": "hiện tại", "hom_nay": "Hôm nay", "it_dot_doc_lap_nen_chua": ", ít đợt độc lập nên chưa đáng tin", "it_tin_hieu": "ít tín hiệu", "ket_hop_nhieu_nhom": "Kết hợp nhiều nhóm", "khi_nen_ban_gia_thap_hon": "Khi Nên bán, giá thấp hơn sau 6 tháng", "khoa_api_khong_hop_le": "Khóa API không hợp lệ.", "khoang_tin_cay_0_1_mua": "Khoảng tin cậy {0}–{1}. Mua bất kỳ lúc nào: {2}.", "khoi_luong": "Khối lượng", "khoi_luong_binance_tuan_ket_thuc": "Khối lượng (Binance): tuần kết thúc {0}, giá {1}, khối lượng bằng {2} lần trung bình 20 tuần, loại \"{3}\".", "khong_co_du_lieu": "không có dữ liệu", "khong_co_du_lieu_khoi_luong": ". Không có dữ liệu khối lượng.", "khong_co_tin_hieu": "không có tín hiệu", "khong_du_tin_hieu_phai_mua": "Không đủ tín hiệu Phải mua để xếp hạng (dưới 20 tuần hoặc chỉ 1 đợt): {0}.", "khong_hon_moc": "; không hơn mốc", "khong_ket_noi_duoc_claude_api": "Không kết nối được Claude API. Kiểm tra mạng.", "khong_tai_duoc_gia_lich_su": "Không tải được giá lịch sử.", "khong_tieu_chi_nao_bat": "Không tiêu chí nào bật", "khung_ban": "Khung bán", "khung_rong": ", khung rộng", "khung_rong_2": "khung rộng", "khuyen_cao": "Khuyến cáo", "kiem_tra_mang_hoac_mo_bang": " Kiểm tra mạng, hoặc mở bằng Mo-Bot-BTC.command (Mac) hoặc Mo-Bot-BTC.bat (Windows).", "kiem_tra_moi_tuan_tu_0": "Kiểm tra mỗi tuần từ {0} đến {1}, chỉ dùng dữ liệu có đến từng tuần. Bảng trên: tỷ lệ thắng nếu mua ở khung đó rồi giữ hết kỳ; xanh là cao hơn mốc ít nhất 5 điểm %, đỏ là thấp hơn. Bảng dưới: tỷ lệ giá giảm sau khi ở khung bán; đỏ là nguy cơ giảm cao hơn mốc, xanh là thấp hơn.", "lai": "lãi", "lai_trung_vi_0_mot_nua": "Lãi trung vị {0}; một nửa số lần trong {1} đến {2}. Dựa trên {3} lần, {4} đợt.", "lan_ban_mua_lai": "Lần bán / mua lại", "lich_su_o_khung_0_gia": "Lịch sử ở khung {0}: giá thấp hơn sau 6 tháng {1}, giảm hơn 10% {2} ({3} tuần). Bất kỳ lúc nào: {4} và {5}.", "lich_su_o_khung_0_thang": "Lịch sử ở khung {0}: thắng sau 6 tháng {1}, sau 1 năm {2} ({3} tuần, {4} đợt). Mua bất kỳ lúc nào: {5} và {6}.", "lich_su_o_khung_nay": "Lịch sử ở khung này", "lo": "lỗ", "loi": "lỗi, ", "luu_y_bo_khuyen_cao_duoc": "Lưu ý: bộ khuyến cáo được tìm bằng dữ liệu đến {0}, sau ngày phân tích {1}. Kết quả quá khứ vì thế có thể đẹp hơn thực tế lúc đó. Bấm \"Tìm lại bộ có tỷ lệ thắng cao nhất\" để tìm chỉ bằng dữ liệu đến ngày phân tích.", "ma200_tuan": "MA200 tuần", "mau_nhat_tieu_chi_chua_dang": "Màu nhạt: tiêu chí chưa đáng tin", "mo_hinh_cua_bot": "mô hình của bot", "moc_0_1_lan": "mốc {0}, {1} lần", "moi_dot_la_lan_dau_tieu": "Mỗi đợt là lần đầu tiêu chí bật (các tuần bật cách nhau dưới 8 tuần gộp một đợt). \"Đúng\" nghĩa là giá sau đó thấp hơn lúc bật. Mốc so sánh: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn {0} số lần. Một tiêu chí được coi là đáng tin khi có từ 3 đợt và cận dưới khoảng tin cậy vẫn cao hơn mốc. Bảng xếp theo cận dưới đó.", "moi_phuong_an_dai_tren_la": "Mỗi phương án: dải trên là mua, dải dưới là bán; vạch đen là giá trị hôm nay", "mot_so_nguon_khong_truy_cap": "một số nguồn không truy cập được, bot đang dùng dữ liệu đã lưu trên máy lúc {0} ngày {1}/{2}/{3}. Kết quả có thể chưa phải mới nhất.", "mua_bat_ky": "Mua bất kỳ", "mua_bat_ky_luc_nao": "mua bất kỳ lúc nào", "mua_bat_ky_luc_nao_moc": "Mua bất kỳ lúc nào (mốc)", "mua_phai_mua": "Mua: Phải mua", "nen_ban_0_1": "Nên bán {0}% ({1})", "nen_ban_hom_nay": "Nên bán hôm nay", "nen_giu_hay_chot_loi_ngay": "Nên giữ hay chốt lời? Ngày {0}, giá {1}", "nen_mua_0_1": "Nên mua {0}% ({1})", "nen_mua_0_nen_ban_1": "nên mua {0}%, nên bán {1}%", "nen_mua_hom_nay": "Nên mua hôm nay", "ngay_phan_tich": "Ngày phân tích", "nguon_claude_da_doc": "Nguồn Claude đã đọc:", "nguon_du_lieu_chua_tai_duoc": " Nguồn dữ liệu chưa tải được.", "nguong": "Ngưỡng", "nguong_kinh_dien": "ngưỡng kinh điển", "nguong_thich_nghi": "ngưỡng thích nghi", "nguy_co_gia_giam_hon_10": "Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn {0}% số tuần trong lịch sử.", "nhap_gia_von_de_xem_lai": "Nhập giá vốn để xem lãi, lỗ và số lượng nên chốt.", "nhom": "Nhóm", "nua_dau_6_thang": "Nửa đầu, 6 tháng", "nua_dau_nua_sau": "Nửa đầu / nửa sau", "nua_sau_6_thang": "Nửa sau, 6 tháng", "phai_mua": "Phải mua", "phuong_an": "Phương án", "phuong_an_2": "Phương án ", "rsi_tuan": "RSI tuần", "s_0_1_2_dot": "{0}–{1}, {2} đợt", "s_0_1_2_lan": "{0}–{1}, {2} lần", "s_0_1_dot": "{0} ({1} đợt)", "s_0_coin_metrics_chua_cong_bo": "{0}. Coin Metrics chưa công bố vốn hóa và MVRV của {1} ngày cuối (đến {2}); bot ước tính từ ngày {3} theo biến động giá, nên MVRV và MVRV Z-Score những ngày này là số gần đúng", "s_0_dot": " ({0} đợt)", "s_0_lan": "{0} lần", "s_0_lan_1": "{0} lần{1}", "s_0_ngay": "{0} ngày", "s_0_nhom_dang_tin_dang_bat": "{0} nhóm đáng tin đang bật", "s_0_tuan": "{0} tuần", "s_0_tuan_1_dot_2_3": "{0} tuần, {1} đợt{2}{3}", "sau_1_nam": "Sau 1 năm", "so_btc_dang_giu": "Số BTC đang giữ", "so_dot": "Số đợt", "so_nhom_tieu_chi_dang_tin": "Số nhóm tiêu chí đáng tin đang bật: {0}/{1}. Từ 1 nhóm là chốt lời một phần, từ 3 nhóm là bán phần lớn.", "so_tuan": "Số tuần", "so_voi_hien_tai": "So với hiện tại", "sut_giam_lon_nhat_giu_theo": "Sụt giảm lớn nhất: giữ / theo quy tắc", "tam_dung_gia_binance_mvrv_mvrv": ". Tạm dùng giá Binance; MVRV, MVRV Z-Score, Puell không dùng được.", "tat_ca_chi_so": "Tất cả chỉ số", "thang": "thắng", "thang_2": "Thắng ", "thang_sau": "Thắng sau ", "thang_sau_6_thang_0_sau": "Thắng sau 6 tháng {0}, sau 1 năm {1} (mua bất kỳ lúc nào: {2}, {3})", "thap_hon_moc": "; thấp hơn mốc", "theo_goi_y_chot_khoang_0": " Theo gợi ý: chốt khoảng {0} BTC, tức {1}.", "theo_goi_y_chua_can_ban": " Theo gợi ý: chưa cần bán.", "theo_quy_tac_chot_loi": "Theo quy tắc chốt lời", "thieu_du_lieu": " (thiếu dữ liệu)", "thieu_du_lieu_0": " Thiếu dữ liệu: {0}.", "thieu_du_lieu_tho_dao": ", thiếu dữ liệu thợ đào", "thuc_te_chua_du_thoi_gian": "Thực tế: chưa đủ thời gian", "thuc_te_sau_do": "Thực tế sau đó: ", "tien_mat_cuoi_ky": "Tiền mặt cuối kỳ", "tieu_chi": "Tiêu chí", "tot_nhat": "tốt nhất", "trinh_duyet_bi_chan_hoac_mat": "trình duyệt bị chặn hoặc mất mạng", "trong_lich_su_chua_tieu_chi": "Trong lịch sử, chưa tiêu chí chốt lời nào đủ chính xác (ít nhất 3 đợt và đúng nhiều hơn rõ so với bán bất kỳ lúc nào), nên bot không có cơ sở để khuyên bán. Kết luận Giữ ở đây nghĩa là không có tín hiệu đáng tin, không phải là bảo đảm giá sẽ tăng.", "trong_so_6_thang": "Trọng số 6 tháng", "trung_0": "Trùng {0}", "trung_binh_ty_le_nen_mua": "Trung bình tỷ lệ nên mua {0}%, nên bán {1}%. ", "tu_chon": "Tự chọn", "tu_dong_phuong_an_tot_nhat": "Tự động: phương án tốt nhất", "ty_le_nen_0_tu_1": "tỷ lệ nên {0} từ {1}%", "ty_le_nen_ban": "Tỷ lệ nên bán", "ty_le_nen_ban_cua_bot": "Tỷ lệ nên bán của bot: {0}% ({1}).", "ty_le_nen_ban_ngay_0": "Tỷ lệ nên bán, ngày {0}", "ty_le_nen_mua": "Tỷ lệ nên mua", "ty_le_nen_mua_ngay_0": "Tỷ lệ nên mua, ngày {0}", "vi_du_0_5": "ví dụ 0,5", "vi_du_62000": "ví dụ 62000", "vung_nong": ", vùng nóng", "vung_re": ", vùng rẻ", "xac_suat_thang_neu_mua_ngay": "Xác suất thắng nếu mua ngày {0} (giá {1}) và giữ", "xong_phan_tich_ngay_0_voi": "Xong. Phân tích ngày {0} với {1} chỉ số.", "y_nghia": "Ý nghĩa"}}};
+  function tx(key, ...args) {
+    let v = VI;
+    for (const k of key.split('.')) v = v == null ? undefined : v[k];
+    if (v == null) throw new Error('missing text for key ' + key);
+    return args.length ? String(v).replace(/\{(\d+)\}/g, (m, i) => (+i < args.length ? String(args[+i]) : m)) : String(v);
+  }
+  // 'HH:mm dd/mm/yyyy' in Vietnam time (Asia/Ho_Chi_Minh) from an ISO UTC string
+  function vnTime(iso) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric', hourCycle: 'h23' })
+      .formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+    return `${p.hour}:${p.minute} ${p.day}/${p.month}/${p.year}`;
+  }
+  return { tx, vnTime, VI };
+})();
+// ===== I18N END =====
+
+</script>
+<script>
 // ===== CORE START =====
 const BOT = (() => {
+  const tx = typeof I18N !== 'undefined' ? I18N.tx : require('./i18n.js').tx;
   const DAY = 86400000;
   const iso = (t) => new Date(t).toISOString().slice(0, 10);
   const num = (x) => { const v = Number(x); return x == null || x === '' || !isFinite(v) ? null : v; };
   const WIN = 1461;
   const MAX_UOC = 3; // số ngày cuối tối đa được ước tính vốn hóa và MVRV khi Coin Metrics chưa công bố
 
-  const FAMILIES = { tamly: 'Tâm lý', onchain: 'Định giá on-chain', xuhuong: 'Xu hướng giá', thodao: 'Thợ đào', chuky: 'Chu kỳ', khoiluong: 'Khối lượng' };
+  const FAMILIES = { tamly: tx('web.engine.tam_ly'), onchain: tx('web.engine.dinh_gia_on_chain'), xuhuong: tx('web.engine.xu_huong_gia'), thodao: tx('web.engine.tho_dao'), chuky: tx('web.engine.chu_ky'), khoiluong: tx('web.engine.khoi_luong') };
   // dir -1: giá trị thấp là rẻ; +1: giá trị cao là rẻ. feat: 'pct' = vị trí trong 4 năm gần nhất, 'raw' = giá trị gốc × scale
   // vote: ngưỡng cho phương pháp biểu quyết [ngưỡng +1, ngưỡng +2, ngưỡng nóng]
   const IND = [
     { id: 'fng', ten: 'Fear & Greed', nhom: 'tamly', dir: -1, feat: 'raw', scale: 0.01, dec: 0, vote: [24, 9, 75], need: 'fng',
-      y: 'Tâm lý đám đông 0–100 của Alternative.me, có từ 02/2018. Thấp là sợ hãi.' },
+      y: tx('web.engine.tam_ly_dam_dong_0_100') },
     { id: 'mvrv', ten: 'MVRV', nhom: 'onchain', dir: -1, feat: 'pct', dec: 2, vote: [1.3, 1.0, 2.4], need: 'cm',
-      y: 'Giá chia cho giá vốn trung bình của toàn bộ BTC đang lưu hành. Dưới 1 là người giữ trung bình đang lỗ.' },
+      y: tx('web.engine.gia_chia_cho_gia_von_trung') },
     { id: 'mvrvz', ten: 'MVRV Z-Score', nhom: 'onchain', dir: -1, feat: 'pct', dec: 2, vote: [0.5, 0, 3], need: 'cm',
-      y: 'Chênh lệch vốn hóa thị trường và vốn hóa thực, chia cho độ lệch chuẩn lịch sử.' },
-    { id: 'wma', ten: 'Giá / MA 200 tuần', nhom: 'xuhuong', dir: -1, feat: 'pct', dec: 2, vote: [1.15, 1.0, 2.5],
-      y: 'Giá so với trung bình khoảng 4 năm; đường này từng là đáy của nhiều chu kỳ.' },
+      y: tx('web.engine.chenh_lech_von_hoa_thi_truong') },
+    { id: 'wma', ten: tx('web.engine.gia_ma_200_tuan'), nhom: 'xuhuong', dir: -1, feat: 'pct', dec: 2, vote: [1.15, 1.0, 2.5],
+      y: tx('web.engine.gia_so_voi_trung_binh_khoang') },
     { id: 'mayer', ten: 'Mayer Multiple', nhom: 'xuhuong', dir: -1, feat: 'pct', dec: 2, vote: [0.8, 0.65, 2.4],
-      y: 'Giá so với trung bình 200 ngày.' },
-    { id: 'rsiw', ten: 'RSI 14 tuần', nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 0.01, dec: 0, vote: [35, 30, 80],
-      y: 'Sức mạnh giá trên khung tuần, 0–100. Dưới 30 là bán quá đà, trên 80 là mua quá đà.' },
-    { id: 'pi', ten: 'Tỉ số Pi Cycle', nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 1, dec: 2, vote: [0.4, 0.33, 0.95],
-      y: 'MA 111 ngày chia cho 2 lần MA 350 ngày. Chạm 1 từng báo đỉnh 2013, 2017, 4/2021, nhưng không chạm ở đỉnh 2025.' },
+      y: tx('web.engine.gia_so_voi_trung_binh_200') },
+    { id: 'rsiw', ten: tx('web.engine.rsi_14_tuan'), nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 0.01, dec: 0, vote: [35, 30, 80],
+      y: tx('web.engine.suc_manh_gia_tren_khung_tuan') },
+    { id: 'pi', ten: tx('web.engine.ti_so_pi_cycle'), nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 1, dec: 2, vote: [0.4, 0.33, 0.95],
+      y: tx('web.engine.ma_111_ngay_chia_cho_2') },
     { id: 'puell', ten: 'Puell Multiple', nhom: 'thodao', dir: -1, feat: 'pct', dec: 2, vote: [0.6, 0.5, 3.5], need: 'iss',
-      y: 'Giá trị BTC mới phát hành cho thợ đào so với trung bình 365 ngày. Halving làm chỉ số tụt cơ học.' },
-    { id: 'dd', ten: 'Giảm từ đỉnh', nhom: 'chuky', dir: 1, feat: 'raw', scale: 0.01, dec: 1, unit: '%', vote: [45, 60, 15], high: true,
-      y: 'Giá thấp hơn đỉnh cao nhất bao nhiêu phần trăm. Đáy các chu kỳ trước giảm 77–84%, chu kỳ 2026 khoảng 54%.' },
-    { id: 'vol', ten: 'Khối lượng tương đối', nhom: 'khoiluong', dir: 1, feat: 'raw', scale: 1, dec: 2, vote: null, need: 'vol',
-      y: 'Khối lượng giao dịch trung bình 30 ngày chia cho trung bình 365 ngày, cặp BTC/USDT trên Binance (có từ 08/2017). Trên 1 là sôi động hơn bình thường. Không dùng trong biểu quyết vì khối lượng cao xuất hiện cả ở đỉnh lẫn đáy; để mô hình tự học chiều tác động.' },
+      y: tx('web.engine.gia_tri_btc_moi_phat_hanh') },
+    { id: 'dd', ten: tx('web.engine.giam_tu_dinh'), nhom: 'chuky', dir: 1, feat: 'raw', scale: 0.01, dec: 1, unit: '%', vote: [45, 60, 15], high: true,
+      y: tx('web.engine.gia_thap_hon_dinh_cao_nhat') },
+    { id: 'vol', ten: tx('web.engine.khoi_luong_tuong_doi'), nhom: 'khoiluong', dir: 1, feat: 'raw', scale: 1, dec: 2, vote: null, need: 'vol',
+      y: tx('web.engine.khoi_luong_giao_dich_trung_binh') },
   ];
-  const HOLD = { '1m': { ten: '1 tháng', tuan: 4, thang: 1 }, '3m': { ten: '3 tháng', tuan: 13, thang: 3 }, '6m': { ten: '6 tháng', tuan: 26, thang: 6 }, '12m': { ten: '1 năm', tuan: 52, thang: 12 } };
-  const FRAMES = { tuan: { ten: 'Mua theo tuần', unit: 'tuần', minTrain: 104, refit: 4 }, thang: { ten: 'Mua theo tháng', unit: 'tháng', minTrain: 30, refit: 1 } };
-  const LEVELS = { 2: 'Nên mua', 1: 'Cân nhắc mua', 0: 'Không mua thêm', '-1': 'Cân nhắc bán', '-2': 'Nên bán' };
 
   // ---------------------------------------------------------------- dữ liệu
   function buildSeries({ cm, kl, fng, live }) {
@@ -378,7 +416,7 @@ const BOT = (() => {
     const qvMap = new Map();
     if (kl && kl.length) for (const k of kl) { const q = Number(k[7]); if (q > 0) qvMap.set(iso(Number(k[0])), q); }
     const keys = [...rows.keys()].sort();
-    if (!keys.length) throw new Error('Không có dữ liệu giá lịch sử');
+    if (!keys.length) throw new Error(tx('web.engine.khong_co_du_lieu_gia_lich'));
     const full = []; let last = null;
     for (let t = Date.parse(keys[0] + 'T00:00:00Z'), e = Date.parse(keys[keys.length - 1] + 'T00:00:00Z'); t <= e; t += DAY) {
       const d = iso(t), r = rows.get(d); if (r) last = r; full.push([d, r || { ...last, iss: null }]);
@@ -468,34 +506,6 @@ const BOT = (() => {
     if (d.feat === 'pct') return pctAt(S, id, i);
     const v = S.v[id][i]; return v == null ? null : v * d.scale;
   }
-  function voteAt(d, v) {
-    if (v == null || !d.vote) return null;
-    const [b1, b2, hot] = d.vote;
-    if (d.high) return v >= b2 ? 2 : v >= b1 ? 1 : v < hot ? -1 : 0;
-    return v <= b2 ? 2 : v <= b1 ? 1 : v >= hot ? -1 : 0;
-  }
-
-  function samples(S, frame) {
-    const out = [];
-    for (let i = 0; i < S.dates.length; i++) {
-      const d = S.dates[i];
-      if (frame === 'tuan') { if (new Date(d + 'T00:00:00Z').getUTCDay() === 0) out.push(i); }
-      else if (i + 1 < S.dates.length && S.dates[i + 1].slice(5, 7) !== d.slice(5, 7)) out.push(i);
-    }
-    if (out[out.length - 1] !== S.dates.length - 1) out.push(S.dates.length - 1);
-    return out;
-  }
-
-  // bảng mẫu theo khung: mỗi dòng là một lần kiểm tra, kèm kết quả nếu giữ H kỳ
-  function rows(S, frame, H, ids) {
-    const smp = samples(S, frame);
-    return smp.map((i, j) => {
-      const f = {}; ids.forEach((id) => { f[id] = featAt(S, id, i); });
-      const r = j + H < smp.length ? S.price[smp[j + H]] / S.price[i] - 1 : null;
-      return { j, i, date: S.dates[i], f, r, y: r == null ? null : r > 0 ? 1 : 0, known: j + H };
-    });
-  }
-
   // ---------------------------------------------------------------- hồi quy logistic có điều chuẩn
   function solve(A, b) {
     const n = b.length, M = A.map((r, i) => [...r, b[i]]);
@@ -532,232 +542,18 @@ const BOT = (() => {
   }
   const predLogit = (m, x) => { let e = m.w[0]; for (let k = 0; k < x.length; k++) e += m.w[k + 1] * (x[k] - m.mu[k]) / m.sd[k]; return 1 / (1 + Math.exp(-e)); };
 
-  // ---------------------------------------------------------------- dự báo đi tới (không nhìn trước)
-  // kind: 'base' | 'logit' | 'vote'
-  function walkForward(S, R, ids, kind, frame, fromDate, toDate) {
-    const F = FRAMES[frame], preds = [], fits = [];
-    let model = null, lastFit = -1e9, vtab = null;
-    const ok = (r) => ids.every((id) => r.f[id] != null);
-    for (const r of R) {
-      if (r.date < fromDate || (toDate && r.date > toDate)) continue;
-      if (!ok(r)) continue;
-      const train = R.filter((t) => t.known <= r.j && t.y != null && ok(t));
-      if (train.length < F.minTrain) continue;
-      const p0 = train.reduce((a, t) => a + t.y, 0) / train.length;
-      let p = p0;
-      if (kind === 'logit' && ids.length) {
-        if (r.j - lastFit >= F.refit || !model) {
-          model = fitLogit(train.map((t) => ids.map((id) => t.f[id])), train.map((t) => t.y), model && model.w);
-          lastFit = r.j; fits.push({ date: r.date, w: model.w.slice(1), n: train.length });
-        }
-        p = predLogit(model, ids.map((id) => r.f[id]));
-      } else if (kind === 'vote' && ids.length) {
-        if (r.j - lastFit >= F.refit || !vtab) { vtab = voteTable(S, train, ids, p0); lastFit = r.j; }
-        p = vtab.lookup(voteScore(S, r.i, ids));
-      }
-      preds.push({ j: r.j, i: r.i, date: r.date, p, p0, y: r.y, r: r.r });
-    }
-    return { preds, fits };
-  }
-  function voteScore(S, i, ids) {
-    const fam = {};
-    for (const id of ids) { const d = IND.find((x) => x.id === id); if (!d.vote) continue; const s = voteAt(d, S.v[id][i]); if (s == null) return null; (fam[d.nhom] = fam[d.nhom] || []).push(s); }
-    if (!Object.keys(fam).length) return null;
-    const av = Object.values(fam).map((a) => a.reduce((x, y) => x + y, 0) / a.length);
-    return av.reduce((x, y) => x + y, 0) / av.length;
-  }
-  function voteTable(S, train, ids, p0) {
-    const bin = (t) => (t == null ? null : Math.max(-2, Math.min(4, Math.round(t * 2))));
-    const agg = {};
-    for (const t of train) { const b = bin(voteScore(S, t.i, ids)); if (b == null) continue; (agg[b] = agg[b] || [0, 0]); agg[b][0] += t.y; agg[b][1]++; }
-    return { lookup: (s) => { const b = bin(s); const a = agg[b] || [0, 0]; return (a[0] + 8 * p0) / (a[1] + 8); } };
-  }
-
   // ---------------------------------------------------------------- đo lường
   function wilson(k, n) { if (!n) return [null, null]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), m = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [Math.max(0, (c - m) / d), Math.min(1, (c + m) / d)]; }
   const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
   const quant = (a, q) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.max(0, Math.round(q * (s.length - 1))))]; };
-  function auc(ps) {
-    const pos = ps.filter((x) => x.y === 1).length, neg = ps.length - pos; if (!pos || !neg) return null;
-    const s = [...ps].sort((a, b) => a.p - b.p); let rank = 0, sum = 0, i = 0;
-    while (i < s.length) { let j = i; while (j + 1 < s.length && s[j + 1].p === s[i].p) j++; const r = (i + j + 2) / 2; for (let k = i; k <= j; k++) if (s[k].y === 1) sum += r; i = j + 1; }
-    return (sum - pos * (pos + 1) / 2) / (pos * neg);
-  }
-  const levelOf = (p, p0) => (p >= p0 + 0.10 ? 2 : p >= p0 + 0.04 ? 1 : p <= p0 - 0.15 ? -2 : p <= p0 - 0.08 ? -1 : 0);
-  function episodes(list) { let e = 0, prev = -9; for (const x of list) { if (x.j - prev > 1) e++; prev = x.j; } return e; }
-  function metrics(preds, a, b) {
-    const ps = preds.filter((x) => x.y != null && (!a || x.date >= a) && (!b || x.date <= b));
-    if (!ps.length) return { n: 0 };
-    const br = ps.reduce((s, x) => s + (x.p - x.y) ** 2, 0) / ps.length, br0 = ps.reduce((s, x) => s + (x.p0 - x.y) ** 2, 0) / ps.length;
-    const lv = {};
-    for (const L of [2, 1, 0, -1, -2]) {
-      const sel = ps.filter((x) => levelOf(x.p, x.p0) === L), k = sel.filter((x) => x.y === 1).length;
-      const [lo, hi] = wilson(k, sel.length);
-      lv[L] = { n: sel.length, eps: episodes(sel), win: sel.length ? k / sel.length : null, lo, hi, med: median(sel.map((x) => x.r)) };
-    }
-    const allK = ps.filter((x) => x.y === 1).length;
-    return { n: ps.length, eps: episodes(ps), brier: br, brier0: br0, bss: 1 - br / br0, auc: auc(ps), base: allK / ps.length, lv, from: ps[0].date, to: ps[ps.length - 1].date };
-  }
-  function calibration(preds) {
-    const ps = preds.filter((x) => x.y != null), bins = [];
-    for (let b = 0; b < 10; b++) {
-      const sel = ps.filter((x) => Math.min(9, Math.floor(x.p * 10)) === b); if (!sel.length) continue;
-      const k = sel.filter((x) => x.y === 1).length, [lo, hi] = wilson(k, sel.length);
-      bins.push({ b, pred: sel.reduce((s, x) => s + x.p, 0) / sel.length, act: k / sel.length, n: sel.length, lo, hi });
-    }
-    return bins;
-  }
-
-  // ---------------------------------------------------------------- phối hợp tối ưu: thêm dần từng chỉ số
-  async function greedy(S, R, cand, frame, fromDate, toDate, tick) {
-    let chosen = [], best = -Infinity; const steps = [];
-    const evalSet = (ids) => metrics(walkForward(S, R, ids, 'logit', frame, fromDate, toDate).preds).bss;
-    while (chosen.length < 6) {
-      let pick = null, pickScore = -Infinity; const tried = [];
-      for (const id of cand) {
-        if (chosen.includes(id)) continue;
-        const sc = evalSet([...chosen, id]); tried.push({ id, bss: sc });
-        if (sc > pickScore) { pickScore = sc; pick = id; }
-        if (tick) await tick();
-      }
-      if (!pick) break;
-      const gain = pickScore - (chosen.length ? best : 0);
-      steps.push({ them: pick, bss: pickScore, tang: gain, thu: tried.sort((a, b) => b.bss - a.bss) });
-      if (gain < 0.005) { steps[steps.length - 1].dung = true; break; }
-      chosen = [...chosen, pick]; best = pickScore;
-    }
-    return { ids: chosen, steps };
-  }
-
-  // giai đoạn theo chu kỳ halving
-  const ERAS = [['2014-01-01', '2016-07-08', '2014–2016'], ['2016-07-09', '2020-05-10', '2016–2020'], ['2020-05-11', '2024-04-19', '2020–2024'], ['2024-04-20', '2099-12-31', '2024–nay']];
-  function eraAUC(R, ids) {
-    const out = {};
-    for (const id of ids) {
-      const d = IND.find((x) => x.id === id);
-      out[id] = ERAS.map(([a, b, ten]) => {
-        const sel = R.filter((r) => r.date >= a && r.date <= b && r.y != null && r.f[id] != null).map((r) => ({ p: r.f[id] * d.dir, y: r.y }));
-        return { ten, n: sel.length, auc: sel.length >= 20 ? auc(sel) : null };
-      });
-    }
-    return out;
-  }
-
-  // mô phỏng: cùng ngân sách 100 $/tuần, mua đều so với mua theo mức của bot
-  const MULT = { 2: 2.5, 1: 1.5, 0: 0.6, '-1': 0.4, '-2': 0.2 };
-  const SELL = { '-2': 0.05, '-1': 0 };
-  function simulate(S, preds, frame) {
-    const amt = frame === 'tuan' ? 100 : 100 * 52 / 12, lastP = S.price[S.price.length - 1];
-    const run = (bot) => {
-      let cash = 0, btc = 0, inv = 0, spent = 0, buys = [];
-      for (const x of preds) {
-        if (x.i === S.price.length - 1) continue;
-        const px = S.price[x.i]; cash += amt; inv += amt;
-        const L = bot ? levelOf(x.p, x.p0) : 0;
-        if (bot && SELL[L] && btc > 0) { const q = btc * SELL[L]; btc -= q; cash += q * px; }
-        const b = Math.min(cash, amt * (bot ? MULT[L] : 1)); if (b > 0) { btc += b / px; cash -= b; spent += b; buys.push(px); }
-      }
-      const value = btc * lastP + cash;
-      return { inv, value, cash, btc, roi: inv ? value / inv - 1 : 0, avg: btc ? spent / btc : null, lan: buys.length, dangLai: buys.length ? buys.filter((p) => p < lastP).length / buys.length : null };
-    };
-    return { deu: run(false), bot: run(true) };
-  }
-
-  // ---------------------------------------------------------------- chạy toàn bộ cho một khung
-  async function analyze(S, cfg, frame, tick = null) {
-    const H = HOLD[cfg.hold][frame], ids = cfg.ids.filter((id) => S.avail.includes(id));
-    const R = rows(S, frame, H, ids);
-    const allOk = (r) => ids.every((id) => r.f[id] != null);
-    const firstAll = R.find(allOk);
-    if (!firstAll) throw new Error('Các chỉ số đã chọn chưa có đủ dữ liệu chung.');
-    // mốc đánh giá chung: từ lúc mọi chỉ số đã chọn có số liệu và đủ dữ liệu huấn luyện
-    const pre = walkForward(S, R, ids, 'base', frame, firstAll.date);
-    const evalFrom = pre.preds.length ? pre.preds[0].date : firstAll.date;
-    const known = pre.preds.filter((x) => x.y != null);
-    const mid = known.length ? known[Math.floor(known.length / 2)].date : evalFrom;
-    const methods = [];
-    const add = (id, ten, kind, use, note) => { const wf = walkForward(S, R, use, kind, frame, evalFrom); methods.push({ id, ten, kind, ids: use, note, wf, m: metrics(wf.preds), m1: metrics(wf.preds, null, mid), m2: metrics(wf.preds, mid) }); };
-    add('base', 'Mốc: chỉ dựa vào tỉ lệ có lãi trung bình trước đó', 'base', []);
-    for (const id of ids) { add('one:' + id, IND.find((d) => d.id === id).ten + ' (riêng)', 'logit', [id]); if (tick) await tick(); }
-    add('vote', 'Biểu quyết theo nhóm (ngưỡng cố định)', 'vote', ids); if (tick) await tick();
-    add('logit', 'Hồi quy logistic, mọi chỉ số đã chọn', 'logit', ids); if (tick) await tick();
-    const g = await greedy(S, R, ids, frame, evalFrom, mid, tick);
-    if (g.ids.length) add('auto', 'Tổ hợp tự chọn: ' + g.ids.map((id) => IND.find((d) => d.id === id).ten).join(' + '), 'logit', g.ids, 'chọn trên nửa đầu');
-    // chọn phương pháp: tự động = tốt nhất ở nửa đầu; người dùng có thể chỉ định
-    let chosen;
-    if (cfg.method === 'auto') {
-      chosen = methods.filter((x) => x.id !== 'base' && x.m1.n).sort((a, b) => b.m1.bss - a.m1.bss)[0] || methods[0];
-    } else chosen = methods.find((x) => x.id === cfg.method) || methods.find((x) => x.id === 'logit');
-    // dự báo hôm nay: huấn luyện trên toàn bộ dữ liệu đã biết kết quả
-    const last = R[R.length - 1], train = R.filter((t) => t.y != null && chosen.ids.every((id) => t.f[id] != null));
-    const p0 = train.reduce((a, t) => a + t.y, 0) / train.length;
-    let pNow = p0, model = null;
-    if (chosen.kind === 'logit' && chosen.ids.every((id) => last.f[id] != null)) { model = fitLogit(train.map((t) => chosen.ids.map((id) => t.f[id])), train.map((t) => t.y)); pNow = predLogit(model, chosen.ids.map((id) => last.f[id])); }
-    else if (chosen.kind === 'vote') pNow = voteTable(S, train, chosen.ids, p0).lookup(voteScore(S, last.i, chosen.ids));
-    // xác suất đã hiệu chỉnh: lịch sử những lần bot dự báo gần bằng hôm nay
-    const known2 = chosen.wf.preds.filter((x) => x.y != null);
-    let band = 0.04, near = [];
-    while (band <= 0.2) { near = known2.filter((x) => Math.abs(x.p - pNow) <= band); if (near.length >= 20) break; band += 0.04; }
-    const k = near.filter((x) => x.y === 1).length, [lo, hi] = wilson(k, near.length);
-    const lvNow = levelOf(pNow, p0);
-    const out = {
-      frame, H, holdTen: HOLD[cfg.hold].ten, ids, evalFrom, mid, R, methods, chosen, greedy: g,
-      today: { date: last.date, price: S.price[last.i], pNow, p0, level: lvNow, hist: { n: near.length, eps: episodes(near), win: near.length ? k / near.length : null, lo, hi, band,
-        med: median(near.map((x) => x.r)), q1: quant(near.map((x) => x.r), 0.25), q3: quant(near.map((x) => x.r), 0.75) },
-        weights: model ? chosen.ids.map((id, kx) => ({ id, w: model.w[kx + 1] * IND.find((d) => d.id === id).dir })) : null,
-        feats: ids.map((id) => ({ id, v: S.v[id][last.i], f: last.f[id], vote: voteAt(IND.find((d) => d.id === id), S.v[id][last.i]) })) },
-      eras: eraAUC(R, ids), calib: calibration(chosen.wf.preds), sim: simulate(S, chosen.wf.preds, frame),
-    };
-    out.log = buildLog(S, out, cfg);
-    return out;
-  }
-
-  // ---------------------------------------------------------------- nhật ký tư duy (sinh từ số liệu đã tính)
-  const P = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
-  const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
-  const nameOf = (id) => IND.find((d) => d.id === id).ten;
-  function buildLog(S, o, cfg) {
-    const F = FRAMES[o.frame], base = o.methods.find((m) => m.id === 'base'), L = [];
-    const missing = cfg.ids.filter((id) => !S.avail.includes(id));
-    L.push({ t: 'Đặt câu hỏi', s: [`Nếu ${F.ten.toLowerCase()} và giữ ${o.holdTen}, xác suất lần mua đó có lãi là bao nhiêu? "Thành công" được định nghĩa cứng: giá sau ${o.H} ${F.unit} cao hơn giá lúc mua. Không dùng định nghĩa nào khác để số liệu không bị uốn theo ý muốn.`] });
-    L.push({ t: 'Kiểm tra dữ liệu', s: [`Giá từ ${D(S.dates[0])} đến ${D(S.dates[S.dates.length - 1])}, ${S.dates.length.toLocaleString('vi-VN')} ngày.`,
-      `Chỉ số đang dùng: ${o.ids.map(nameOf).join(', ')}.` + (missing.length ? ` Không dùng được vì thiếu nguồn: ${missing.map(nameOf).join(', ')}.` : ''),
-      `Mọi chỉ số đã chọn cùng có số liệu và đủ ${F.minTrain} ${F.unit} để học từ ${D(o.evalFrom)}, nên mọi phương pháp được chấm trên cùng khoảng này để so sánh công bằng.`] });
-    L.push({ t: 'Đặt mốc so sánh', s: [`Trong khoảng chấm điểm, mua bất kỳ ${F.unit} nào rồi giữ ${o.holdTen} có lãi ${P(base.m.base)} số lần (${base.m.n} lần). Bitcoin tăng dài hạn nên mốc này đã cao; một chỉ số chỉ có ích nếu vượt được nó.`,
-      `Thước đo chính là điểm kỹ năng Brier: 0 nghĩa là không hơn mốc, dương là tốt hơn, âm là tệ hơn. Kèm theo là AUC: 0,5 là đoán bừa, càng gần 1 càng phân biệt tốt lần lãi với lần lỗ.`] });
-    const singles = o.methods.filter((m) => m.id.startsWith('one:')).sort((a, b) => b.m.bss - a.m.bss);
-    const helpful = singles.filter((m) => m.m.bss > 0.005), useless = singles.filter((m) => m.m.bss <= 0.005);
-    L.push({ t: 'Thử từng chỉ số riêng lẻ', s: [helpful.length ? `Tốt hơn mốc: ${helpful.map((m) => `${m.ten.replace(' (riêng)', '')} (${m.m.bss >= 0 ? '+' : ''}${m.m.bss.toFixed(3).replace('.', ',')})`).join(', ')}.` : 'Không chỉ số riêng lẻ nào vượt mốc rõ rệt.',
-      useless.length ? `Không hơn mốc: ${useless.map((m) => m.ten.replace(' (riêng)', '')).join(', ')}.` : ''].filter(Boolean) });
-    const eraLines = o.ids.map((id) => { const e = o.eras[id].filter((x) => x.auc != null); if (!e.length) return null;
-      const good = e.filter((x) => x.auc >= 0.58).map((x) => x.ten), bad = e.filter((x) => x.auc <= 0.48).map((x) => x.ten);
-      return `${nameOf(id)}: ` + (good.length ? `khớp ở ${good.join(', ')}` : 'không khớp rõ ở giai đoạn nào') + (bad.length ? `; ngược ở ${bad.join(', ')}` : '') + '.'; }).filter(Boolean);
-    L.push({ t: 'Xem từng giai đoạn chu kỳ', s: ['Mỗi chỉ số được chấm riêng trong từng chu kỳ halving, vì một chỉ số có thể đúng ở chu kỳ này mà sai ở chu kỳ khác.', ...eraLines] });
-    const lg = o.methods.find((m) => m.id === 'logit'), vt = o.methods.find((m) => m.id === 'vote');
-    L.push({ t: 'Phối hợp các chỉ số', s: [`Biểu quyết theo nhóm (đếm phiếu, ngưỡng cố định): điểm kỹ năng ${vt.m.bss.toFixed(3).replace('.', ',')}.`,
-      `Hồi quy logistic dùng mọi chỉ số: điểm kỹ năng ${lg.m.bss.toFixed(3).replace('.', ',')}. Mô hình tự học trọng số từ dữ liệu quá khứ và học lại mỗi ${F.refit} ${F.unit}, nên khi một chỉ số hết hiệu quả, trọng số của nó tự giảm.`,
-      'Thêm chỉ số không tự động làm kết quả đáng tin hơn: các chỉ số cùng nhóm (MVRV và MVRV Z-Score, MA 200 tuần và Mayer) gần như đo cùng một thứ. Vì vậy bot thử thêm từng chỉ số và chỉ giữ lại chỉ số làm điểm kỹ năng tăng thật.'] });
-    if (o.greedy.steps.length) L.push({ t: 'Chọn tổ hợp tốt nhất trên nửa đầu dữ liệu', s: o.greedy.steps.map((s, k) => s.dung ? `Bước ${k + 1}: thêm ${nameOf(s.them)} chỉ tăng ${s.tang.toFixed(3).replace('.', ',')}, dưới ngưỡng 0,005, nên dừng.` : `Bước ${k + 1}: thêm ${nameOf(s.them)}, điểm kỹ năng ${s.bss.toFixed(3).replace('.', ',')} (tăng ${s.tang.toFixed(3).replace('.', ',')}).`) });
-    const c = o.chosen;
-    L.push({ t: 'Kiểm tra trên dữ liệu chưa dùng để chọn', s: [`Phương pháp được chọn: ${c.ten}.`,
-      `Nửa đầu (${D(c.m1.from || o.evalFrom)}–${D(o.mid)}): điểm kỹ năng ${c.m1.bss != null ? c.m1.bss.toFixed(3).replace('.', ',') : '—'}. Nửa sau (${D(o.mid)}–${D(c.m2.to || o.mid)}), phần bot không dùng để chọn: ${c.m2.n ? c.m2.bss.toFixed(3).replace('.', ',') : 'chưa đủ dữ liệu'}.`,
-      c.m2.n && c.m2.bss < 0 ? 'Ở nửa sau, phương pháp này kém hơn mốc. Đây là dấu hiệu quá khớp hoặc thị trường đã đổi tính chất; không nên tin mạnh vào kết luận.' : c.m2.n && c.m2.bss > 0 ? 'Phương pháp vẫn tốt hơn mốc ở nửa sau, nên kết quả có cơ sở hơn.' : ''].filter(Boolean) });
-    const t = o.today, h = t.hist, lv = c.m.lv[2];
-    L.push({ t: 'Kết luận hôm nay', s: [`Mô hình cho xác suất có lãi ${P(t.pNow)} so với mức trung bình ${P(t.p0)}, nên mức là "${LEVELS[t.level]}".`,
-      h.n ? `Trong quá khứ có ${h.n} lần bot dự báo gần như vậy (thuộc ${h.eps} đợt); thực tế ${P(h.win)} số lần có lãi, khoảng tin cậy ${P(h.lo)}–${P(h.hi)}. Lãi trung vị ${P(h.med)}, một nửa số lần nằm trong ${P(h.q1)} đến ${P(h.q3)}.` : 'Chưa có đủ lần dự báo tương tự trong quá khứ để đối chiếu.',
-      lv.n ? `Khi bot báo "Nên mua" trong quá khứ, ${P(lv.win)} số lần có lãi sau ${o.holdTen} (${lv.n} lần, ${lv.eps} đợt).` : 'Trong khoảng chấm điểm, bot chưa từng báo "Nên mua".'] });
-    L.push({ t: 'Giới hạn', s: ['Bitcoin mới có khoảng 4 chu kỳ đầy đủ, nên số đợt độc lập ít; khoảng tin cậy rộng là bình thường.', 'Từ khi có quỹ ETF (2024), đỉnh và đáy nông hơn trước; mô hình học lại liên tục nhưng vẫn có thể chậm thích nghi.', 'Mọi con số trên trang đều tính từ dữ liệu tải về, không có số nào được đặt tay.'] });
-    return L;
-  }
-
 
   // ---------------------------------------------------------------- khối lượng giao dịch
   const VCLS = {
-    tang_xn: { ten: 'Tăng có khối lượng xác nhận', tone: 'good' },
-    tang_yeu: { ten: 'Tăng nhưng khối lượng thấp', tone: 'mid' },
-    giam_manh: { ten: 'Giảm kèm khối lượng lớn', tone: 'bad' },
-    giam_yeu: { ten: 'Giảm với khối lượng thấp', tone: 'mid' },
-    thuong: { ten: 'Khối lượng và giá bình thường', tone: '' },
+    tang_xn: { ten: tx('web.engine.tang_co_khoi_luong_xac_nhan'), tone: 'good' },
+    tang_yeu: { ten: tx('web.engine.tang_nhung_khoi_luong_thap'), tone: 'mid' },
+    giam_manh: { ten: tx('web.engine.giam_kem_khoi_luong_lon'), tone: 'bad' },
+    giam_yeu: { ten: tx('web.engine.giam_voi_khoi_luong_thap'), tone: 'mid' },
+    thuong: { ten: tx('web.engine.khoi_luong_va_gia_binh_thuong'), tone: '' },
   };
   function volumeStudy(S) {
     if (!S.has.vol) return null;
@@ -785,7 +581,7 @@ const BOT = (() => {
       }
       return out;
     };
-    const test = [{ id: 'all', ten: 'Mọi tuần (mốc so sánh)', ...testOf((w) => w.cls != null) }]
+    const test = [{ id: 'all', ten: tx('web.engine.moi_tuan_moc_so_sanh'), ...testOf((w) => w.cls != null) }]
       .concat(Object.entries(VCLS).map(([id, c]) => ({ id, ten: c.ten, tone: c.tone, ...testOf((w) => w.cls === id) })));
     // các đợt tăng/giảm từ 20% trở lên (zigzag trên giá đóng cửa ngày)
     const start = S.qv.findIndex((q) => q != null), thr = 0.2, piv = [];
@@ -811,147 +607,21 @@ const BOT = (() => {
       const trend = h1.length && h2.length ? (h2.reduce((x, y) => x + y, 0) / h2.length) / (h1.reduce((x, y) => x + y, 0) / h1.length) : null;
       const chg = S.price[b] / S.price[a] - 1, rel = ref ? avg / ref : null, up = chg > 0;
       let note;
-      if (rel == null) note = 'Chưa đủ lịch sử khối lượng để so sánh.';
-      else if (up) note = rel >= 1.2 && trend >= 1 ? 'Tăng kèm khối lượng lớn và tăng dần: có lực mua thật.'
-        : rel >= 1.2 ? 'Khối lượng lớn nhưng giảm dần về cuối đợt: lực mua yếu đi.'
-        : rel < 0.9 ? 'Tăng với khối lượng thấp: thiếu xác nhận, dễ bị đảo chiều.' : 'Khối lượng bình thường.';
-      else note = trend != null && trend >= 1.3 && rel >= 1 ? 'Khối lượng dồn mạnh về cuối đợt: dấu hiệu bán tháo đầu hàng, thường gần đáy.'
-        : rel >= 1.2 ? 'Giảm kèm khối lượng lớn: áp lực bán thật.'
-        : rel < 0.9 ? 'Giảm với khối lượng thấp: chủ yếu do cạn lực mua.' : 'Khối lượng bình thường.';
+      if (rel == null) note = tx('web.engine.chua_du_lich_su_khoi_luong');
+      else if (up) note = rel >= 1.2 && trend >= 1 ? tx('web.engine.tang_kem_khoi_luong_lon_va')
+        : rel >= 1.2 ? tx('web.engine.khoi_luong_lon_nhung_giam_dan')
+        : rel < 0.9 ? tx('web.engine.tang_voi_khoi_luong_thap_thieu') : tx('web.engine.khoi_luong_binh_thuong');
+      else note = trend != null && trend >= 1.3 && rel >= 1 ? tx('web.engine.khoi_luong_don_manh_ve_cuoi')
+        : rel >= 1.2 ? tx('web.engine.giam_kem_khoi_luong_lon_ap')
+        : rel < 0.9 ? tx('web.engine.giam_voi_khoi_luong_thap_chu') : tx('web.engine.khoi_luong_binh_thuong');
       waves.push({ from: S.dates[a], to: S.dates[b], open: b === n - 1, chg, days: b - a, rel, trend, note });
     }
     const done = weeks.filter((w) => w.cls != null);
     return { weeks, test, waves, last: done[done.length - 1] || null, recent: done.slice(-8) };
   }
 
-  // ---------------------------------------------------------------- bộ chỉ số khuyến cáo (suy ra từ kết quả vừa chạy)
-  function recommend(res) {
-    const ids = res.tuan.ids, rows = [];
-    for (const id of ids) {
-      const d = IND.find((x) => x.id === id); let score = 0; const why = [];
-      for (const fr of ['tuan', 'thang']) {
-        const o = res[fr], m = o.methods.find((x) => x.id === 'one:' + id), lab = fr === 'tuan' ? 'khung tuần' : 'khung tháng';
-        if (!m || !m.m1.n || !m.m2.n) { why.push(`${lab}: chưa đủ dữ liệu`); continue; }
-        const a = m.m1.bss > 0.005, b = m.m2.bss > 0.005;
-        if (a && b) { score += 2; why.push(`${lab}: tốt hơn mốc ở cả hai nửa`); }
-        else if (a || b) { score += 1; why.push(`${lab}: tốt hơn mốc ở ${a ? 'nửa đầu' : 'nửa sau'}`); }
-        else if (m.m1.bss < -0.005 && m.m2.bss < -0.005) { score -= 1; why.push(`${lab}: kém hơn mốc ở cả hai nửa`); }
-        else why.push(`${lab}: không hơn mốc`);
-        if (o.greedy.ids.includes(id)) { score += 1; why.push(`được chọn vào tổ hợp tối ưu ${lab}`); }
-      }
-      const e = res.tuan.eras[id].filter((x) => x.auc != null), good = e.filter((x) => x.auc >= 0.58).length, bad = e.filter((x) => x.auc <= 0.45).length;
-      if (good >= 2) { score += 1; why.push(`khớp ở ${good} chu kỳ halving`); }
-      if (bad >= 2) { score -= 1; why.push(`chạy ngược cách hiểu thông thường ở ${bad} chu kỳ`); }
-      rows.push({ id, ten: d.ten, nhom: d.nhom, score, why });
-    }
-    rows.sort((a, b) => b.score - a.score);
-    const picks = [], perFam = {};
-    for (const r of rows) {
-      if (r.score < 3 || picks.length >= 6 || (perFam[r.nhom] || 0) >= 2) continue;
-      picks.push(r.id); perFam[r.nhom] = (perFam[r.nhom] || 0) + 1;
-    }
-    let weak = false;
-    if (picks.length < 2) { weak = true; for (const r of rows) if (r.score >= 1 && !picks.includes(r.id) && picks.length < 3) picks.push(r.id); }
-    rows.forEach((r) => { r.pick = picks.includes(r.id); });
-    return { picks, rows, weak, xetDu: ids.length === IND.length };
-  }
-
-  // ---------------------------------------------------------------- báo cáo để đưa cho Claude
-  const PC = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
-  const SPC = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
-  const SK = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + x.toFixed(3).replace('.', ','));
-  const USD = (x) => (x == null || !isFinite(x) ? '—' : Math.round(x).toLocaleString('vi-VN') + ' $');
-  function buildReport(S, res, vol, rec, sources) {
-    const L = [], t = (x) => L.push(x), last = S.dates.length - 1;
-    t(`# Báo cáo bot xác suất mua BTC, ngày ${D(S.dates[last])}`);
-    t('');
-    t('Báo cáo do bot thống kê tạo ra từ dữ liệu tải trực tiếp trên web. Mọi con số đều tính từ dữ liệu; bot không có khả năng suy luận ngoài các phép tính này.');
-    t('');
-    t('## Bối cảnh');
-    t(`- Giá BTC lúc chạy: ${USD(S.price[last])}`);
-    t(`- Dữ liệu giá từ ${D(S.dates[0])} đến ${D(S.dates[last])}`);
-    t(`- Nguồn: ${sources}`);
-    t(`- Chỉ số dùng: ${res.tuan.ids.map(nameOf).join(', ')}`);
-    t(`- Thời gian giữ để tính "thành công": ${res.tuan.holdTen} (thành công = giá sau kỳ giữ cao hơn giá mua)`);
-    t(`- Cách kết hợp: ${res.cfg.method === 'auto' ? 'tự chọn cách tốt nhất trên nửa đầu dữ liệu' : res.cfg.method === 'logit' ? 'hồi quy logistic' : 'biểu quyết theo nhóm'}`);
-    t('');
-    t('## Kết luận hôm nay');
-    for (const fr of ['tuan', 'thang']) {
-      const o = res[fr], td = o.today, h = td.hist, nm = o.chosen.m.lv[2];
-      t(`### ${FRAMES[fr].ten}`);
-      t(`- Mức: **${LEVELS[td.level > 0 ? td.level : 0]}**; chiều bán: ${td.level < 0 ? LEVELS[td.level] : 'Không bán'}`);
-      t(`- Xác suất mô hình: ${PC(td.pNow)}; tỉ lệ có lãi trung bình: ${PC(td.p0)}`);
-      t(`- Xác suất đã hiệu chỉnh (theo ${h.n} lần dự báo tương tự, ${h.eps} đợt): ${PC(h.win)}, khoảng tin cậy 95% ${PC(h.lo)}–${PC(h.hi)}`);
-      t(`- Lãi trung vị của các lần tương tự: ${SPC(h.med)}; một nửa số lần trong ${SPC(h.q1)} đến ${SPC(h.q3)}`);
-      t(`- Khi bot từng báo "Nên mua": ${nm.n ? `${PC(nm.win)} có lãi (${nm.n} lần, ${nm.eps} đợt, khoảng tin cậy ${PC(nm.lo)}–${PC(nm.hi)})` : 'chưa từng báo'}`);
-      t(`- Cách kết hợp được dùng: ${o.chosen.ten}; điểm kỹ năng Brier toàn bộ ${SK(o.chosen.m.bss)}, nửa đầu ${SK(o.chosen.m1.bss)}, nửa sau ${SK(o.chosen.m2.bss)}; AUC ${o.chosen.m.auc == null ? '—' : o.chosen.m.auc.toFixed(2).replace('.', ',')}`);
-      t(`- Chấm điểm từ ${D(o.evalFrom)}, ${o.chosen.m.n} lần kiểm tra; chia đôi tại ${D(o.mid)}`);
-      t('- Giá trị chỉ số hôm nay: ' + td.feats.map((f) => `${nameOf(f.id)} ${f.v == null ? '—' : (+f.v).toFixed(IND.find((d) => d.id === f.id).dec).replace('.', ',')}`).join('; '));
-      t('');
-    }
-    if (rec) {
-      t('## Bộ chỉ số khuyến cáo');
-      t(rec.picks.length ? `Khuyến cáo: ${rec.picks.map(nameOf).join(', ')}${rec.weak ? ' (tín hiệu yếu, ít chỉ số đạt chuẩn)' : ''}.` : 'Chưa có chỉ số nào đạt chuẩn khuyến cáo.');
-      t('');
-      t('| Chỉ số | Điểm | Lý do |'); t('|---|---|---|');
-      rec.rows.forEach((r) => t(`| ${r.ten}${r.pick ? ' (khuyến cáo)' : ''} | ${r.score} | ${r.why.join('; ')} |`));
-      t('');
-    }
-    for (const fr of ['tuan', 'thang']) {
-      const o = res[fr];
-      t(`## Bảng xếp hạng cách dự báo, ${FRAMES[fr].ten.toLowerCase()}`);
-      t('| Cách dự báo | Điểm kỹ năng | Nửa đầu | Nửa sau | AUC | Khi báo Nên mua |'); t('|---|---|---|---|---|---|');
-      o.methods.forEach((m) => { const nm = m.m.lv[2]; t(`| ${m.ten}${m === o.chosen ? ' (đang dùng)' : ''} | ${SK(m.m.bss)} | ${SK(m.m1.bss)} | ${SK(m.m2.bss)} | ${m.m.auc == null || m.id === 'base' ? '—' : m.m.auc.toFixed(2).replace('.', ',')} | ${nm.n ? `${PC(nm.win)} (${nm.n} lần, ${nm.eps} đợt)` : '—'} |`); });
-      t('');
-      t(`Kết quả thực tế theo mức bot đưa ra (${FRAMES[fr].ten.toLowerCase()}):`);
-      t('| Mức | Số lần | Có lãi | Khoảng tin cậy | Lãi trung vị |'); t('|---|---|---|---|---|');
-      [2, 1, 0, -1, -2].forEach((Lv) => { const x = o.chosen.m.lv[Lv]; t(`| ${LEVELS[Lv]} | ${x.n} (${x.eps} đợt) | ${PC(x.win)} | ${PC(x.lo)}–${PC(x.hi)} | ${SPC(x.med)} |`); });
-      t('');
-    }
-    t('## AUC từng chỉ số theo chu kỳ halving (khung tuần)');
-    t('| Chỉ số | ' + ERAS.map((e) => e[2]).join(' | ') + ' |'); t('|---|' + ERAS.map(() => '---').join('|') + '|');
-    res.tuan.ids.forEach((id) => t(`| ${nameOf(id)} | ` + res.tuan.eras[id].map((e) => (e.auc == null ? '—' : e.auc.toFixed(2).replace('.', ','))).join(' | ') + ' |'));
-    t('');
-    if (vol) {
-      t('## Khối lượng giao dịch (BTC/USDT Binance)');
-      if (vol.last) t(`Tuần gần nhất đã đóng (${D(vol.last.date)}): giá ${SPC(vol.last.chg)}, khối lượng bằng ${vol.last.rv.toFixed(2).replace('.', ',')} lần trung bình 20 tuần, loại "${VCLS[vol.last.cls].ten}".`);
-      t('');
-      t('| Loại tuần | Số tuần | Có lãi sau 4 tuần | Có lãi sau 13 tuần | Lãi trung vị 13 tuần |'); t('|---|---|---|---|---|');
-      vol.test.forEach((r) => t(`| ${r.ten} | ${r.n} | ${PC(r.f4.win)} | ${PC(r.f13.win)} | ${SPC(r.f13.med)} |`));
-      t('');
-      t('Các đợt tăng/giảm từ 20% trở lên gần nhất:');
-      t('| Từ | Đến | Giá | Số ngày | Khối lượng so với TB năm | Nhận xét |'); t('|---|---|---|---|---|---|');
-      vol.waves.slice(-10).forEach((w) => t(`| ${D(w.from)} | ${w.open ? 'đang diễn ra' : D(w.to)} | ${SPC(w.chg)} | ${w.days} | ${w.rel == null ? '—' : w.rel.toFixed(2).replace('.', ',') + ' lần'} | ${w.note} |`));
-      t('');
-    }
-    t('## Mô phỏng 100 $/tuần (chỉ dùng dự báo đi tới)');
-    t('| Cách mua | Tổng nạp | Giá vốn TB | Giá trị hôm nay | Lời/lỗ | Số lần mua đang lãi |'); t('|---|---|---|---|---|---|');
-    for (const fr of ['tuan', 'thang']) for (const k of ['deu', 'bot']) { const r = res[fr].sim[k]; t(`| ${fr === 'tuan' ? 'Mỗi tuần' : 'Mỗi tháng'}, ${k === 'deu' ? 'đều tay' : 'theo bot'} | ${USD(r.inv)} | ${USD(r.avg)} | ${USD(r.value)} | ${SPC(r.roi)} | ${PC(r.dangLai)} |`); }
-    t('');
-    t('## Nhật ký tư duy của bot (khung tuần)');
-    res.tuan.log.forEach((l, k) => { t(`${k + 1}. **${l.t}.** ${l.s.join(' ')}`); });
-    t('');
-    t('## Phương pháp');
-    t('- Kiểm chứng đi tới: mỗi lần dự báo chỉ học từ những lần mua đã biết kết quả tại thời điểm đó.');
-    t('- Mốc so sánh là tỉ lệ có lãi trung bình trước đó; điểm kỹ năng Brier 0 nghĩa là không hơn mốc.');
-    t('- MVRV, MVRV Z-Score, MA 200 tuần, Mayer, Puell được chuẩn hóa thành vị trí trong 4 năm gần nhất.');
-    t('- Mức: Nên mua khi xác suất cao hơn trung bình ≥ 10 điểm %, Cân nhắc mua ≥ 4; Cân nhắc bán khi thấp hơn ≥ 8, Nên bán ≥ 15. Ngưỡng cố định.');
-    t('');
-    t('## Gợi ý câu hỏi cho Claude');
-    t('- Nhận định của bot có đáng tin không, xét theo điểm kỹ năng nửa sau, số đợt độc lập và khoảng tin cậy?');
-    t('- Bối cảnh vĩ mô và tin tức hiện tại có ủng hộ hay mâu thuẫn với kết luận của bot?');
-    t('- Nên mua theo tuần hay theo tháng với số liệu này, và vì sao?');
-    t('- Khối lượng giao dịch hiện tại xác nhận hay làm yếu xu hướng giá?');
-    return L.join('\n');
-  }
-  function exportJSON(S, res, vol, rec) {
-    const last = S.dates.length - 1, pick = (o) => ({ frame: o.frame, hold: o.holdTen, evalFrom: o.evalFrom, mid: o.mid, chosen: o.chosen.ten, today: { ...o.today, level: LEVELS[o.today.level] },
-      methods: o.methods.map((m) => ({ ten: m.ten, bss: m.m.bss, bss1: m.m1.bss, bss2: m.m2.bss, auc: m.m.auc, nenMua: m.m.lv[2] })), levels: o.chosen.m.lv, eras: o.eras, sim: o.sim, log: o.log });
-    return JSON.stringify({ ngay: S.dates[last], gia: S.price[last], chiSo: res.tuan.ids, tuan: pick(res.tuan), thang: pick(res.thang), khuyenCao: rec, khoiLuong: vol && { last: vol.last, test: vol.test, waves: vol.waves.slice(-15) } }, null, 1);
-  }
-
-  return { IND, FAMILIES, HOLD, FRAMES, LEVELS, ERAS, MULT, SELL, VCLS, buildSeries, analyze, levelOf, samples, wilson, volumeStudy, recommend, buildReport, exportJSON,
-    _: { featAt, fitLogit, predLogit, median, quant, episodes, auc, computeRaw } };
+  return { IND, FAMILIES, VCLS, buildSeries, wilson, volumeStudy,
+    _: { featAt, fitLogit, predLogit, median, quant, computeRaw } };
 })();
 // ===== CORE END =====
 
@@ -959,35 +629,36 @@ const BOT = (() => {
 <script>
 // ===== B3 START =====
 const B3 = (() => {
+  const tx = typeof I18N !== 'undefined' ? I18N.tx : require('./i18n.js').tx;
   const { IND, FAMILIES } = BOT;
   const { featAt, fitLogit, predLogit, median, quant, computeRaw } = BOT._;
   const wilson = BOT.wilson;
   const DAY = 86400000;
 
   const HZ = [
-    { id: '1m', ten: '1 tháng', w: 4, days: 30 }, { id: '3m', ten: '3 tháng', w: 13, days: 91 },
-    { id: '6m', ten: '6 tháng', w: 26, days: 182 }, { id: '1y', ten: '1 năm', w: 52, days: 365 },
+    { id: '1m', ten: tx('web.analysis.s_1_thang'), w: 4, days: 30 }, { id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13, days: 91 },
+    { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26, days: 182 }, { id: '1y', ten: tx('web.analysis.s_1_nam'), w: 52, days: 365 },
   ];
-  const SELL_HZ = [{ id: '3m', ten: '3 tháng', w: 13 }, { id: '6m', ten: '6 tháng', w: 26 }];
+  const SELL_HZ = [{ id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13 }, { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26 }];
   const SELL_DROP = -0.10;
-  const BUY_Z = [{ id: 'phai', ten: 'Phải mua', min: 80 }, { id: 'cannhac', ten: 'Cân nhắc mua', min: 60 }, { id: 'khong', ten: 'Không nên mua', min: 0 }];
-  const SELL_Z = [{ id: 'nen', ten: 'Nên bán', min: 85 }, { id: 'cannhac', ten: 'Cân nhắc bán', min: 70 }, { id: 'khong', ten: 'Không nên bán', min: 0 }];
+  const BUY_Z = [{ id: 'phai', ten: tx('web.analysis.phai_mua'), min: 80 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_mua'), min: 60 }, { id: 'khong', ten: tx('web.analysis.khong_nen_mua'), min: 0 }];
+  const SELL_Z = [{ id: 'nen', ten: tx('web.analysis.nen_ban'), min: 85 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_ban'), min: 70 }, { id: 'khong', ten: tx('web.analysis.khong_nen_ban'), min: 0 }];
   const zoneOf = (Z, v) => (v == null ? null : Z.find((z) => v >= z.min));
   const MIN_TRAIN = 78;
   // các phương án theo thứ tự ưu tiên thiết kế; xếp hạng thật do dữ liệu quyết định
   const OPTIONS = [
-    { id: 'pa1', ten: 'Phương án 1', ids: ['pi', 'mvrv'], lyDo: 'Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.' },
-    { id: 'pa2', ten: 'Phương án 2', ids: ['pi', 'mvrvz'], lyDo: 'Như phương án 1 nhưng dùng MVRV Z-Score.' },
-    { id: 'pa3', ten: 'Phương án 3', ids: ['pi', 'mvrv', 'fng'], lyDo: 'Ba góc nhìn: xu hướng, định giá, tâm lý. Lịch sử ngắn hơn vì Fear & Greed có từ 2018.' },
-    { id: 'pa4', ten: 'Phương án 4', ids: ['pi', 'puell'], lyDo: 'Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving.' },
-    { id: 'pa5', ten: 'Phương án 5', ids: ['fng', 'mvrv', 'wma'], lyDo: 'Bộ cân bằng không dùng Pi Cycle, để so sánh.' },
-    { id: 'pa6', ten: 'Phương án 6', ids: null, lyDo: 'Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.' },
+    { id: 'pa1', ten: tx('web.analysis.phuong_an_1'), ids: ['pi', 'mvrv'], lyDo: tx('web.analysis.xu_huong_gia_dinh_gia_on') },
+    { id: 'pa2', ten: tx('web.analysis.phuong_an_2'), ids: ['pi', 'mvrvz'], lyDo: tx('web.analysis.nhu_phuong_an_1_nhung_dung') },
+    { id: 'pa3', ten: tx('web.analysis.phuong_an_3'), ids: ['pi', 'mvrv', 'fng'], lyDo: tx('web.analysis.ba_goc_nhin_xu_huong_dinh') },
+    { id: 'pa4', ten: tx('web.analysis.phuong_an_4'), ids: ['pi', 'puell'], lyDo: tx('web.analysis.xu_huong_gia_doanh_thu_tho') },
+    { id: 'pa5', ten: tx('web.analysis.phuong_an_5'), ids: ['fng', 'mvrv', 'wma'], lyDo: tx('web.analysis.bo_can_bang_khong_dung_pi') },
+    { id: 'pa6', ten: tx('web.analysis.phuong_an_6'), ids: null, lyDo: tx('web.analysis.bo_bot_tu_tim_co_ty') },
   ];
   const PRESETS = [
-    { id: 'all', ten: 'Tất cả chỉ số', ids: IND.map((d) => d.id) },
-    { id: 'onchain', ten: 'Định giá on-chain', ids: ['mvrv', 'mvrvz', 'puell'] },
-    { id: 'xuhuong', ten: 'Xu hướng giá', ids: ['wma', 'mayer', 'rsiw', 'pi'] },
-    { id: 'tamly_dinhgia', ten: 'Tâm lý và định giá', ids: ['fng', 'mvrv', 'wma'] },
+    { id: 'all', ten: tx('web.analysis.tat_ca_chi_so'), ids: IND.map((d) => d.id) },
+    { id: 'onchain', ten: tx('web.analysis.dinh_gia_on_chain'), ids: ['mvrv', 'mvrvz', 'puell'] },
+    { id: 'xuhuong', ten: tx('web.analysis.xu_huong_gia'), ids: ['wma', 'mayer', 'rsiw', 'pi'] },
+    { id: 'tamly_dinhgia', ten: tx('web.analysis.tam_ly_va_dinh_gia'), ids: ['fng', 'mvrv', 'wma'] },
   ];
 
   // các lần kiểm tra theo tuần (Chủ nhật) đến trước ngày phân tích, cộng thêm chính ngày phân tích
@@ -1069,7 +740,7 @@ const B3 = (() => {
     const run = async (ids) => { const key = [...ids].sort().join(','); if (!cache.has(key)) { cache.set(key, quickBuy(S, asOf, ids)); if (tick) await tick(); } return cache.get(key); };
     const singles = [];
     for (const id of cand) { const s = await run([id]); if (s.length) singles.push({ id, first: s[0].date }); }
-    if (!singles.length) throw new Error('Chưa đủ dữ liệu để tìm bộ chỉ số tại ngày này.');
+    if (!singles.length) throw new Error(tx('web.analysis.chua_du_du_lieu_de_tim'));
     const from = singles.map((x) => x.first).sort().pop() > '2021-01-01' ? singles.map((x) => x.first).sort().pop() : '2021-01-01';
     const usable = singles.map((x) => x.id);
     const evalIds = async (ids) => objective(await run(ids), from);
@@ -1081,7 +752,7 @@ const B3 = (() => {
       if (chosen.length && ps - best < 0.005) { steps.push({ them: pick, score: ps, dung: true }); break; }
       chosen = [...chosen, pick]; best = ps; steps.push({ them: pick, score: ps });
     }
-    const cands = [{ ten: 'Bộ bot tìm được', ids: chosen }, ...PRESETS.map((p) => ({ ten: p.ten, ids: p.ids.filter((id) => usable.includes(id)) })), ...usable.map((id) => ({ ten: IND.find((d) => d.id === id).ten + ' (riêng)', ids: [id] }))];
+    const cands = [{ ten: tx('web.analysis.bo_bot_tim_duoc'), ids: chosen }, ...PRESETS.map((p) => ({ ten: p.ten, ids: p.ids.filter((id) => usable.includes(id)) })), ...usable.map((id) => ({ ten: IND.find((d) => d.id === id).ten + tx('web.analysis.rieng'), ids: [id] }))];
     const ranking = [];
     for (const c of cands) {
       if (!c.ids.length) continue;
@@ -1098,15 +769,15 @@ const B3 = (() => {
   // phân tích đầy đủ một bộ chỉ số tại một ngày
   function analyze(S, asOf, ids) {
     ids = ids.filter((id) => S.avail.includes(id));
-    if (!ids.length) throw new Error('Hãy chọn ít nhất một chỉ số có dữ liệu.');
+    if (!ids.length) throw new Error(tx('web.analysis.hay_chon_it_nhat_mot_chi'));
     const smp = weekly(S, asOf), R = featRows(S, smp, ids);
-    if (!R[R.length - 1].ok) throw new Error('Tại ngày phân tích, một số chỉ số đã chọn chưa có số liệu.');
+    if (!R[R.length - 1].ok) throw new Error(tx('web.analysis.tai_ngay_phan_tich_mot_so'));
     const buyW = HZ.map((h) => walk(S, smp, R, h.w, (r) => (r > 0 ? 1 : 0), 4));
     const sellW = SELL_HZ.map((h) => walk(S, smp, R, h.w, (r) => (r < SELL_DROP ? 1 : 0), 4));
     const buyS = combine(buyW), sellS = combine(sellW);
     const nowJ = smp.length - 1;
     const bNow = buyS.find((x) => x.j === nowJ), sNow = sellS.find((x) => x.j === nowJ);
-    if (!bNow || !sNow) throw new Error('Chưa đủ lịch sử để chấm điểm tại ngày này. Hãy chọn ngày muộn hơn hoặc bớt các chỉ số mới có dữ liệu gần đây (Fear & Greed, Khối lượng).');
+    if (!bNow || !sNow) throw new Error(tx('web.analysis.chua_du_lich_su_de_cham'));
     const from = buyS[0].date;
     // xác suất thắng hôm nay cho từng kỳ giữ: tỉ lệ thực tế của những lần trước có điều kiện gần giống
     const hold = HZ.map((h, k) => {
@@ -1149,9 +820,9 @@ const B3 = (() => {
   // lời giải thích khi mốc giá ít ý nghĩa
   function levelNotes(lv) {
     const out = [];
-    if (lv.phang) out.push('Với bộ chỉ số này, tỷ lệ nên mua và nên bán gần như không đổi khi giá trong ngày thay đổi, vì các chỉ số là trung bình dài hạn (ví dụ Pi Cycle dùng trung bình 111 và 350 ngày). Khuyến cáo đổi chủ yếu theo thời gian, không theo một mức giá cụ thể.');
-    if (lv.nguocMua) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.');
-    if (lv.nguocBan) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.');
+    if (lv.phang) out.push(tx('web.analysis.voi_bo_chi_so_nay_ty'));
+    if (lv.nguocMua) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so'));
+    if (lv.nguocBan) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so_2'));
     return out;
   }
   // dò từ giá p mỗi bước 1% rồi chia đôi, tìm mốc mà tại đó điều kiện ok(X) đổi so với hôm nay;
@@ -1177,82 +848,97 @@ const B3 = (() => {
   }
   const usdT = (x) => Math.round(x).toLocaleString('vi-VN') + ' $';
   function levelText(lv, L) {
-    if (L.gia != null) return `khi giá ${L.kind === 'buy' ? '≤' : '≥'} ${usdT(L.gia)}`;
-    if (!L.dat) return L.kind === 'buy' ? `chưa đạt dù giá giảm tới ${usdT(lv.lo)}` : `chưa đạt dù giá tăng tới ${usdT(lv.hi)}`;
-    return L.kind === 'buy' ? `ở mọi mức giá đến ${usdT(lv.hi)}` : `ở mọi mức giá từ ${usdT(lv.lo)}`;
+    if (L.gia != null) return tx('web.analysis.khi_gia_0_1', L.kind === 'buy' ? '≤' : '≥', usdT(L.gia));
+    if (!L.dat) return L.kind === 'buy' ? tx('web.analysis.chua_dat_du_gia_giam_toi', usdT(lv.lo)) : tx('web.analysis.chua_dat_du_gia_tang_toi', usdT(lv.hi));
+    return L.kind === 'buy' ? tx('web.analysis.o_moi_muc_gia_den_0', usdT(lv.hi)) : tx('web.analysis.o_moi_muc_gia_tu_0', usdT(lv.lo));
   }
 
+  const vnTime = typeof I18N !== 'undefined' ? I18N.vnTime : require('./i18n.js').vnTime;
+  // ⚠ for an indicator set with fewer than 10 independent episodes or two halves more than 20 points apart (6 months)
+  const warnMd = (eps, h1, h2) => (eps < 10 || (h1 && h2 && h1.n && h2.n && Math.abs(h1.win - h2.win) > 0.2) ? tx('web.kn.warn_mark') : '');
   const P = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
   const SP = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
   const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
   const nm = (id) => IND.find((d) => d.id === id).ten;
-  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv) {
+  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn) {
     const L = [], t = (x) => L.push(x);
-    t(`# Báo cáo bot BTC, phân tích tại ngày ${D(a.date)}`); t('');
-    t('Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải trên web, bằng kiểm chứng đi tới (chỉ dùng dữ liệu có đến từng thời điểm).'); t('');
-    t('## Bối cảnh');
-    t(`- Giá BTC tại ngày phân tích: ${Math.round(a.price).toLocaleString('vi-VN')} $` + (isToday ? ' (giá trực tiếp)' : ' (ngày trong quá khứ)'));
-    t(`- Nguồn: ${sources}`); t(`- Bộ chỉ số: ${a.ids.map(nm).join(', ')}`); t(`- Giai đoạn chấm điểm: từ ${D(a.from)} đến ${D(a.date)}, kiểm tra mỗi tuần`); t('');
-    t('## Kết luận');
-    t(`- Tỷ lệ nên mua: **${a.buy.score.toFixed(0)}%**, khung **${a.buy.zone.ten}** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn ${a.buy.score.toFixed(0)}% số tuần trước đó.`);
-    t(`- Tỷ lệ nên bán: **${a.sell.score.toFixed(0)}%**, khung **${a.sell.zone.ten}** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn ${a.sell.score.toFixed(0)}% số tuần trước đó.`); t('');
+    t(tx('web.analysis.bao_cao_bot_btc_phan_tich', D(a.date))); t('');
+    t(tx('web.analysis.bot_thong_ke_khong_co_tri')); t('');
+    t(tx('web.analysis.boi_canh'));
+    t(tx('web.analysis.gia_btc_tai_ngay_phan_tich', Math.round(a.price).toLocaleString('vi-VN')) + (isToday ? tx('web.analysis.gia_truc_tiep') : tx('web.analysis.ngay_trong_qua_khu')));
+    t(tx('web.analysis.nguon_0', sources)); t(tx('web.analysis.bo_chi_so_0', a.ids.map(nm).join(', '))); t(tx('web.analysis.giai_doan_cham_diem_tu_0', D(a.from), D(a.date))); t('');
+    t(tx('web.analysis.ket_luan'));
+    t(tx('web.analysis.ty_le_nen_mua_0_khung', a.buy.score.toFixed(0), a.buy.zone.ten, a.buy.score.toFixed(0)));
+    t(tx('web.analysis.ty_le_nen_ban_0_khung', a.sell.score.toFixed(0), a.sell.zone.ten, a.sell.score.toFixed(0))); t('');
+    if (kn) {
+      const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days, m = stale ? 1 : kn.multiplier, ev = kn.evidence;
+      const d3 = (x) => (x == null ? '—' : x.toFixed(3).replace('.', ','));
+      t(tx('web.kn.md_title'));
+      t(tx('web.kn.md_m', m.toFixed(1).replace('.', ','), stale || kn.mode === 'safe' ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + kn.layer)),
+        usdT(kn.amount_example_usd * m), usdT(kn.amount_example_usd)));
+      if (stale || kn.reasons.includes('data_stale')) t(tx('web.kn.md_why', tx('web.kn.reason_data_stale')));
+      if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.reason_model_failed')));
+      if (ev) { const c = ev.candidate.holdout, b = ev.current_bot.holdout; t(tx('web.kn.md_cmp', d3(c.median), d3(c.p10), d3(b.median), d3(b.p10), P(b.cba, 1), P(b.mdd), P(b.mdd_dca))); }
+      t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
+      t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
+    }
     if (lv) {
-      t(`## Giá đề xuất mua và bán (ngày ${D(lv.date)}, giá ${usdT(lv.price)})`);
-      t('Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.');
-      t('| Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |'); t('|---|---|---|---|');
-      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? 'đang đạt' : 'chưa đạt'} |`));
+      t(tx('web.analysis.gia_de_xuat_mua_va_ban', D(lv.date), usdT(lv.price)));
+      t(tx('web.analysis.gia_btc_de_bot_chuyen_khung'));
+      t(tx('web.analysis.khuyen_cao_dieu_kien_gia_cach')); t('|---|---|---|---|');
+      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? tx('web.analysis.dang_dat') : tx('web.analysis.chua_dat')} |`));
       levelNotes(lv).forEach((s) => t(`- ${s}`));
-      t('Nếu giá ngày phân tích là: ' + lv.ladder.map((r) => `${usdT(r.gia)} (${r.f === 1 ? 'hiện tại' : SP(r.f - 1)}): nên mua ${r.buy == null ? '—' : r.buy.toFixed(0) + '%'}, nên bán ${r.sell == null ? '—' : r.sell.toFixed(0) + '%'}`).join('; ') + '.');
+      t(tx('web.analysis.neu_gia_ngay_phan_tich_la') + lv.ladder.map((r) => tx('web.analysis.s_0_1_nen_mua_2_nen', usdT(r.gia), r.f === 1 ? tx('web.analysis.hien_tai') : SP(r.f - 1), r.buy == null ? '—' : r.buy.toFixed(0) + '%', r.sell == null ? '—' : r.sell.toFixed(0) + '%')).join('; ') + '.');
       t('');
     }
-    t('## Xác suất thắng nếu mua tại ngày phân tích');
-    t('| Giữ | Xác suất thắng | Khoảng tin cậy 95% | Trung bình mọi lúc | Lãi trung vị | Một nửa số lần trong | Số lần tương tự |' + (isToday ? '' : ' Thực tế sau đó |'));
+    t(tx('web.analysis.xac_suat_thang_neu_mua_tai'));
+    t(tx('web.analysis.giu_xac_suat_thang_khoang_tin') + (isToday ? '' : tx('web.analysis.thuc_te_sau_do')));
     t('|---|---|---|---|---|---|---|' + (isToday ? '' : '---|'));
-    a.hold.forEach((h) => t(`| ${h.ten} | ${P(h.win)} | ${P(h.lo)}–${P(h.hi)} | ${P(h.base)} | ${SP(h.med)} | ${SP(h.q1)} đến ${SP(h.q3)} | ${h.n} (${h.eps} đợt) |` + (isToday ? '' : ` ${h.thucTe == null ? 'chưa đủ thời gian' : SP(h.thucTe)} |`)));
+    a.hold.forEach((h) => t(tx('web.analysis.s_0_1_2_3_4_5', h.ten, P(h.win), P(h.lo), P(h.hi), P(h.base), SP(h.med), SP(h.q1), SP(h.q3), h.n, h.eps) + (isToday ? '' : ` ${h.thucTe == null ? tx('web.analysis.chua_du_thoi_gian') : SP(h.thucTe)} |`)));
     t('');
-    t('## Bộ tiêu chí: tỷ lệ thắng thực tế theo từng khung mua (từ ' + D(a.from) + ')');
-    t('| Khung | Số tuần | ' + HZ.map((h) => 'Thắng sau ' + h.ten).join(' | ') + ' |'); t('|---|---|' + HZ.map(() => '---').join('|') + '|');
-    [{ ten: 'Mua bất kỳ lúc nào (mốc)', ...a.buy.ev.base }, ...a.buy.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} (${z.eps} đợt) | ` + z.h.map((x) => `${P(x.win)} (${x.n})`).join(' | ') + ' |'));
+    t(tx('web.analysis.bo_tieu_chi_ty_le_thang') + D(a.from) + ')');
+    t(tx('web.analysis.khung_so_tuan') + HZ.map((h) => tx('web.analysis.thang_sau') + h.ten).join(' | ') + ' |'); t('|---|---|' + HZ.map(() => '---').join('|') + '|');
+    [{ ten: tx('web.analysis.mua_bat_ky_luc_nao_moc'), ...a.buy.ev.base }, ...a.buy.ev.zones].forEach((z) => t(tx('web.analysis.s_0_1_2_dot', z.ten, z.n, z.eps) + z.h.map((x) => `${P(x.win)} (${x.n})`).join(' | ') + ' |'));
     t('');
-    t('## Khung bán: giá có giảm thật không');
-    t('| Khung | Số tuần | ' + SELL_HZ.map((h) => `Giá thấp hơn sau ${h.ten} | Giảm hơn 10% sau ${h.ten}`).join(' | ') + ' |'); t('|---|---|' + SELL_HZ.map(() => '---|---').join('|') + '|');
-    [{ ten: 'Bất kỳ lúc nào (mốc)', ...a.sell.ev.base }, ...a.sell.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} | ` + z.h.map((x) => `${P(x.giam.win)} | ${P(x.giamManh.win)}`).join(' | ') + ' |'));
+    t(tx('web.analysis.khung_ban_gia_co_giam_that'));
+    t(tx('web.analysis.khung_so_tuan') + SELL_HZ.map((h) => tx('web.analysis.gia_thap_hon_sau_0_giam', h.ten, h.ten)).join(' | ') + ' |'); t('|---|---|' + SELL_HZ.map(() => '---|---').join('|') + '|');
+    [{ ten: tx('web.analysis.bat_ky_luc_nao_moc'), ...a.sell.ev.base }, ...a.sell.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} | ` + z.h.map((x) => `${P(x.giam.win)} | ${P(x.giamManh.win)}`).join(' | ') + ' |'));
     t('');
     if (cmp && cmp.ranked.length) {
       const dt = cmp.dongThuan;
-      t(`## So sánh các phương án (chấm trên cùng giai đoạn từ ${D(cmp.from)})`);
-      t(`Đồng thuận hôm nay: ${dt.mua.filter((z) => z.n).map((z) => `${z.n}/${dt.tong} ${z.ten.toLowerCase()}`).join(', ')}; trung bình tỷ lệ nên mua ${dt.tbMua.toFixed(0)}%, nên bán ${dt.tbBan.toFixed(0)}%.`);
-      t('| Hạng | Phương án | Chỉ số | Nên mua hôm nay | Nên bán hôm nay | Thắng khi Phải mua (1t/3t/6t/1n) | Nửa đầu / nửa sau (6t) | Khi Nên bán, giá thấp hơn sau 6t |'); t('|---|---|---|---|---|---|---|---|');
-      cmp.ranked.forEach((x) => t(`| ${x.hang || '—'} | ${x.ten} | ${x.ids.map(nm).join(', ')} | ${x.a.buy.score.toFixed(0)}% ${x.a.buy.zone.ten} | ${x.a.sell.score.toFixed(0)}% ${x.a.sell.zone.ten} | ${x.evB.zones[0].h.map((h) => P(h.win)).join(' / ')} | ${P(x.nua1.win)} / ${P(x.nua2.win)} | ${x.banDung ? P(x.banDung.win) + ' (mốc ' + P(x.banMoc) + ')' : 'ít tín hiệu'} |`));
+      t(tx('web.analysis.so_sanh_cac_phuong_an_cham', D(cmp.from)));
+      t(tx('web.analysis.dong_thuan_hom_nay_0_trung', dt.mua.filter((z) => z.n).map((z) => `${z.n}/${dt.tong} ${z.ten.toLowerCase()}`).join(', '), dt.tbMua.toFixed(0), dt.tbBan.toFixed(0)));
+      t(tx('web.analysis.hang_phuong_an_chi_so_nen')); t('|---|---|---|---|---|---|---|---|');
+      cmp.ranked.forEach((x) => t(`| ${x.hang || '—'} | ${warnMd((x.xepTheo === 'rong' ? x.rong : x.evB.zones[0]).eps, x.nua1, x.nua2)}${x.ten} | ${x.ids.map(nm).join(', ')} | ${x.a.buy.score.toFixed(0)}% ${x.a.buy.zone.ten} | ${x.a.sell.score.toFixed(0)}% ${x.a.sell.zone.ten} | ${x.evB.zones[0].h.map((h) => P(h.win)).join(' / ')} | ${P(x.nua1.win)} / ${P(x.nua2.win)} | ${x.banDung ? P(x.banDung.win) + tx('web.analysis.moc') + P(x.banMoc) + ')' : tx('web.analysis.it_tin_hieu')} |`));
       t('');
     }
     if (rec) {
-      t(`## Bộ chỉ số có tỷ lệ thắng cao nhất (tìm với dữ liệu đến ${D(rec.asOfDate)}, chấm từ ${D(rec.from)})`);
-      t('| Bộ | Thắng 1 tháng | Thắng 3 tháng | Thắng 6 tháng | Thắng 1 năm | Nửa đầu 6 tháng | Nửa sau 6 tháng |'); t('|---|---|---|---|---|---|---|');
-      rec.ranking.slice(0, 8).forEach((r) => t(`| ${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
+      t(tx('web.analysis.bo_chi_so_co_ty_le', D(rec.asOfDate), D(rec.from)));
+      t(tx('web.analysis.bo_thang_1_thang_thang_3')); t('|---|---|---|---|---|---|---|');
+      rec.ranking.slice(0, 8).forEach((r) => t(`| ${warnMd(r.phai.eps, r.nua1[2], r.nua2[2])}${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
       t('');
     }
     if (sd) {
-      t(`## Bên bán: nên giữ hay chốt lời (ngày ${D(sd.date)})`);
-      t(`- Kết luận: **${sd.verdict.ten}**. ${sd.verdict.goiY}`);
-      t(`- Số nhóm tiêu chí đáng tin đang bật: ${sd.nFam}${sd.famNow.length ? ' (' + sd.famNow.map((f) => NHOM_TP[f]).join(', ') + ')' : ''}. Quy tắc: từ 1 nhóm chốt lời một phần, từ 3 nhóm bán phần lớn.`);
-      t(`- Mốc: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn ${P(sd.baseDung6)} số lần, 1 năm sau ${P(sd.baseDung12)}.`);
+      t(tx('web.analysis.ben_ban_nen_giu_hay_chot', D(sd.date)));
+      t(tx('web.analysis.ket_luan_0_1', sd.verdict.ten, sd.verdict.goiY));
+      t(tx('web.analysis.so_nhom_tieu_chi_dang_tin', sd.nFam, sd.famNow.length ? ' (' + sd.famNow.map((f) => NHOM_TP[f]).join(', ') + ')' : ''));
+      t(tx('web.analysis.moc_ban_vao_mot_tuan_bat', P(sd.baseDung6), P(sd.baseDung12)));
       t('');
-      t('| Tiêu chí | Đáng tin | Hôm nay | Số đợt | Giá thấp hơn sau 6 tháng | Khoảng tin cậy | Sau 1 năm | Còn tăng thêm (TV) | Giảm sâu nhất 1 năm (TV) | Giá BTC để bật |'); t('|---|---|---|---|---|---|---|---|---|---|');
-      sd.ranked.forEach((c) => t(`| ${c.ten} | ${c.dangTin ? 'có' : ''} | ${c.nowOn ? 'đang bật' : 'chưa'} | ${c.dot} | ${P(c.dung6)} (${c.n6}) | ${P(c.lo6)}–${P(c.hi6)} | ${P(c.dung12)} (${c.n12}) | ${SP(c.up)} | ${SP(c.dn)} | ${c.trigger && c.trigger.gia ? Math.round(c.trigger.gia).toLocaleString('vi-VN') + ' $' : '—'} |`));
+      t(tx('web.analysis.tieu_chi_dang_tin_hom_nay')); t('|---|---|---|---|---|---|---|---|---|---|');
+      sd.ranked.forEach((c) => t(`| ${c.ten} | ${c.dangTin ? tx('web.analysis.co') : ''} | ${c.nowOn ? tx('web.analysis.dang_bat') : tx('web.analysis.chua')} | ${c.dot} | ${P(c.dung6)} (${c.n6}) | ${P(c.lo6)}–${P(c.hi6)} | ${P(c.dung12)} (${c.n12}) | ${SP(c.up)} | ${SP(c.dn)} | ${c.trigger && c.trigger.gia ? Math.round(c.trigger.gia).toLocaleString('vi-VN') + ' $' : '—'} |`));
       t('');
-      if (sd.sims.length) { t('Mô phỏng giữ 1 BTC và chốt lời theo quy tắc (giữ 90/70/50% khi 1/2/3 nhóm bật, mua lại khi bên mua báo từ Cân nhắc mua):'); t('| Bắt đầu | Giữ nguyên | Theo quy tắc | Quy ra BTC | Bán/mua lại | Sụt giảm lớn nhất giữ/quy tắc |'); t('|---|---|---|---|---|---|');
-        sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3)} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
+      if (sd.sims.length) { t(tx('web.analysis.mo_phong_giu_1_btc_va')); t(tx('web.analysis.bat_dau_giu_nguyen_theo_quy')); t('|---|---|---|---|---|---|');
+        sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3).replace('.', ',')} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
     }
-    t('## Giá trị chỉ số tại ngày phân tích');
+    t(tx('web.analysis.gia_tri_chi_so_tai_ngay'));
     a.feats.forEach((f) => { const d = IND.find((x) => x.id === f.id); t(`- ${d.ten}: ${f.v == null ? '—' : (+f.v).toFixed(d.dec).replace('.', ',') + (d.unit || '')}`); });
-    if (a.weights) t('- Trọng số trong mô hình 6 tháng (dương: chỉ số báo rẻ làm tăng xác suất thắng): ' + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
+    if (a.weights) t(tx('web.analysis.trong_so_trong_mo_hinh_6') + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
     t('');
-    if (vol && vol.last) { t('## Khối lượng giao dịch'); t(`Tuần gần nhất đã đóng (${D(vol.last.date)}): giá ${SP(vol.last.chg)}, khối lượng bằng ${vol.last.rv.toFixed(2).replace('.', ',')} lần trung bình 20 tuần, loại "${BOT.VCLS[vol.last.cls].ten}".`); t(''); }
-    t('## Câu hỏi gợi ý cho Claude');
-    t('- Kết luận của bot có đáng tin không, xét theo số đợt độc lập và khoảng tin cậy?');
-    t('- Bối cảnh vĩ mô và tin tức hiện tại ủng hộ hay mâu thuẫn với kết luận?');
-    t('- Nên chia tiền mua thế nào theo các khung trên?');
+    if (vol && vol.last) { t(tx('web.analysis.khoi_luong_giao_dich')); t(tx('web.analysis.tuan_gan_nhat_da_dong_0', D(vol.last.date), SP(vol.last.chg), vol.last.rv.toFixed(2).replace('.', ','), BOT.VCLS[vol.last.cls].ten)); t(''); }
+    t(tx('web.analysis.cau_hoi_goi_y_cho_claude'));
+    t(tx('web.analysis.ket_luan_cua_bot_co_dang'));
+    t(tx('web.analysis.boi_canh_vi_mo_va_tin'));
+    t(tx('web.analysis.nen_chia_tien_mua_the_nao'));
     return L.join('\n');
   }
 
@@ -1263,7 +949,7 @@ const B3 = (() => {
       const ids = (o.id === 'pa6' ? recIds || [] : o.ids).filter((id) => S.avail.includes(id));
       const thieu = (o.id === 'pa6' ? [] : o.ids).filter((id) => !S.avail.includes(id));
       const item = { ...o, ids, thieu, a: null, loi: null };
-      if (!ids.length) item.loi = o.id === 'pa6' ? 'Chưa tìm được bộ khuyến cáo.' : 'Thiếu dữ liệu cho các chỉ số của phương án này.';
+      if (!ids.length) item.loi = o.id === 'pa6' ? tx('web.analysis.chua_tim_duoc_bo_khuyen_cao') : tx('web.analysis.thieu_du_lieu_cho_cac_chi');
       else { try { item.a = analyze(S, asOf, ids); } catch (e) { item.loi = e.message; } }
       list.push(item);
       if (tick) await tick();
@@ -1314,7 +1000,7 @@ const B3 = (() => {
       ...HZ.map((h) => 'phai_mua_thang_' + h.id), 'phai_mua_so_lan', 'phai_mua_so_dot', ...HZ.map((h) => 'moc_thang_' + h.id),
       'nua_dau_thang_6m', 'nua_sau_thang_6m', 'nen_ban_gia_thap_hon_6m', 'moc_gia_thap_hon_6m', 'cham_tu'];
     const rows = cmp.list.map((x) => { const z = x.evB && x.evB.zones[0];
-      return [x.hang, x.ten, x.ids.map(nm).join(' + '), x.loi || (x.trung ? 'trùng ' + x.trung : x.xepTheo === 'rong' ? 'ít tín hiệu Phải mua, xếp theo khung từ Cân nhắc mua' : ''),
+      return [x.hang, x.ten, x.ids.map(nm).join(' + '), x.loi || (x.trung ? tx('web.analysis.trung') + x.trung : x.xepTheo === 'rong' ? tx('web.analysis.it_tin_hieu_phai_mua_xep') : ''),
         x.a && x.a.buy.score, x.a && x.a.buy.zone.ten, x.a && x.a.sell.score, x.a && x.a.sell.zone.ten,
         ...HZ.map((h, k) => z && z.h[k].win), z && z.n, z && z.eps, ...HZ.map((h, k) => x.evB && x.evB.base.h[k].win),
         x.nua1 && x.nua1.win, x.nua2 && x.nua2.win, x.banDung && x.banDung.win, x.banMoc, cmp.from]; });
@@ -1324,25 +1010,25 @@ const B3 = (() => {
   // ================================================================ BÊN BÁN: chốt lời hay giữ
   // nhom: để đếm số nhóm cùng báo, không đếm trùng hai chỉ số đo cùng một thứ
   const TP = [
-    { id: 'pi_cat', ind: 'pi', nhom: 'xuhuong', ten: 'Pi Cycle cắt lên (tỉ số ≥ 1)', loai: 'kinh_dien', thr: 1.0 },
+    { id: 'pi_cat', ind: 'pi', nhom: 'xuhuong', ten: tx('web.analysis.pi_cycle_cat_len_ti_so'), loai: 'kinh_dien', thr: 1.0 },
     { id: 'mvrvz_7', ind: 'mvrvz', nhom: 'onchain', ten: 'MVRV Z-Score ≥ 7', loai: 'kinh_dien', thr: 7 },
     { id: 'mvrv_3', ind: 'mvrv', nhom: 'onchain', ten: 'MVRV ≥ 3', loai: 'kinh_dien', thr: 3 },
     { id: 'mayer_24', ind: 'mayer', nhom: 'xuhuong', ten: 'Mayer Multiple ≥ 2,4', loai: 'kinh_dien', thr: 2.4 },
-    { id: 'rsiw_80', ind: 'rsiw', nhom: 'xuhuong', ten: 'RSI 14 tuần ≥ 80', loai: 'kinh_dien', thr: 80 },
+    { id: 'rsiw_80', ind: 'rsiw', nhom: 'xuhuong', ten: tx('web.analysis.rsi_14_tuan_80'), loai: 'kinh_dien', thr: 80 },
     { id: 'fng_90', ind: 'fng', nhom: 'tamly', ten: 'Fear & Greed ≥ 90', loai: 'kinh_dien', thr: 90 },
     { id: 'puell_4', ind: 'puell', nhom: 'thodao', ten: 'Puell Multiple ≥ 4', loai: 'kinh_dien', thr: 4 },
-    { id: 'mvrvz_p', ind: 'mvrvz', nhom: 'onchain', ten: 'MVRV Z-Score thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'mvrv_p', ind: 'mvrv', nhom: 'onchain', ten: 'MVRV thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'mayer_p', ind: 'mayer', nhom: 'xuhuong', ten: 'Mayer Multiple thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'wma_p', ind: 'wma', nhom: 'xuhuong', ten: 'Giá / MA 200 tuần thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'puell_p', ind: 'puell', nhom: 'thodao', ten: 'Puell Multiple thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'bot_nb', ind: null, nhom: 'mohinh', ten: 'Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)', loai: 'mo_hinh' },
+    { id: 'mvrvz_p', ind: 'mvrvz', nhom: 'onchain', ten: tx('web.analysis.mvrv_z_score_thuoc_5_cao'), loai: 'thich_nghi' },
+    { id: 'mvrv_p', ind: 'mvrv', nhom: 'onchain', ten: tx('web.analysis.mvrv_thuoc_5_cao_nhat_4'), loai: 'thich_nghi' },
+    { id: 'mayer_p', ind: 'mayer', nhom: 'xuhuong', ten: tx('web.analysis.mayer_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'wma_p', ind: 'wma', nhom: 'xuhuong', ten: tx('web.analysis.gia_ma_200_tuan_thuoc_5'), loai: 'thich_nghi' },
+    { id: 'puell_p', ind: 'puell', nhom: 'thodao', ten: tx('web.analysis.puell_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'bot_nb', ind: null, nhom: 'mohinh', ten: tx('web.analysis.bot_bao_nen_ban_ty_le'), loai: 'mo_hinh' },
   ];
-  const NHOM_TP = { xuhuong: 'Xu hướng giá', onchain: 'Định giá on-chain', tamly: 'Tâm lý', thodao: 'Thợ đào', mohinh: 'Mô hình của bot' };
+  const NHOM_TP = { xuhuong: tx('web.analysis.xu_huong_gia'), onchain: tx('web.analysis.dinh_gia_on_chain'), tamly: tx('web.analysis.tam_ly'), thodao: tx('web.analysis.tho_dao'), mohinh: tx('web.analysis.mo_hinh_cua_bot') };
   const SELL_VERDICT = [
-    { id: 'ban', ten: 'Bán phần lớn', min: 3, goiY: 'Chốt khoảng 50% lượng đang giữ, phần còn lại đặt mốc chốt tiếp.' },
-    { id: 'chot', ten: 'Chốt lời một phần', min: 1, goiY: 'Chốt khoảng 10–30% để khóa lợi nhuận, giữ phần còn lại.' },
-    { id: 'giu', ten: 'Giữ', min: 0, goiY: 'Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.' },
+    { id: 'ban', ten: tx('web.analysis.ban_phan_lon'), min: 3, goiY: tx('web.analysis.chot_khoang_50_luong_dang_giu') },
+    { id: 'chot', ten: tx('web.analysis.chot_loi_mot_phan'), min: 1, goiY: tx('web.analysis.chot_khoang_10_30_de_khoa') },
+    { id: 'giu', ten: tx('web.analysis.giu'), min: 0, goiY: tx('web.analysis.chua_co_tieu_chi_chot_loi') },
   ];
   const tpOn = (S, c, i, sellScoreAt) => {
     if (c.loai === 'mo_hinh') { const s = sellScoreAt(i); return s == null ? null : s >= 85; }
@@ -1390,7 +1076,7 @@ const B3 = (() => {
     const trusted = crit.filter((c) => c.dangTin);
     const famAt = (j) => { const f = new Set(); trusted.forEach((c) => { const k = TP.findIndex((t) => t.id === c.id); if (on[k][j]) f.add(c.nhom); }); return f; };
     const famCount = smp.map((_, j) => famAt(j).size);
-    const combos = [1, 2, 3].map((m) => ({ id: 'combo' + m, ten: `Từ ${m} nhóm tiêu chí đáng tin cùng bật`, loai: 'ket_hop', nhom: null, m, ...evalSignal(famCount.map((n) => n >= m)), nowOn: famCount[famCount.length - 1] >= m, coDuLieu: trusted.length > 0 }));
+    const combos = [1, 2, 3].map((m) => ({ id: 'combo' + m, ten: tx('web.analysis.tu_0_nhom_tieu_chi_dang', m), loai: 'ket_hop', nhom: null, m, ...evalSignal(famCount.map((n) => n >= m)), nowOn: famCount[famCount.length - 1] >= m, coDuLieu: trusted.length > 0 }));
     const ranked = [...crit, ...combos].filter((c) => c.coDuLieu && c.n6 >= 3).sort((x, y) => (y.lo6 ?? -1) - (x.lo6 ?? -1));
     const famNow = famAt(smp.length - 1), nFam = famNow.size;
     const verdict = SELL_VERDICT.find((v) => nFam >= v.min);
@@ -1419,7 +1105,7 @@ const B3 = (() => {
   function csvSell(sd) {
     const head = ['tieu_chi', 'loai', 'nhom', 'dang_tin', 'hom_nay_bat', 'gia_tri_hom_nay', 'gia_kich_hoat_usd', 'so_dot', 'so_tuan_bat',
       'gia_thap_hon_sau_6t', 'can_duoi_6t', 'so_dot_du_6t', 'gia_thap_hon_sau_1n', 'so_dot_du_1n', 'moc_gia_thap_hon_6t', 'lai_trung_vi_6t_sau_tin_hieu', 'con_tang_them_toi_da_trung_vi', 'giam_sau_nhat_1n_trung_vi', 'cac_dot'];
-    const rows = [...sd.crit, ...sd.combos].map((c) => [c.ten, c.loai, c.nhom ? NHOM_TP[c.nhom] : 'kết hợp', c.dangTin ? 'có' : '', c.nowOn ? 'có' : c.nowOn === false ? 'không' : '', c.nowVal, c.trigger && c.trigger.gia,
+    const rows = [...sd.crit, ...sd.combos].map((c) => [c.ten, c.loai, c.nhom ? NHOM_TP[c.nhom] : tx('web.analysis.ket_hop'), c.dangTin ? tx('web.analysis.co') : '', c.nowOn ? tx('web.analysis.co') : c.nowOn === false ? tx('web.analysis.khong') : '', c.nowVal, c.trigger && c.trigger.gia,
       c.dot, c.tuan, c.dung6, c.lo6, c.n6, c.dung12, c.n12, sd.baseDung6, c.med6, c.up, c.dn, (c.ev || []).map((e) => e.date).join(' ')]);
     return csv(head, rows);
   }
@@ -1431,6 +1117,8 @@ const B3 = (() => {
 </script>
 <script>
 (() => {
+  const { tx, vnTime } = I18N;
+  const KN = {"generated_at": "2026-10-28T02:35:15Z", "multiplier": 1.0, "mode": "safe", "layer": null, "reasons": ["model_failed"], "amount_example_usd": 100, "stale_data_days": 3, "events": [{"type": "fomc", "time": "2026-10-28T18:00Z"}, {"type": "pce", "time": "2026-10-29T12:30Z"}, {"type": "opex", "time": "2026-10-30T08:00Z"}], "event_delay": false, "freshness": {"coinmetrics": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "fng": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_spot": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "binance_funding": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_oi": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_basis": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "stablecoins": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "fred_DTWEXBGS": {"last": "2026-10-23", "ok": true, "age_days": 5, "error": ""}, "fred_DFII10": {"last": "2026-10-26", "ok": true, "age_days": 2, "error": ""}, "fred_NASDAQCOM": {"last": "2026-10-26", "ok": true, "age_days": 2, "error": ""}, "fred_M2SL": {"last": "2026-09-01", "ok": true, "age_days": 57, "error": ""}}, "evidence": {"candidate": {"validation": {"median": 1.0, "p10": 1.0, "cba": 0.0, "mdd": -0.759056, "mdd_dca": -0.759056}, "holdout": {"median": 1.0, "p10": 1.0, "cba": 0.0, "mdd": -0.518764, "mdd_dca": -0.518764}, "placebo_holdout": 0.5, "ci_holdout": [1.0, 1.0]}, "current_bot": {"validation": {"median": 0.973863, "p10": 0.966611, "cba": -0.016256, "mdd": -0.756225, "mdd_dca": -0.759056}, "holdout": {"median": 0.940077, "p10": 0.897765, "cba": -0.031354, "mdd": -0.50178, "mdd_dca": -0.518764}, "placebo_holdout": 0.874, "ci_holdout": [0.859424, 1.045209]}, "episodes": {"0.5": 3, "1.25": 19, "2.0": 9}, "trials": 135, "passed": false, "run_at": "2026-10-28T02:19:58Z"}}; // weekly recommendation from the daily job (data/recommendation.json), embedded by build.py
   const { IND, FAMILIES } = BOT;
   const { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, zoneOf } = B3;
   const $ = (id) => document.getElementById(id);
@@ -1456,7 +1144,7 @@ const B3 = (() => {
       try { const r = await fetch(u, { signal: c.signal, cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); const saved = r.headers.get('X-Ban-Luu'); if (saved) cacheHits.push(saved); return await r.json(); } finally { clearTimeout(t); } };
     if (LOCAL) { try { return await once('/proxy?url=' + encodeURIComponent(url)); } catch (e) { /* thử trực tiếp */ } }
     try { return await once(url); }
-    catch (e) { throw new Error(e.name === 'AbortError' ? 'hết thời gian chờ' : e.message === 'Failed to fetch' ? 'trình duyệt bị chặn hoặc mất mạng' : e.message); }
+    catch (e) { throw new Error(e.name === 'AbortError' ? tx('web.ui.het_thoi_gian_cho') : e.message === 'Failed to fetch' ? tx('web.ui.trinh_duyet_bi_chan_hoac_mat') : e.message); }
   }
 
   const st = { raw: { cm: null, kl: null, fng: null, live: null }, status: {}, S: null, vol: null,
@@ -1466,19 +1154,19 @@ const B3 = (() => {
   const setStatus = (k, ok, msg) => { st.status[k] = { ok, msg }; renderStatus(); };
 
   async function loadAll() {
-    $('run').disabled = true; $('research').disabled = true; $('progress').textContent = 'Đang tải dữ liệu thật từ web…';
+    $('run').disabled = true; $('research').disabled = true; $('progress').textContent = tx('web.ui.dang_tai_du_lieu_that_tu');
     try {
       await Promise.all([
-        getJSON(URLS.fng).then((j) => { st.raw.fng = j.data; setStatus('fng', true, `${j.data.length} ngày`); }).catch((e) => setStatus('fng', false, e.message)),
+        getJSON(URLS.fng).then((j) => { st.raw.fng = j.data; setStatus('fng', true, tx('web.ui.s_0_ngay', j.data.length)); }).catch((e) => setStatus('fng', false, e.message)),
         (async () => {
           try {
             let url = URLS.cm, out = [];
             for (let k = 0; k < 6 && url; k++) { const j = await getJSON(url, 90000); out = out.concat(j.data || []); url = j.next_page_url || null; }
-            if (!out.length) throw new Error('không có dữ liệu');
-            st.raw.cm = out; setStatus('cm', true, `đến ${String(out[out.length - 1].time).slice(0, 10)}` + (out.some((r) => r.IssTotUSD != null) ? '' : ', thiếu dữ liệu thợ đào'));
+            if (!out.length) throw new Error(tx('web.ui.khong_co_du_lieu'));
+            st.raw.cm = out; setStatus('cm', true, tx('web.ui.den_0', String(out[out.length - 1].time).slice(0, 10)) + (out.some((r) => r.IssTotUSD != null) ? '' : tx('web.ui.thieu_du_lieu_tho_dao')));
           } catch (e) {
             st.raw.cm = null;
-            setStatus('cm', false, e.message + '. Tạm dùng giá Binance; MVRV, MVRV Z-Score, Puell không dùng được.');
+            setStatus('cm', false, e.message + tx('web.ui.tam_dung_gia_binance_mvrv_mvrv'));
           }
         })(),
         (async () => {
@@ -1486,21 +1174,21 @@ const B3 = (() => {
             try {
               let s = Date.parse('2017-08-17T00:00:00Z'), out = [];
               for (let k = 0; k < 10; k++) { const j = await getJSON(`${base}?symbol=BTCUSDT&interval=1d&startTime=${s}&limit=1000`); if (!j.length) break; out = out.concat(j); s = j[j.length - 1][0] + 86400000; if (j.length < 1000) break; }
-              if (out.length) { st.raw.kl = out; setStatus('kl', true, `giá và khối lượng ngày từ 08/2017 (${out.length} ngày)`); return; }
-            } catch (e2) { setStatus('kl', false, e2.message + '. Không có dữ liệu khối lượng.'); }
+              if (out.length) { st.raw.kl = out; setStatus('kl', true, tx('web.ui.gia_va_khoi_luong_ngay_tu', out.length)); return; }
+            } catch (e2) { setStatus('kl', false, e2.message + tx('web.ui.khong_co_du_lieu_khoi_luong')); }
           }
         })(),
         loadLive(),
       ]);
-      if (cacheHits.length) { const oldest = [...cacheHits].sort()[0]; setStatus('cache', false, `một số nguồn không truy cập được, bot đang dùng dữ liệu đã lưu trên máy lúc ${oldest.slice(11, 16)} ngày ${oldest.slice(8, 10)}/${oldest.slice(5, 7)}/${oldest.slice(0, 4)}. Kết quả có thể chưa phải mới nhất.`); cacheHits.length = 0; }
-      else if (LOCAL) setStatus('cache', true, 'dữ liệu vừa tải đã được lưu vào thư mục du_lieu_tam để dùng khi mất mạng');
-      if (!st.raw.cm && !st.raw.kl) throw new Error('Không tải được giá lịch sử.');
+      if (cacheHits.length) { const oldest = [...cacheHits].sort()[0]; setStatus('cache', false, tx('web.ui.mot_so_nguon_khong_truy_cap', oldest.slice(11, 16), oldest.slice(8, 10), oldest.slice(5, 7), oldest.slice(0, 4))); cacheHits.length = 0; }
+      else if (LOCAL) setStatus('cache', true, tx('web.ui.du_lieu_vua_tai_da_duoc'));
+      if (!st.raw.cm && !st.raw.kl) throw new Error(tx('web.ui.khong_tai_duoc_gia_lich_su'));
       st.S = BOT.buildSeries(st.raw);
-      if (st.S.uocTinh && st.status.cm) { const u = st.S.uocTinh; setStatus('cm', true, `${st.status.cm.msg}. Coin Metrics chưa công bố vốn hóa và MVRV của ${u.ngay} ngày cuối (đến ${fmtDate(u.den)}); bot ước tính từ ngày ${fmtDate(u.tu)} theo biến động giá, nên MVRV và MVRV Z-Score những ngày này là số gần đúng`); }
+      if (st.S.uocTinh && st.status.cm) { const u = st.S.uocTinh; setStatus('cm', true, tx('web.ui.s_0_coin_metrics_chua_cong_bo', st.status.cm.msg, u.ngay, fmtDate(u.den), fmtDate(u.tu))); }
       st.vol = BOT.volumeStudy(st.S);
       await afterLoad();
     } catch (e) {
-      $('loading').hidden = false; $('loading').textContent = e.message + ' Kiểm tra mạng, hoặc mở bằng Mo-Bot-BTC.command (Mac) hoặc Mo-Bot-BTC.bat (Windows).';
+      $('loading').hidden = false; $('loading').textContent = e.message + tx('web.ui.kiem_tra_mang_hoac_mo_bang');
       $('progress').textContent = '';
     } finally { /* xong */ }
   }
@@ -1511,7 +1199,7 @@ const B3 = (() => {
 
   // ---------- chạy ----------
   const avail = () => IND.filter((d) => st.S.avail.includes(d.id)).map((d) => d.id);
-  const SHORT = { pi: 'Pi', mvrv: 'MVRV', mvrvz: 'MVRV Z', fng: 'F&G', puell: 'Puell', wma: 'MA200 tuần', mayer: 'Mayer', rsiw: 'RSI tuần', dd: 'Giảm từ đỉnh', vol: 'Khối lượng' };
+  const SHORT = { pi: 'Pi', mvrv: 'MVRV', mvrvz: 'MVRV Z', fng: 'F&G', puell: 'Puell', wma: tx('web.ui.ma200_tuan'), mayer: 'Mayer', rsiw: tx('web.ui.rsi_tuan'), dd: tx('web.ui.giam_tu_dinh'), vol: tx('web.ui.khoi_luong') };
   const VALID = ['best', ...OPTIONS.map((o) => o.id), 'all', 'custom'];
   if (st.set === 'rec') st.set = 'pa6'; else if (!VALID.includes(st.set)) st.set = 'best';
   const optIds = (id) => { const o = OPTIONS.find((x) => x.id === id); return (id === 'pa6' ? (st.rec ? st.rec.ids : []) : o.ids).filter((x) => st.S.avail.includes(x)); };
@@ -1524,8 +1212,8 @@ const B3 = (() => {
   }
   const usesRec = () => st.set === 'pa6' || (st.set === 'best' && topOpt() && topOpt().id === 'pa6');
   async function doCompare() {
-    busy(true, 'Đang chạy 6 phương án…'); let n = 0;
-    try { st.cmp = await B3.compareOptions(st.S, st.asOf, st.rec ? st.rec.ids : null, async () => { n++; $('progress').textContent = `Đang chạy 6 phương án… ${n}/6`; await tick(); }); st.cmpAsOf = st.asOf; }
+    busy(true, tx('web.ui.dang_chay_6_phuong_an')); let n = 0;
+    try { st.cmp = await B3.compareOptions(st.S, st.asOf, st.rec ? st.rec.ids : null, async () => { n++; $('progress').textContent = tx('web.ui.dang_chay_6_phuong_an_0', n); await tick(); }); st.cmpAsOf = st.asOf; }
     catch (e) { st.cmp = null; $('progress').textContent = e.message; }
     busy(false);
   }
@@ -1537,23 +1225,23 @@ const B3 = (() => {
     st.asOf = last;
     $('date').max = S.dates[last]; $('date').min = '2016-01-01'; $('date').value = S.dates[last];
     $('price').textContent = usd(S.price[last]);
-    $('when').textContent = st.raw.live ? 'giá trực tiếp' : `giá đóng cửa ${fmtDate(S.dates[last])}`;
+    $('when').textContent = st.raw.live ? tx('web.ui.gia_truc_tiep') : tx('web.ui.gia_dong_cua_0', fmtDate(S.dates[last]));
     renderSets();
     await doSearch();
     await doCompare();
     await analyzeNow(true);
   }
   async function doSearch() {
-    busy(true, 'Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất…');
+    busy(true, tx('web.ui.dang_thu_cac_bo_chi_so'));
     let n = 0;
     try {
-      st.rec = await B3.search(st.S, st.asOf, avail(), async () => { n++; $('progress').textContent = `Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất… đã thử ${n} bộ`; await tick(); });
+      st.rec = await B3.search(st.S, st.asOf, avail(), async () => { n++; $('progress').textContent = tx('web.ui.dang_thu_cac_bo_chi_so_2', n); await tick(); });
     } catch (e) { st.rec = null; $('progress').textContent = e.message; }
     busy(false);
   }
   async function analyzeNow(refreshFull) {
     const ids = idsForSet();
-    busy(true, 'Đang phân tích…'); await tick();
+    busy(true, tx('web.ui.dang_phan_tich')); await tick();
     try {
       const last = st.S.price.length - 1;
       if (refreshFull || !st.full || st.full.ids.join() !== ids.join()) st.full = cachedA(ids, last) || B3.analyze(st.S, last, ids);
@@ -1563,7 +1251,7 @@ const B3 = (() => {
       st.sd = st.asOf === last ? st.sdFull : B3.sellSide(st.S, st.asOf, st.a);
       $('loading').hidden = true; $('app').hidden = false;
       render();
-      $('progress').textContent = `Xong. Phân tích ngày ${fmtDate(st.a.date)} với ${ids.length} chỉ số.`;
+      $('progress').textContent = tx('web.ui.xong_phan_tich_ngay_0_voi', fmtDate(st.a.date), ids.length);
     } catch (e) { $('progress').textContent = e.message; }
     busy(false);
   }
@@ -1571,9 +1259,9 @@ const B3 = (() => {
   // ---------- chọn bộ chỉ số ----------
   function renderSets() {
     const t = topOpt();
-    const sets = [{ id: 'best', ten: 'Tự động: phương án tốt nhất' + (t ? ` (${t.ten.replace('Phương án', 'PA')})` : '') },
-      ...OPTIONS.map((o) => ({ id: o.id, ten: o.ten.replace('Phương án ', 'PA') + ' ' + (o.id === 'pa6' ? 'Bot tự tìm' : o.ids.map((x) => SHORT[x]).join(' + ')) })),
-      { id: 'all', ten: 'Tất cả chỉ số' }, { id: 'custom', ten: 'Tự chọn' }];
+    const sets = [{ id: 'best', ten: tx('web.ui.tu_dong_phuong_an_tot_nhat') + (t ? ` (${t.ten.replace(tx('web.ui.phuong_an'), 'PA')})` : '') },
+      ...OPTIONS.map((o) => ({ id: o.id, ten: o.ten.replace(tx('web.ui.phuong_an_2'), 'PA') + ' ' + (o.id === 'pa6' ? tx('web.ui.bot_tu_tim') : o.ids.map((x) => SHORT[x]).join(' + ')) })),
+      { id: 'all', ten: tx('web.ui.tat_ca_chi_so') }, { id: 'custom', ten: tx('web.ui.tu_chon') }];
     $('sets').replaceChildren(...sets.map((x) => {
       const b = el('button', null, x.ten); b.type = 'button'; b.setAttribute('aria-pressed', String(st.set === x.id));
       b.addEventListener('click', () => { if (x.id === 'custom') st.ids = new Set(idsForSet()); st.set = x.id; save(); renderSets(); if (x.id !== 'custom') analyzeNow(); });
@@ -1581,13 +1269,13 @@ const B3 = (() => {
     }));
     const cur = new Set(idsForSet());
     $('inds').replaceChildren(...IND.map((d) => {
-      const ok = st.S.avail.includes(d.id), lab = el('label', ok ? '' : 'na'); lab.title = d.y + (ok ? '' : ' Nguồn dữ liệu chưa tải được.');
+      const ok = st.S.avail.includes(d.id), lab = el('label', ok ? '' : 'na'); lab.title = d.y + (ok ? '' : tx('web.ui.nguon_du_lieu_chua_tai_duoc'));
       const cb = el('input'); cb.type = 'checkbox'; cb.checked = cur.has(d.id) && ok; cb.disabled = !ok;
       cb.addEventListener('change', () => { if (st.set !== 'custom') { st.ids = new Set(idsForSet()); st.set = 'custom'; } cb.checked ? st.ids.add(d.id) : st.ids.delete(d.id); save(); renderSets(); });
       lab.append(cb, d.ten); return lab;
     }));
-    const u = $('using'); u.replaceChildren(el('span', 'muted', 'Đang dùng: '), idsForSet().map(nameOf).join(', ') || 'chưa chọn chỉ số nào');
-    if (st.set === 'custom') u.append(el('span', 'muted', ' (bấm Chạy bot để tính lại)'));
+    const u = $('using'); u.replaceChildren(el('span', 'muted', tx('web.ui.dang_dung')), idsForSet().map(nameOf).join(', ') || tx('web.ui.chua_chon_chi_so_nao'));
+    if (st.set === 'custom') u.append(el('span', 'muted', tx('web.ui.bam_chay_bot_de_tinh_lai')));
   }
   $('run').addEventListener('click', async () => {
     if (st.asOf === st.S.price.length - 1) { await loadLive(); st.S = BOT.buildSeries(st.raw); st.vol = BOT.volumeStudy(st.S); st.asOf = st.S.price.length - 1; $('price').textContent = usd(st.S.price[st.asOf]); }
@@ -1611,9 +1299,9 @@ const B3 = (() => {
     const a = st.a, last = st.S.price.length - 1, past = st.asOf !== last;
     const w = $('lookahead');
     if (usesRec() && st.rec && st.rec.asOfDate > a.date) {
-      w.hidden = false; w.textContent = `Lưu ý: bộ khuyến cáo được tìm bằng dữ liệu đến ${fmtDate(st.rec.asOfDate)}, sau ngày phân tích ${fmtDate(a.date)}. Kết quả quá khứ vì thế có thể đẹp hơn thực tế lúc đó. Bấm "Tìm lại bộ có tỷ lệ thắng cao nhất" để tìm chỉ bằng dữ liệu đến ngày phân tích.`;
+      w.hidden = false; w.textContent = tx('web.ui.luu_y_bo_khuyen_cao_duoc', fmtDate(st.rec.asOfDate), fmtDate(a.date));
     } else w.hidden = true;
-    renderGauges(); renderLevels(); renderOptions(); renderTiles(past); renderCriteria(); renderRec(); drawChart(); renderFeat(); drawIndCharts(); renderSets(); renderSell(); applyMode();
+    renderGauges(); renderKN(); renderLevels(); renderOptions(); renderTiles(past); renderCriteria(); renderRec(); drawChart(); renderFeat(); drawIndCharts(); renderSets(); renderSell(); applyMode();
   }
 
   function zoneBar(Z, kind, score) {
@@ -1627,53 +1315,53 @@ const B3 = (() => {
   }
   function renderGauges() {
     const a = st.a, bz = a.buy.zone, sz = a.sell.zone;
-    const gb = $('g-buy'); gb.replaceChildren(el('h3', null, `Tỷ lệ nên mua, ngày ${fmtDate(a.date)}`));
+    const gb = $('g-buy'); gb.replaceChildren(el('h3', null, tx('web.ui.ty_le_nen_mua_ngay_0', fmtDate(a.date))));
     const bb = el('div', 'big'); bb.append(el('b', 'num', nf(0).format(a.buy.score) + '%'), el('span', bz.id === 'phai' ? 'good' : bz.id === 'cannhac' ? 'mid' : 'muted', bz.ten)); gb.append(bb, zoneBar(BUY_Z, 'buy', a.buy.score));
-    gb.append(el('p', null, `Điều kiện ngày này thuận lợi hơn ${nf(0).format(a.buy.score)}% số tuần trong lịch sử, tính chung cho 4 kỳ giữ.`));
+    gb.append(el('p', null, tx('web.ui.dieu_kien_ngay_nay_thuan_loi', nf(0).format(a.buy.score))));
     const ez = a.buy.ev.zones.find((z) => z.id === bz.id), eb = a.buy.ev.base;
-    gb.append(el('p', 'muted', ez.n ? `Lịch sử ở khung ${bz.ten.toLowerCase()}: thắng sau 6 tháng ${pc(ez.h[2].win)}, sau 1 năm ${pc(ez.h[3].win)} (${ez.n} tuần, ${ez.eps} đợt). Mua bất kỳ lúc nào: ${pc(eb.h[2].win)} và ${pc(eb.h[3].win)}.` : 'Chưa có tuần nào trong lịch sử thuộc khung này.'));
-    const gs = $('g-sell'); gs.replaceChildren(el('h3', null, `Tỷ lệ nên bán, ngày ${fmtDate(a.date)}`));
+    gb.append(el('p', 'muted', ez.n ? tx('web.ui.lich_su_o_khung_0_thang', bz.ten.toLowerCase(), pc(ez.h[2].win), pc(ez.h[3].win), ez.n, ez.eps, pc(eb.h[2].win), pc(eb.h[3].win)) : tx('web.ui.chua_co_tuan_nao_trong_lich')));
+    const gs = $('g-sell'); gs.replaceChildren(el('h3', null, tx('web.ui.ty_le_nen_ban_ngay_0', fmtDate(a.date))));
     const sb = el('div', 'big'); sb.append(el('b', 'num', nf(0).format(a.sell.score) + '%'), el('span', sz.id === 'nen' ? 'bad' : sz.id === 'cannhac' ? 'mid' : 'muted', sz.ten)); gs.append(sb, zoneBar(SELL_Z, 'sell', a.sell.score));
-    gs.append(el('p', null, `Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn ${nf(0).format(a.sell.score)}% số tuần trong lịch sử.`));
+    gs.append(el('p', null, tx('web.ui.nguy_co_gia_giam_hon_10', nf(0).format(a.sell.score))));
     const sz2 = a.sell.ev.zones.find((z) => z.id === sz.id), sbase = a.sell.ev.base;
-    gs.append(el('p', 'muted', sz2.n ? `Lịch sử ở khung ${sz.ten.toLowerCase()}: giá thấp hơn sau 6 tháng ${pc(sz2.h[1].giam.win)}, giảm hơn 10% ${pc(sz2.h[1].giamManh.win)} (${sz2.n} tuần). Bất kỳ lúc nào: ${pc(sbase.h[1].giam.win)} và ${pc(sbase.h[1].giamManh.win)}.` : 'Chưa có tuần nào trong lịch sử thuộc khung này.'));
+    gs.append(el('p', 'muted', sz2.n ? tx('web.ui.lich_su_o_khung_0_gia', sz.ten.toLowerCase(), pc(sz2.h[1].giam.win), pc(sz2.h[1].giamManh.win), sz2.n, pc(sbase.h[1].giam.win), pc(sbase.h[1].giamManh.win)) : tx('web.ui.chua_co_tuan_nao_trong_lich')));
   }
 
   // ---------- giá đề xuất mua, bán ----------
   function renderLevels() {
     const lv = st.lv, a = st.a, find = (kind, id) => lv.levels.find((L) => L.kind === kind && L.id === id);
-    $('lv-lead').textContent = `Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày ${fmtDate(lv.date)}. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.`;
-    $('lv-sum').replaceChildren(el('b', null, 'Giá đề xuất mua: '), `Cân nhắc mua ${B3.levelText(lv, find('buy', 'cannhac'))}; Phải mua ${B3.levelText(lv, find('buy', 'phai'))}. `,
-      el('b', null, 'Giá đề xuất bán: '), `Cân nhắc bán ${B3.levelText(lv, find('sell', 'cannhac'))}; Nên bán ${B3.levelText(lv, find('sell', 'nen'))}.`);
+    $('lv-lead').textContent = tx('web.ui.gia_btc_de_bot_chuyen_sang', fmtDate(lv.date));
+    $('lv-sum').replaceChildren(el('b', null, tx('web.ui.gia_de_xuat_mua')), tx('web.ui.can_nhac_mua_0_phai_mua', B3.levelText(lv, find('buy', 'cannhac')), B3.levelText(lv, find('buy', 'phai'))),
+      el('b', null, tx('web.ui.gia_de_xuat_ban')), tx('web.ui.can_nhac_ban_0_nen_ban', B3.levelText(lv, find('sell', 'cannhac')), B3.levelText(lv, find('sell', 'nen'))));
     // lịch sử của khung: tỷ lệ thực tế so với mốc mua, bán vào một tuần bất kỳ
     const hist = (L) => {
-      const ev = a[L.kind].ev, z = ev.zones.find((x) => x.id === L.id), b = ev.base; if (!z.n) return ['Chưa có tuần nào ở khung này.', '', ''];
-      const yeu = z.eps < 3 ? ', ít đợt độc lập nên chưa đáng tin' : '';
+      const ev = a[L.kind].ev, z = ev.zones.find((x) => x.id === L.id), b = ev.base; if (!z.n) return [tx('web.ui.chua_co_tuan_nao_o_khung'), '', ''];
+      const yeu = z.eps < 3 ? tx('web.ui.it_dot_doc_lap_nen_chua') : '';
       if (L.kind === 'buy') { const kem = z.h[2].win != null && z.h[2].win < b.h[2].win;
-        return [`Thắng sau 6 tháng ${pc(z.h[2].win)}, sau 1 năm ${pc(z.h[3].win)} (mua bất kỳ lúc nào: ${pc(b.h[2].win)}, ${pc(b.h[3].win)})`, `${z.n} tuần, ${z.eps} đợt${yeu}${kem ? '; thấp hơn mốc' : ''}`, kem ? 'bad' : ''];
+        return [tx('web.ui.thang_sau_6_thang_0_sau', pc(z.h[2].win), pc(z.h[3].win), pc(b.h[2].win), pc(b.h[3].win)), tx('web.ui.s_0_tuan_1_dot_2_3', z.n, z.eps, yeu, kem ? tx('web.ui.thap_hon_moc') : ''), kem ? 'bad' : ''];
       }
       const kem = z.h[1].giam.win != null && z.h[1].giam.win <= b.h[1].giam.win;
-      return [`Giá thấp hơn sau 6 tháng ${pc(z.h[1].giam.win)}, giảm hơn 10%: ${pc(z.h[1].giamManh.win)} (bất kỳ lúc nào: ${pc(b.h[1].giam.win)}, ${pc(b.h[1].giamManh.win)})`, `${z.n} tuần, ${z.eps} đợt${yeu}${kem ? '; không hơn mốc' : ''}`, kem ? 'bad' : ''];
+      return [tx('web.ui.gia_thap_hon_sau_6_thang', pc(z.h[1].giam.win), pc(z.h[1].giamManh.win), pc(b.h[1].giam.win), pc(b.h[1].giamManh.win)), tx('web.ui.s_0_tuan_1_dot_2_3', z.n, z.eps, yeu, kem ? tx('web.ui.khong_hon_moc') : ''), kem ? 'bad' : ''];
     };
-    const h = el('tr'); ['Khuyến cáo', 'Giá BTC', 'Cách giá hiện tại', 'Hôm nay', 'Lịch sử ở khung này'].forEach((t, k) => h.append(el('th', k === 1 || k === 2 ? 'r' : '', t)));
+    const h = el('tr'); [tx('web.ui.khuyen_cao'), tx('web.ui.gia_btc'), tx('web.ui.cach_gia_hien_tai'), tx('web.ui.hom_nay'), tx('web.ui.lich_su_o_khung_nay')].forEach((t, k) => h.append(el('th', k === 1 || k === 2 ? 'r' : '', t)));
     const tb = el('tbody');
     const row = (L) => {
-      const tr = el('tr'), zc = L.kind === 'buy' ? ZCOL.buy[L.id] : ZCOL.sell[L.id], n = el('td'), d = el('i', 'zdot'); d.style.background = `var(${zc})`; n.append(d, el('b', null, L.ten), el('span', 'sub', `tỷ lệ nên ${L.kind === 'buy' ? 'mua' : 'bán'} từ ${L.thr}%`));
+      const tr = el('tr'), zc = L.kind === 'buy' ? ZCOL.buy[L.id] : ZCOL.sell[L.id], n = el('td'), d = el('i', 'zdot'); d.style.background = `var(${zc})`; n.append(d, el('b', null, L.ten), el('span', 'sub', tx('web.ui.ty_le_nen_0_tu_1', L.kind === 'buy' ? 'mua' : tx('web.ui.ban'), L.thr)));
       const g = el('td', 'r num nowrap'); if (L.gia != null) g.append(el('b', null, `${L.kind === 'buy' ? '≤' : '≥'} ${usd(L.gia)}`)); else g.append(el('span', 'muted', B3.levelText(lv, L)));
       const [t1, t2, tone] = hist(L), hc = el('td', tone); hc.append(t1); if (t2) hc.append(el('span', 'sub', t2));
-      tr.append(n, g, el('td', 'r num', L.gia != null ? spc(L.gia / lv.price - 1, 1) : '—'), el('td', null, L.dat ? 'đang đạt' : 'chưa đạt'), hc); return tr;
+      tr.append(n, g, el('td', 'r num', L.gia != null ? spc(L.gia / lv.price - 1, 1) : '—'), el('td', null, L.dat ? tx('web.ui.dang_dat') : tx('web.ui.chua_dat')), hc); return tr;
     };
     lv.levels.filter((L) => L.kind === 'sell').forEach((L) => tb.append(row(L)));
-    const cur = el('tr', 'here'); cur.append(el('td', null, 'Giá ngày phân tích'), el('td', 'r num nowrap', usd(lv.price)), el('td'), el('td', null, `nên mua ${nf(0).format(a.buy.score)}%, nên bán ${nf(0).format(a.sell.score)}%`), el('td')); tb.append(cur);
+    const cur = el('tr', 'here'); cur.append(el('td', null, tx('web.ui.gia_ngay_phan_tich')), el('td', 'r num nowrap', usd(lv.price)), el('td'), el('td', null, tx('web.ui.nen_mua_0_nen_ban_1', nf(0).format(a.buy.score), nf(0).format(a.sell.score))), el('td')); tb.append(cur);
     lv.levels.filter((L) => L.kind === 'buy').forEach((L) => tb.append(row(L)));
     const th = el('thead'); th.append(h); $('t-lv').replaceChildren(th, tb);
     $('lv-notes').replaceChildren(...B3.levelNotes(lv).map((s) => el('p', 'warn', s)));
     // bảng "nếu giá là …"; một chữ số thập phân để 69,6% không hiện thành 70% mà vẫn chưa tới khung 70%
-    const h2 = el('tr'); ['Giá BTC', 'So với hiện tại', 'Tỷ lệ nên mua', 'Tỷ lệ nên bán'].forEach((t, k) => h2.append(el('th', k ? 'r' : '', t)));
+    const h2 = el('tr'); [tx('web.ui.gia_btc'), tx('web.ui.so_voi_hien_tai'), tx('web.ui.ty_le_nen_mua'), tx('web.ui.ty_le_nen_ban')].forEach((t, k) => h2.append(el('th', k ? 'r' : '', t)));
     const tb2 = el('tbody');
     lv.ladder.forEach((r) => {
       const tr = el('tr', r.f === 1 ? 'here' : ''), cell = (v, Z, kind) => { const c = el('td', 'r num'); if (v == null) { c.append('—'); return c; } const z = zoneOf(Z, v); c.append(el('b', z.id === 'khong' ? 'muted' : kind === 'buy' ? (z.id === 'phai' ? 'good' : 'mid') : (z.id === 'nen' ? 'bad' : 'mid'), nf(1).format(v) + '%'), el('span', 'sub', z.ten)); return c; };
-      tr.append(el('td', 'num nowrap', usd(r.gia)), el('td', 'r num', r.f === 1 ? 'hiện tại' : spc(r.f - 1)), cell(r.buy, BUY_Z, 'buy'), cell(r.sell, SELL_Z, 'sell')); tb2.append(tr);
+      tr.append(el('td', 'num nowrap', usd(r.gia)), el('td', 'r num', r.f === 1 ? tx('web.ui.hien_tai') : spc(r.f - 1)), cell(r.buy, BUY_Z, 'buy'), cell(r.sell, SELL_Z, 'sell')); tb2.append(tr);
     });
     const th2 = el('thead'); th2.append(h2); $('t-lvl').replaceChildren(th2, tb2);
   }
@@ -1687,84 +1375,89 @@ const B3 = (() => {
   }
   function renderTiles(past) {
     const a = st.a;
-    $('hold-title').textContent = `Xác suất thắng nếu mua ngày ${fmtDate(a.date)} (giá ${usd(a.price)}) và giữ`;
+    $('hold-title').textContent = tx('web.ui.xac_suat_thang_neu_mua_ngay', fmtDate(a.date), usd(a.price));
     $('tiles').replaceChildren(...a.hold.map((h) => {
       const tone = h.win == null || h.base == null ? '' : h.win - h.base >= 0.05 ? 'good' : h.win - h.base <= -0.05 ? 'bad' : 'mid';
-      const d = el('div', 'tile'); d.append(el('div', 'h', 'Giữ ' + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
-      d.append(el('div', 'c', h.n ? `Khoảng tin cậy ${pc(h.lo)}–${pc(h.hi)}. Mua bất kỳ lúc nào: ${pc(h.base)}.` : 'Chưa đủ dữ liệu.'));
-      if (h.n) d.append(el('div', 'c', `Lãi trung vị ${spc(h.med)}; một nửa số lần trong ${spc(h.q1)} đến ${spc(h.q3)}. Dựa trên ${h.n} lần, ${h.eps} đợt.`));
-      if (past) { const act = el('div', 'act'); if (h.thucTe == null) act.append(el('span', 'muted', 'Thực tế: chưa đủ thời gian')); else { act.append('Thực tế sau đó: ', el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? 'thắng' : 'thua'}`)); } d.append(act); }
+      const d = el('div', 'tile'); d.append(el('div', 'h', tx('web.ui.giu') + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
+      d.append(el('div', 'c', h.n ? tx('web.ui.khoang_tin_cay_0_1_mua', pc(h.lo), pc(h.hi), pc(h.base)) : tx('web.ui.chua_du_du_lieu')));
+      if (h.n) d.append(el('div', 'c', tx('web.ui.lai_trung_vi_0_mot_nua', spc(h.med), spc(h.q1), spc(h.q3), h.n, h.eps)));
+      if (past) { const act = el('div', 'act'); if (h.thucTe == null) act.append(el('span', 'muted', tx('web.ui.thuc_te_chua_du_thoi_gian'))); else { act.append(tx('web.ui.thuc_te_sau_do'), el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? tx('web.ui.thang') : 'thua'}`)); } d.append(act); }
       return d;
     }));
   }
 
   function zRow(name, z, cells, here, dotVar) {
-    const tr = el('tr', here ? 'here' : name.startsWith('Mua bất kỳ') || name.startsWith('Bất kỳ') ? 'base' : '');
+    const tr = el('tr', here ? 'here' : name.startsWith(tx('web.ui.mua_bat_ky')) || name.startsWith(tx('web.ui.bat_ky')) ? 'base' : '');
     const isBase = !dotVar;
-    const n = el('td'); if (dotVar) { const d = el('i', 'zdot'); d.style.background = `var(${dotVar})`; n.append(d); } n.append(name); if (here) n.append(el('span', 'tag', 'đang ở đây'));
-    tr.append(n, el('td', 'r num', isBase ? `${z.n} tuần` : z.n ? `${z.n} (${z.eps} đợt)` : '0'), ...cells); return tr;
+    const n = el('td'); if (dotVar) { const d = el('i', 'zdot'); d.style.background = `var(${dotVar})`; n.append(d); } n.append(name); if (here) n.append(el('span', 'tag', tx('web.ui.dang_o_day')));
+    tr.append(n, el('td', 'r num', isBase ? tx('web.ui.s_0_tuan', z.n) : z.n ? tx('web.ui.s_0_1_dot', z.n, z.eps) : '0'), ...cells); return tr;
   }
-  const cellWin = (x, base, inv) => { const hiC = inv ? 'bad' : 'good', loC = inv ? 'good' : 'bad'; const c = el('td', 'r num ' + (base == null || x.win == null ? '' : x.win - base >= 0.05 ? hiC : x.win - base <= -0.05 ? loC : '')); c.append(x.n ? pc(x.win) : '—'); if (x.n) c.append(el('span', 'sub', `${pc(x.lo)}–${pc(x.hi)}, ${x.n} lần`)); return c; };
+  const cellWin = (x, base, inv) => { const hiC = inv ? 'bad' : 'good', loC = inv ? 'good' : 'bad'; const c = el('td', 'r num ' + (base == null || x.win == null ? '' : x.win - base >= 0.05 ? hiC : x.win - base <= -0.05 ? loC : '')); c.append(x.n ? pc(x.win) : '—'); if (x.n) c.append(el('span', 'sub', tx('web.ui.s_0_1_2_lan', pc(x.lo), pc(x.hi), x.n))); return c; };
   function renderCriteria() {
     const a = st.a, B = a.buy.ev, Sv = a.sell.ev;
-    $('crit-lead').textContent = `Kiểm tra mỗi tuần từ ${fmtDate(a.from)} đến ${fmtDate(a.date)}, chỉ dùng dữ liệu có đến từng tuần. Bảng trên: tỷ lệ thắng nếu mua ở khung đó rồi giữ hết kỳ; xanh là cao hơn mốc ít nhất 5 điểm %, đỏ là thấp hơn. Bảng dưới: tỷ lệ giá giảm sau khi ở khung bán; đỏ là nguy cơ giảm cao hơn mốc, xanh là thấp hơn.`;
-    const hb = el('tr'); ['Khung mua', 'Số tuần', ...HZ.map((h) => 'Thắng sau ' + h.ten)].forEach((t, k) => hb.append(el('th', k ? 'r' : '', t)));
-    const tb = el('tbody'); tb.append(zRow('Mua bất kỳ lúc nào (mốc)', B.base, B.base.h.map((x) => cellWin(x, null)), false));
+    $('crit-lead').textContent = tx('web.ui.kiem_tra_moi_tuan_tu_0', fmtDate(a.from), fmtDate(a.date));
+    const hb = el('tr'); ['Khung mua', tx('web.ui.so_tuan'), ...HZ.map((h) => tx('web.ui.thang_sau') + h.ten)].forEach((t, k) => hb.append(el('th', k ? 'r' : '', t)));
+    const tb = el('tbody'); tb.append(zRow(tx('web.ui.mua_bat_ky_luc_nao_moc'), B.base, B.base.h.map((x) => cellWin(x, null)), false));
     B.zones.forEach((z) => tb.append(zRow(z.ten, z, z.h.map((x, k) => cellWin(x, B.base.h[k].win)), z.id === a.buy.zone.id, ZCOL.buy[z.id])));
     const th = el('thead'); th.append(hb); $('t-buy').replaceChildren(th, tb);
-    const hs = el('tr'); ['Khung bán', 'Số tuần', ...SELL_HZ.flatMap((h) => [`Giá thấp hơn sau ${h.ten}`, `Giảm hơn 10% sau ${h.ten}`])].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
-    const ts = el('tbody'); ts.append(zRow('Bất kỳ lúc nào (mốc)', Sv.base, Sv.base.h.flatMap((x) => [cellWin(x.giam, null), cellWin(x.giamManh, null)]), false));
+    const hs = el('tr'); [tx('web.ui.khung_ban'), tx('web.ui.so_tuan'), ...SELL_HZ.flatMap((h) => [tx('web.ui.gia_thap_hon_sau_0', h.ten), tx('web.ui.giam_hon_10_sau_0', h.ten)])].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
+    const ts = el('tbody'); ts.append(zRow(tx('web.ui.bat_ky_luc_nao_moc'), Sv.base, Sv.base.h.flatMap((x) => [cellWin(x.giam, null), cellWin(x.giamManh, null)]), false));
     Sv.zones.forEach((z) => ts.append(zRow(z.ten, z, z.h.flatMap((x, k) => [cellWin(x.giam, Sv.base.h[k].giam.win, true), cellWin(x.giamManh, Sv.base.h[k].giamManh.win, true)]), z.id === a.sell.zone.id, ZCOL.sell[z.id])));
     const th2 = el('thead'); th2.append(hs); $('t-sell').replaceChildren(th2, ts);
   }
 
   function renderRec() {
     const r = st.rec;
-    if (!r) { $('rec-lead').textContent = 'Chưa tìm được bộ khuyến cáo. Bấm "Tìm lại bộ có tỷ lệ thắng cao nhất".'; $('t-rec').replaceChildren(); return; }
-    $('rec-lead').textContent = `Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ ${fmtDate(r.from)} đến ${fmtDate(r.asOfDate)}, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa.`;
-    const h = el('tr'); ['Bộ chỉ số', ...HZ.map((x) => 'Thắng ' + x.ten), 'Nửa đầu, 6 tháng', 'Nửa sau, 6 tháng', ''].forEach((t, k) => h.append(el('th', k && k < 7 ? 'r' : '', t)));
+    if (!r) { $('rec-lead').textContent = tx('web.ui.chua_tim_duoc_bo_khuyen_cao'); $('t-rec').replaceChildren(); return; }
+    $('rec-lead').textContent = tx('web.ui.bot_thu_them_dan_tung_chi', fmtDate(r.from), fmtDate(r.asOfDate)) + ' ' + tx('web.kn.warn_legend');
+    const h = el('tr'); [tx('web.ui.bo_chi_so'), ...HZ.map((x) => tx('web.ui.thang_2') + x.ten), tx('web.ui.nua_dau_6_thang'), tx('web.ui.nua_sau_6_thang'), ''].forEach((t, k) => h.append(el('th', k && k < 7 ? 'r' : '', t)));
     const tb = el('tbody'), base = r.ranking[0] && r.ranking[0].base;
-    if (base) { const tr = el('tr', 'base'); tr.append(el('td', null, 'Mua bất kỳ lúc nào (mốc)'), ...base.h.map((x) => el('td', 'r num', pc(x.win))), el('td'), el('td'), el('td')); tb.append(tr); }
+    if (base) { const tr = el('tr', 'base'); tr.append(el('td', null, tx('web.ui.mua_bat_ky_luc_nao_moc')), ...base.h.map((x) => el('td', 'r num', pc(x.win))), el('td'), el('td'), el('td')); tb.append(tr); }
     const curKey = idsForSet().slice().sort().join(',');
     const ok = r.ranking.filter((x) => isFinite(x.score)), weak = r.ranking.filter((x) => !isFinite(x.score));
     ok.slice(0, 10).forEach((x, k) => {
       const tr = el('tr', [...x.ids].sort().join(',') === curKey ? 'here' : ''), n = el('td');
-      n.append(el('b', null, x.ten)); if (k === 0) n.append(el('span', 'tag', 'cao nhất')); n.append(el('span', 'sub', x.ids.map(nameOf).join(', ')));
-      tr.append(n, ...x.phai.h.map((y, i) => { const c = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); c.append(y.n ? pc(y.win) : '—'); if (y.n) c.append(el('span', 'sub', `${y.n} lần`)); return c; }));
+      const wr = warnOf(x.phai.eps, x.nua1[2], x.nua2[2]); if (wr) n.append(el('span', 'mid', tx('web.kn.warn_mark')));
+      n.append(el('b', null, x.ten)); if (k === 0) n.append(el('span', 'tag', tx('web.ui.cao_nhat'))); n.append(el('span', 'sub', x.ids.map(nameOf).join(', ')));
+      if (wr) n.append(el('span', 'sub mid', wr));
+      tr.append(n, ...x.phai.h.map((y, i) => { const c = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); c.append(y.n ? pc(y.win) : '—'); if (y.n) c.append(el('span', 'sub', tx('web.ui.s_0_lan', y.n))); return c; }));
       const n1 = x.nua1[2], n2 = x.nua2[2];
-      tr.append(el('td', 'r num', n1.n ? `${pc(n1.win)} (${n1.n})` : 'không có tín hiệu'), el('td', 'r num ' + (n2.n && n2.win < 0.5 ? 'bad' : ''), n2.n ? `${pc(n2.win)} (${n2.n})` : 'không có tín hiệu'));
-      const bt = el('button', 'btn nowrap', 'Dùng bộ này'); bt.type = 'button';
+      tr.append(el('td', 'r num', n1.n ? `${pc(n1.win)} (${n1.n})` : tx('web.ui.khong_co_tin_hieu')), el('td', 'r num ' + (n2.n && n2.win < 0.5 ? 'bad' : ''), n2.n ? `${pc(n2.win)} (${n2.n})` : tx('web.ui.khong_co_tin_hieu')));
+      const bt = el('button', 'btn nowrap', tx('web.ui.dung_bo_nay')); bt.type = 'button';
       bt.addEventListener('click', () => { if (k === 0) st.set = 'pa6'; else { st.set = 'custom'; st.ids = new Set(x.ids); } save(); renderSets(); analyzeNow(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
       const c = el('td'); c.append(bt); tr.append(c); tb.append(tr);
     });
     const th = el('thead'); th.append(h); $('t-rec').replaceChildren(th, tb);
-    $('rec-weak').textContent = weak.length ? `Không đủ tín hiệu Phải mua để xếp hạng (dưới 20 tuần hoặc chỉ 1 đợt): ${weak.map((x) => x.ten).join(', ')}.` : '';
+    $('rec-weak').textContent = weak.length ? tx('web.ui.khong_du_tin_hieu_phai_mua', weak.map((x) => x.ten).join(', ')) : '';
   }
 
   // ---------- so sánh phương án ----------
   const HCOL = ['0.35', '0.55', '0.78', '1'];
   function renderOptions() {
     const c = st.cmp;
-    if (!c || !c.ranked.length) { $('pa-lead').textContent = 'Chưa chạy được các phương án tại ngày này.'; $('t-pa').replaceChildren(); $('pa-cons').textContent = ''; return; }
+    if (!c || !c.ranked.length) { $('pa-lead').textContent = tx('web.ui.chua_chay_duoc_cac_phuong_an'); $('t-pa').replaceChildren(); $('pa-cons').textContent = ''; return; }
     const dt = c.dongThuan, top = topOpt();
-    $('pa-lead').textContent = `Bot chạy cả 6 phương án tại ngày ${fmtDate(st.S.dates[st.asOf])} và chấm trên cùng giai đoạn từ ${fmtDate(c.from)}. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút "Tự động: phương án tốt nhất" luôn dùng phương án hạng 1.`;
+    $('pa-lead').textContent = tx('web.ui.bot_chay_ca_6_phuong_an', fmtDate(st.S.dates[st.asOf]), fmtDate(c.from)) + ' ' + tx('web.kn.warn_legend');
     const cons = $('pa-cons'); cons.replaceChildren();
-    cons.append(el('b', null, `Đồng thuận của ${dt.tong} phương án: `), dt.mua.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '; ' + dt.ban.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '. ');
-    cons.append(`Trung bình tỷ lệ nên mua ${nf(0).format(dt.tbMua)}%, nên bán ${nf(0).format(dt.tbBan)}%. `);
+    cons.append(el('b', null, tx('web.ui.dong_thuan_cua_0_phuong_an', dt.tong)), dt.mua.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '; ' + dt.ban.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '. ');
+    cons.append(tx('web.ui.trung_binh_ty_le_nen_mua', nf(0).format(dt.tbMua), nf(0).format(dt.tbBan)));
     const split = dt.mua.find((z) => z.id === 'phai').n && dt.mua.find((z) => z.id === 'khong').n;
-    cons.append(split ? el('span', 'mid', 'Các phương án đang bất đồng (có phương án báo Phải mua và có phương án báo Không nên mua), nên độ chắc chắn thấp.') : el('span', 'good', 'Các phương án không mâu thuẫn nhau về chiều mua.'));
-    if (top) cons.append(` Hạng 1 là ${top.ten}: ${top.a.buy.zone.ten.toLowerCase()} (${nf(0).format(top.a.buy.score)}%).`);
-    const h = el('tr'); ['Hạng', 'Phương án', 'Nên mua hôm nay', 'Nên bán hôm nay', ...HZ.map((x) => 'Thắng ' + x.ten), 'Nửa đầu / nửa sau', 'Khi Nên bán, giá thấp hơn sau 6 tháng', ''].forEach((t, k) => h.append(el('th', k >= 2 && k <= 9 ? 'r' : '', t)));
+    cons.append(split ? el('span', 'mid', tx('web.ui.cac_phuong_an_dang_bat_dong')) : el('span', 'good', tx('web.ui.cac_phuong_an_khong_mau_thuan')));
+    if (top) cons.append(tx('web.ui.hang_1_la_0_1_2', top.ten, top.a.buy.zone.ten.toLowerCase(), nf(0).format(top.a.buy.score)));
+    const h = el('tr'); [tx('web.ui.hang'), tx('web.ui.phuong_an'), tx('web.ui.nen_mua_hom_nay'), tx('web.ui.nen_ban_hom_nay'), ...HZ.map((x) => tx('web.ui.thang_2') + x.ten), tx('web.ui.nua_dau_nua_sau'), tx('web.ui.khi_nen_ban_gia_thap_hon'), ''].forEach((t, k) => h.append(el('th', k >= 2 && k <= 9 ? 'r' : '', t)));
     const tb = el('tbody'), cur = [...idsForSet()].sort().join();
     const rows = [...c.ranked, ...c.list.filter((x) => !c.ranked.includes(x))];
     for (const x of rows) {
       const tr = el('tr', x.a && [...x.ids].sort().join() === cur ? 'here' : '');
       tr.append(el('td', 'num', x.hang ? String(x.hang) : '—'));
-      const n = el('td'); n.append(el('b', null, x.ten)); if (x.hang === 1) n.append(el('span', 'tag', 'tốt nhất'));
-      n.append(el('span', 'sub', (x.ids.length ? x.ids.map(nameOf).join(' + ') : '—') + '. ' + x.lyDo + (x.thieu.length ? ` Thiếu dữ liệu: ${x.thieu.map(nameOf).join(', ')}.` : '')));
+      const n = el('td'), wp = x.a && !x.trung ? warnOf((x.xepTheo === 'rong' ? x.rong : x.evB.zones[0]).eps, x.nua1, x.nua2) : null;
+      if (wp) n.append(el('span', 'mid', tx('web.kn.warn_mark')));
+      n.append(el('b', null, x.ten)); if (x.hang === 1) n.append(el('span', 'tag', tx('web.ui.tot_nhat')));
+      if (wp) n.append(el('span', 'sub mid', wp));
+      n.append(el('span', 'sub', (x.ids.length ? x.ids.map(nameOf).join(' + ') : '—') + '. ' + x.lyDo + (x.thieu.length ? tx('web.ui.thieu_du_lieu_0', x.thieu.map(nameOf).join(', ')) : '')));
       tr.append(n);
       if (!x.a || x.trung) {
-        tr.append(Object.assign(el('td', 'muted', x.trung ? `Trùng ${x.trung}` : x.loi), { colSpan: 8 }));
+        tr.append(Object.assign(el('td', 'muted', x.trung ? tx('web.ui.trung_0', x.trung) : x.loi), { colSpan: 8 }));
         tr.append(el('td')); tb.append(tr); continue;
       }
       const bz = x.a.buy.zone, sz = x.a.sell.zone;
@@ -1772,10 +1465,10 @@ const B3 = (() => {
       const s1 = el('td', 'r num'); s1.append(el('b', sz.id === 'nen' ? 'bad' : sz.id === 'cannhac' ? 'mid' : 'muted', nf(0).format(x.a.sell.score) + '%'), el('span', 'sub', sz.ten));
       tr.append(b1, s1);
       const z = x.xepTheo === 'rong' ? x.rong : x.evB.zones[0], base = x.evB.base;
-      z.h.forEach((y, i) => { const cl = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); cl.append(y.n ? pc(y.win) : '—', el('span', 'sub', y.n ? `${y.n} lần${x.xepTheo === 'rong' ? ', khung rộng' : ''}` : 'ít tín hiệu')); tr.append(cl); });
+      z.h.forEach((y, i) => { const cl = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); cl.append(y.n ? pc(y.win) : '—', el('span', 'sub', y.n ? tx('web.ui.s_0_lan_1', y.n, x.xepTheo === 'rong' ? tx('web.ui.khung_rong') : '') : tx('web.ui.it_tin_hieu'))); tr.append(cl); });
       tr.append(el('td', 'r num ' + (x.nua2.n && x.nua2.win < base.h[2].win ? 'bad' : ''), `${x.nua1.n ? pc(x.nua1.win) : '—'} / ${x.nua2.n ? pc(x.nua2.win) : '—'}`));
-      const bd = el('td', 'r num'); if (x.banDung) { bd.append(el('span', x.banDung.win - x.banMoc >= 0.05 ? 'good' : x.banDung.win - x.banMoc <= -0.05 ? 'bad' : '', pc(x.banDung.win))); bd.append(el('span', 'sub', `mốc ${pc(x.banMoc)}, ${x.banDung.n} lần`)); } else bd.append(el('span', 'muted', 'ít tín hiệu')); tr.append(bd);
-      const bt = el('button', 'btn nowrap', 'Dùng'); bt.type = 'button';
+      const bd = el('td', 'r num'); if (x.banDung) { bd.append(el('span', x.banDung.win - x.banMoc >= 0.05 ? 'good' : x.banDung.win - x.banMoc <= -0.05 ? 'bad' : '', pc(x.banDung.win))); bd.append(el('span', 'sub', tx('web.ui.moc_0_1_lan', pc(x.banMoc), x.banDung.n))); } else bd.append(el('span', 'muted', tx('web.ui.it_tin_hieu'))); tr.append(bd);
+      const bt = el('button', 'btn nowrap', tx('web.ui.dung')); bt.type = 'button';
       bt.addEventListener('click', () => { st.set = x.id; save(); renderSets(); analyzeNow(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
       const ct = el('td'); ct.append(bt); tr.append(ct); tb.append(tr);
     }
@@ -1805,11 +1498,11 @@ const B3 = (() => {
           if (h.n) { g.fillStyle = c('--blue'); g.globalAlpha = Number(HCOL[i]); g.fillRect(xx, y(h.win), bw, y(0) - y(h.win)); g.globalAlpha = 1; }
           const bv = x.evB.base.h[i].win; if (bv != null) { g.fillStyle = c('--ink'); g.fillRect(xx - 1, y(bv) - 1, bw + 2, 2); }
         });
-        g.fillStyle = c('--ink'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(x.ten.replace('Phương án ', 'PA'), L + k * gw + gw / 2, T + ph + 6);
-        g.fillStyle = c('--muted'); g.fillText(x.xepTheo === 'rong' ? 'khung rộng' : x.hang ? 'hạng ' + x.hang : 'ít tín hiệu', L + k * gw + gw / 2, T + ph + 21);
+        g.fillStyle = c('--ink'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(x.ten.replace(tx('web.ui.phuong_an_2'), 'PA'), L + k * gw + gw / 2, T + ph + 6);
+        g.fillStyle = c('--muted'); g.fillText(x.xepTheo === 'rong' ? tx('web.ui.khung_rong_2') : x.hang ? tx('web.ui.hang_2') + x.hang : tx('web.ui.it_tin_hieu'), L + k * gw + gw / 2, T + ph + 21);
       });
       $('l-pa-win').replaceChildren(...HZ.map((h, i) => { const s = el('span'); const ic = el('i'); ic.style.background = 'var(--blue)'; ic.style.opacity = HCOL[i]; s.append(ic, h.ten); return s; }),
-        (() => { const s = el('span'); const ic = el('i'); ic.style.background = 'var(--ink)'; ic.style.height = '2px'; s.append(ic, 'mua bất kỳ lúc nào'); return s; })());
+        (() => { const s = el('span'); const ic = el('i'); ic.style.background = 'var(--ink)'; ic.style.height = '2px'; s.append(ic, tx('web.ui.mua_bat_ky_luc_nao')); return s; })());
     } }
     // 2) tỷ lệ nên mua, nên bán hôm nay của từng phương án
     { const cv = $('c-pa-today'); if (cv.clientWidth) {
@@ -1817,7 +1510,7 @@ const B3 = (() => {
       g.fillStyle = c('--muted'); g.textAlign = 'center'; g.textBaseline = 'bottom'; [0, 60, 70, 80, 85, 100].forEach((v) => g.fillText(String(v), x(v), T - 6));
       opts.forEach((o, k) => {
         const y0 = T + k * rowH + 4, bh = Math.min(12, (rowH - 14) / 2);
-        g.fillStyle = c('--ink'); g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(o.ten.replace('Phương án ', 'PA'), L - 8, y0 + bh + 2);
+        g.fillStyle = c('--ink'); g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(o.ten.replace(tx('web.ui.phuong_an_2'), 'PA'), L - 8, y0 + bh + 2);
         const track = (yy, Z, kind, v) => {
           [...Z].sort((a, b) => a.min - b.min).forEach((z, i, arr) => { const to = i + 1 < arr.length ? arr[i + 1].min : 100; g.fillStyle = c(ZCOL[kind][z.id]); g.globalAlpha = z.id === 'khong' ? 0.22 : 0.45; g.fillRect(x(z.min), yy, x(to) - x(z.min), bh); });
           g.globalAlpha = 1; g.fillStyle = c('--ink'); g.fillRect(x(v) - 1.5, yy - 2, 3, bh + 4);
@@ -1825,8 +1518,8 @@ const B3 = (() => {
         };
         track(y0, BUY_Z, 'buy', o.a.buy.score); track(y0 + bh + 4, SELL_Z, 'sell', o.a.sell.score);
       });
-      $('l-pa-today').replaceChildren(...[['--jade', 0.45, 'Mua: Phải mua'], ['--brass', 0.45, 'Cân nhắc'], ['--cinnabar', 0.45, 'Bán: Nên bán']].map(([v, op, t]) => { const s = el('span'); const ic = el('i'); ic.style.background = `var(${v})`; ic.style.opacity = op; s.append(ic, t); return s; }),
-        el('span', null, 'Mỗi phương án: dải trên là mua, dải dưới là bán; vạch đen là giá trị hôm nay'));
+      $('l-pa-today').replaceChildren(...[['--jade', 0.45, tx('web.ui.mua_phai_mua')], ['--brass', 0.45, tx('web.ui.can_nhac')], ['--cinnabar', 0.45, tx('web.ui.ban_nen_ban')]].map(([v, op, t]) => { const s = el('span'); const ic = el('i'); ic.style.background = `var(${v})`; ic.style.opacity = op; s.append(ic, t); return s; }),
+        el('span', null, tx('web.ui.moi_phuong_an_dai_tren_la')));
     } }
   }
 
@@ -1852,20 +1545,20 @@ const B3 = (() => {
     g.globalAlpha = 1;
     g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     ticks.forEach((t) => { const yy = Math.round(y(t)) + 0.5; g.beginPath(); g.moveTo(L, yy); g.lineTo(W - R, yy); g.stroke(); g.fillText(nf(0).format(t / 1000) + 'k', L - 6, yy); });
-    g.fillText('Bán', L - 6, sy + strip / 2);
+    g.fillText(tx('web.ui.ban_2'), L - 6, sy + strip / 2);
     g.textAlign = 'center'; g.textBaseline = 'top'; let lx = -1e9;
     for (let yr = Number(bs[0].date.slice(0, 4)) + 1; yr <= Number(bs[bs.length - 1].date.slice(0, 4)); yr++) { const xx = x(yr + '-01-01'); if (xx - lx > 36) { g.fillText(String(yr), xx, H - 18); lx = xx; } }
     g.strokeStyle = c('--ink'); g.lineWidth = 1.6; g.beginPath(); bs.forEach((b, k) => (k ? g.lineTo(x(b.date), y(S.price[b.i])) : g.moveTo(x(b.date), y(S.price[b.i])))); g.stroke();
     const ad = st.S.dates[st.asOf];
-    if (ad >= bs[0].date) { const xx = x(ad); g.strokeStyle = c('--blue'); g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(xx, T); g.lineTo(xx, T + ph); g.stroke(); g.setLineDash([]); g.fillStyle = c('--blue'); g.textAlign = xx > W - 120 ? 'right' : 'left'; g.textBaseline = 'top'; g.fillText('Ngày phân tích', xx + (xx > W - 120 ? -6 : 6), T + 2); }
+    if (ad >= bs[0].date) { const xx = x(ad); g.strokeStyle = c('--blue'); g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(xx, T); g.lineTo(xx, T + ph); g.stroke(); g.setLineDash([]); g.fillStyle = c('--blue'); g.textAlign = xx > W - 120 ? 'right' : 'left'; g.textBaseline = 'top'; g.fillText(tx('web.ui.ngay_phan_tich'), xx + (xx > W - 120 ? -6 : 6), T + 2); }
     geo = { bs, ss, x, y };
-    $('legend').replaceChildren(...[['--jade', 0.35, 'Phải mua'], ['--brass', 0.25, 'Cân nhắc mua'], ['--cinnabar', 1, 'Dải dưới: Nên bán'], ['--brass', 0.6, 'Dải dưới: Cân nhắc bán']].map(([v, o, t]) => { const s = el('span'); const i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; s.append(i, t); return s; }));
+    $('legend').replaceChildren(...[['--jade', 0.35, tx('web.ui.phai_mua')], ['--brass', 0.25, tx('web.ui.can_nhac_mua')], ['--cinnabar', 1, tx('web.ui.dai_duoi_nen_ban')], ['--brass', 0.6, tx('web.ui.dai_duoi_can_nhac_ban')]].map(([v, o, t]) => { const s = el('span'); const i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; s.append(i, t); return s; }));
   }
   function nearest(ev) { if (!geo) return null; const mx = ev.clientX - $('chart').getBoundingClientRect().left; let best = null, bd = 1e9; for (const b of geo.bs) { const d = Math.abs(geo.x(b.date) - mx); if (d < bd) { bd = d; best = b; } } return bd < 24 ? best : null; }
   $('chart').addEventListener('mousemove', (ev) => {
     const b = nearest(ev), tip = $('tip'); if (!b) { tip.style.display = 'none'; return; }
     const s = geo.ss.get(b.j);
-    tip.replaceChildren(el('b', null, `${fmtDate(b.date)}, ${usd(st.S.price[b.i])}`), el('span', null, `Nên mua ${nf(0).format(b.score)}% (${zoneOf(BUY_Z, b.score).ten})`), el('br'), el('span', null, s ? `Nên bán ${nf(0).format(s.score)}% (${zoneOf(SELL_Z, s.score).ten})` : ''), el('br'), el('span', 'muted', 'Bấm để phân tích ngày này'));
+    tip.replaceChildren(el('b', null, `${fmtDate(b.date)}, ${usd(st.S.price[b.i])}`), el('span', null, tx('web.ui.nen_mua_0_1', nf(0).format(b.score), zoneOf(BUY_Z, b.score).ten)), el('br'), el('span', null, s ? tx('web.ui.nen_ban_0_1', nf(0).format(s.score), zoneOf(SELL_Z, s.score).ten) : ''), el('br'), el('span', 'muted', tx('web.ui.bam_de_phan_tich_ngay_nay')));
     tip.style.display = 'block'; const box = $('chart-box');
     tip.style.left = Math.min(box.clientWidth - tip.offsetWidth - 8, Math.max(8, geo.x(b.date) + 14)) + 'px'; tip.style.top = Math.max(8, geo.y(st.S.price[b.i]) - 60) + 'px';
   });
@@ -1874,7 +1567,7 @@ const B3 = (() => {
   new ResizeObserver(() => { if (st.full) drawChart(); if (st.cmp) drawOptCharts(); }).observe($('chart-box'));
 
   function renderFeat() {
-    const a = st.a, h = el('tr'); ['Chỉ số', 'Nhóm', 'Giá trị', 'Trọng số 6 tháng', 'Ý nghĩa'].forEach((t, k) => h.append(el('th', k === 2 || k === 3 ? 'r' : '', t)));
+    const a = st.a, h = el('tr'); [tx('web.ui.chi_so'), tx('web.ui.nhom'), tx('web.ui.gia_tri'), tx('web.ui.trong_so_6_thang'), tx('web.ui.y_nghia')].forEach((t, k) => h.append(el('th', k === 2 || k === 3 ? 'r' : '', t)));
     const tb = el('tbody');
     a.feats.forEach((f) => {
       const d = IND.find((x) => x.id === f.id), w = a.weights && a.weights.find((x) => x.id === f.id), tr = el('tr');
@@ -1885,16 +1578,16 @@ const B3 = (() => {
     });
     const th = el('thead'); th.append(h); $('t-feat').replaceChildren(th, tb);
     const v = st.vol, wk = v ? v.weeks.filter((x) => x.cls && x.date <= a.date).pop() : null;
-    $('vol-line').textContent = wk ? `Khối lượng (Binance): tuần kết thúc ${fmtDate(wk.date)}, giá ${spc(wk.chg)}, khối lượng bằng ${nf(2).format(wk.rv)} lần trung bình 20 tuần, loại "${BOT.VCLS[wk.cls].ten.toLowerCase()}".` : 'Chưa có dữ liệu khối lượng cho ngày này.';
+    $('vol-line').textContent = wk ? tx('web.ui.khoi_luong_binance_tuan_ket_thuc', fmtDate(wk.date), spc(wk.chg), nf(2).format(wk.rv), BOT.VCLS[wk.cls].ten.toLowerCase()) : tx('web.ui.chua_co_du_lieu_khoi_luong');
   }
 
   // ---------- xuất file và Claude ----------
-  const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: 'giá trực tiếp Binance/CoinGecko', fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: 'Binance (giá, khối lượng ngày)', cache: 'bản lưu trên máy' }[k])).filter(Boolean).join(', ');
-  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv);
+  const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: tx('web.ui.gia_truc_tiep_binance_coingecko'), fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: tx('web.ui.binance_gia_khoi_luong_ngay'), cache: tx('web.ui.ban_luu_tren_may') }[k])).filter(Boolean).join(', ');
+  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN);
   function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
   $('dl-md').addEventListener('click', () => download(`bao-cao-bot-btc-${st.a.date}.md`, report(), 'text/markdown;charset=utf-8'));
   $('dl-csv').addEventListener('click', () => download(`du-lieu-tuan-bot-btc-${st.a.date}.csv`, B3.csvWeekly(st.S, st.a), 'text/csv;charset=utf-8'));
-  $('dl-pa').addEventListener('click', () => { if (!st.cmp) { $('copy-msg').textContent = 'Chưa có kết quả so sánh phương án; bấm Chạy bot trước.'; return; } download(`so-sanh-phuong-an-bot-btc-${st.a.date}.csv`, B3.csvOptions(st.cmp), 'text/csv;charset=utf-8'); });
+  $('dl-pa').addEventListener('click', () => { if (!st.cmp) { $('copy-msg').textContent = tx('web.ui.chua_co_ket_qua_so_sanh'); return; } download(`so-sanh-phuong-an-bot-btc-${st.a.date}.csv`, B3.csvOptions(st.cmp), 'text/csv;charset=utf-8'); });
 
 
   // ================================================================ BÊN BÁN
@@ -1918,68 +1611,68 @@ const B3 = (() => {
   function renderSell() {
     const sd = st.sd, a = st.a; if (!sd) return;
     const v = sd.verdict, box = $('s-hero'); box.replaceChildren();
-    box.append(el('h2', null, `Nên giữ hay chốt lời? Ngày ${fmtDate(sd.date)}, giá ${usd(sd.price)}`));
+    box.append(el('h2', null, tx('web.ui.nen_giu_hay_chot_loi_ngay', fmtDate(sd.date), usd(sd.price))));
     box.append(el('div', 'verdict-big ' + VTONE[v.id], v.ten), el('p', null, v.goiY));
     const trusted = sd.crit.filter((c) => c.dangTin), famAll = [...new Set(trusted.map((c) => c.nhom))];
-    if (!trusted.length) box.append(el('p', 'muted', 'Trong lịch sử, chưa tiêu chí chốt lời nào đủ chính xác (ít nhất 3 đợt và đúng nhiều hơn rõ so với bán bất kỳ lúc nào), nên bot không có cơ sở để khuyên bán. Kết luận Giữ ở đây nghĩa là không có tín hiệu đáng tin, không phải là bảo đảm giá sẽ tăng.'));
+    if (!trusted.length) box.append(el('p', 'muted', tx('web.ui.trong_lich_su_chua_tieu_chi')));
     else {
-      box.append(el('p', null, `Số nhóm tiêu chí đáng tin đang bật: ${sd.nFam}/${famAll.length}. Từ 1 nhóm là chốt lời một phần, từ 3 nhóm là bán phần lớn.`));
-      const chips = el('div', 'chips'); trusted.forEach((c) => chips.append(el('span', 'chip' + (c.nowOn ? ' on' : ''), `${c.nowOn ? 'Đang bật: ' : ''}${c.ten}`))); box.append(chips);
+      box.append(el('p', null, tx('web.ui.so_nhom_tieu_chi_dang_tin', sd.nFam, famAll.length)));
+      const chips = el('div', 'chips'); trusted.forEach((c) => chips.append(el('span', 'chip' + (c.nowOn ? ' on' : ''), `${c.nowOn ? tx('web.ui.dang_bat') : ''}${c.ten}`))); box.append(chips);
     }
-    box.append(el('p', 'muted', `Tỷ lệ nên bán của bot: ${nf(0).format(a.sell.score)}% (${a.sell.zone.ten.toLowerCase()}).`));
+    box.append(el('p', 'muted', tx('web.ui.ty_le_nen_ban_cua_bot', nf(0).format(a.sell.score), a.sell.zone.ten.toLowerCase())));
     const pl = el('div', 'pl'), p0 = pos();
     const mk = (id, lab, val, ph) => { const l = el('label'); l.append(lab); const i = el('input'); i.type = 'number'; i.min = '0'; i.step = 'any'; i.id = id; i.value = val ?? ''; i.placeholder = ph; l.append(i); return l; };
     const out = el('div', 'num');
-    pl.append(mk('s-cost', 'Giá vốn trung bình ($)', p0.cost, 'ví dụ 62000'), mk('s-qty', 'Số BTC đang giữ', p0.qty, 'ví dụ 0,5'), out);
+    pl.append(mk('s-cost', tx('web.ui.gia_von_trung_binh'), p0.cost, tx('web.ui.vi_du_62000')), mk('s-qty', tx('web.ui.so_btc_dang_giu'), p0.qty, tx('web.ui.vi_du_0_5')), out);
     box.append(pl);
     const upd = () => {
       const cost = Number($('s-cost').value), qty = Number(String($('s-qty').value).replace(',', '.'));
       savePos({ cost: $('s-cost').value, qty: $('s-qty').value });
       out.replaceChildren();
-      if (!(cost > 0)) { out.append(el('span', 'muted', 'Nhập giá vốn để xem lãi, lỗ và số lượng nên chốt.')); return; }
-      const r = sd.price / cost - 1; out.append('Bạn đang ', el('b', r >= 0 ? 'good' : 'bad', `${r >= 0 ? 'lãi' : 'lỗ'} ${spc(r, 1)}`));
+      if (!(cost > 0)) { out.append(el('span', 'muted', tx('web.ui.nhap_gia_von_de_xem_lai'))); return; }
+      const r = sd.price / cost - 1; out.append(tx('web.ui.ban_dang'), el('b', r >= 0 ? 'good' : 'bad', `${r >= 0 ? tx('web.ui.lai') : tx('web.ui.lo')} ${spc(r, 1)}`));
       if (qty > 0) { out.append(` (${usd(Math.abs(sd.price - cost) * qty)}).`); const f = v.id === 'ban' ? 0.5 : v.id === 'chot' ? (sd.nFam >= 2 ? 0.3 : 0.1) : 0;
-        if (f) out.append(` Theo gợi ý: chốt khoảng ${nf(2).format(qty * f)} BTC, tức ${usd(qty * f * sd.price)}.`); else out.append(' Theo gợi ý: chưa cần bán.'); }
+        if (f) out.append(tx('web.ui.theo_goi_y_chot_khoang_0', nf(2).format(qty * f), usd(qty * f * sd.price))); else out.append(tx('web.ui.theo_goi_y_chua_can_ban')); }
       else out.append('.');
     };
     $('s-cost').addEventListener('input', upd); $('s-qty').addEventListener('input', upd); upd();
 
-    $('s-hold-title').textContent = `Giữ tiếp có lợi không, tính từ ngày ${fmtDate(sd.date)}`;
+    $('s-hold-title').textContent = tx('web.ui.giu_tiep_co_loi_khong_tinh', fmtDate(sd.date));
     $('s-tiles').replaceChildren(...a.hold.map((h) => {
       const tone = h.win == null || h.base == null ? '' : h.win - h.base >= 0.05 ? 'good' : h.win - h.base <= -0.05 ? 'bad' : 'mid';
-      const d = el('div', 'tile'); d.append(el('div', 'h', 'Giá cao hơn sau ' + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
-      d.append(el('div', 'c', h.n ? `Giữ tiếp: lãi trung vị ${spc(h.med)}, một nửa số lần trong ${spc(h.q1)} đến ${spc(h.q3)}. Mọi lúc: ${pc(h.base)}.` : 'Chưa đủ dữ liệu.'));
-      if (h.thucTe != null && st.asOf !== st.S.price.length - 1) { const act = el('div', 'act'); act.append('Thực tế sau đó: ', el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? 'giữ có lợi hơn' : 'bán có lợi hơn'}`)); d.append(act); }
+      const d = el('div', 'tile'); d.append(el('div', 'h', tx('web.ui.gia_cao_hon_sau') + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
+      d.append(el('div', 'c', h.n ? tx('web.ui.giu_tiep_lai_trung_vi_0', spc(h.med), spc(h.q1), spc(h.q3), pc(h.base)) : tx('web.ui.chua_du_du_lieu')));
+      if (h.thucTe != null && st.asOf !== st.S.price.length - 1) { const act = el('div', 'act'); act.append(tx('web.ui.thuc_te_sau_do'), el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? tx('web.ui.giu_co_loi_hon') : tx('web.ui.ban_co_loi_hon')}`)); d.append(act); }
       return d;
     }));
 
-    $('s-tp-lead').textContent = `Mỗi đợt là lần đầu tiêu chí bật (các tuần bật cách nhau dưới 8 tuần gộp một đợt). "Đúng" nghĩa là giá sau đó thấp hơn lúc bật. Mốc so sánh: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn ${pc(sd.baseDung6)} số lần. Một tiêu chí được coi là đáng tin khi có từ 3 đợt và cận dưới khoảng tin cậy vẫn cao hơn mốc. Bảng xếp theo cận dưới đó.`;
-    const H = ['Tiêu chí', 'Hôm nay', 'Số đợt', 'Giá thấp hơn sau 6 tháng', 'Sau 1 năm', 'Giá 6 tháng sau tín hiệu (TV)', 'Còn tăng thêm trước khi giảm (TV)', 'Giảm sâu nhất trong 1 năm (TV)', ''];
+    $('s-tp-lead').textContent = tx('web.ui.moi_dot_la_lan_dau_tieu', pc(sd.baseDung6));
+    const H = [tx('web.ui.tieu_chi'), tx('web.ui.hom_nay'), tx('web.ui.so_dot'), tx('web.ui.gia_thap_hon_sau_6_thang_2'), tx('web.ui.sau_1_nam'), tx('web.ui.gia_6_thang_sau_tin_hieu'), tx('web.ui.con_tang_them_truoc_khi_giam'), tx('web.ui.giam_sau_nhat_trong_1_nam'), ''];
     const hr = el('tr'); H.forEach((t, k) => hr.append(el('th', k >= 2 && k <= 7 ? 'r' : '', t)));
     const tb = el('tbody');
-    const base = el('tr', 'base'); base.append(el('td', null, 'Bán vào một tuần bất kỳ (mốc)'), el('td'), el('td'), el('td', 'r num', pc(sd.baseDung6)), el('td', 'r num', pc(sd.baseDung12)), el('td'), el('td'), el('td'), el('td')); tb.append(base);
+    const base = el('tr', 'base'); base.append(el('td', null, tx('web.ui.ban_vao_mot_tuan_bat_ky')), el('td'), el('td'), el('td', 'r num', pc(sd.baseDung6)), el('td', 'r num', pc(sd.baseDung12)), el('td'), el('td'), el('td'), el('td')); tb.append(base);
     sd.ranked.forEach((c) => {
-      const tr = el('tr', c.nowOn ? 'here' : ''), n = el('td'); n.append(el('b', null, c.ten)); n.append(el('span', 'sub', c.loai === 'ket_hop' ? 'Kết hợp nhiều nhóm' : `${B3.NHOM_TP[c.nhom]}, ${c.loai === 'kinh_dien' ? 'ngưỡng kinh điển' : c.loai === 'thich_nghi' ? 'ngưỡng thích nghi' : 'mô hình của bot'}`));
-      const now = el('td'); now.append(el('span', c.nowOn ? 'bad' : 'muted', c.nowOn ? 'Đang bật' : 'Chưa bật')); if (c.nowVal != null && c.loai !== 'ket_hop') { const d = c.ind ? IND.find((x) => x.id === c.ind) : null; now.append(el('span', 'sub', d ? nf(d.dec).format(c.nowVal) + (d.unit || '') : nf(0).format(c.nowVal) + '%')); }
-      const cw = (k, n2, lo, hi) => { const td = el('td', 'r num ' + (k == null ? '' : k - sd.baseDung6 >= 0.1 ? 'good' : k < sd.baseDung6 ? 'bad' : '')); td.append(n2 ? pc(k) : '—'); if (n2) td.append(el('span', 'sub', `${pc(lo)}–${pc(hi)}, ${n2} đợt`)); return td; };
+      const tr = el('tr', c.nowOn ? 'here' : ''), n = el('td'); n.append(el('b', null, c.ten)); n.append(el('span', 'sub', c.loai === 'ket_hop' ? tx('web.ui.ket_hop_nhieu_nhom') : `${B3.NHOM_TP[c.nhom]}, ${c.loai === 'kinh_dien' ? tx('web.ui.nguong_kinh_dien') : c.loai === 'thich_nghi' ? tx('web.ui.nguong_thich_nghi') : tx('web.ui.mo_hinh_cua_bot')}`));
+      const now = el('td'); now.append(el('span', c.nowOn ? 'bad' : 'muted', c.nowOn ? tx('web.ui.dang_bat_2') : tx('web.ui.chua_bat'))); if (c.nowVal != null && c.loai !== 'ket_hop') { const d = c.ind ? IND.find((x) => x.id === c.ind) : null; now.append(el('span', 'sub', d ? nf(d.dec).format(c.nowVal) + (d.unit || '') : nf(0).format(c.nowVal) + '%')); }
+      const cw = (k, n2, lo, hi) => { const td = el('td', 'r num ' + (k == null ? '' : k - sd.baseDung6 >= 0.1 ? 'good' : k < sd.baseDung6 ? 'bad' : '')); td.append(n2 ? pc(k) : '—'); if (n2) td.append(el('span', 'sub', tx('web.ui.s_0_1_2_dot', pc(lo), pc(hi), n2))); return td; };
       tr.append(n, now, el('td', 'r num', String(c.dot)), cw(c.dung6, c.n6, c.lo6, c.hi6), cw(c.dung12, c.n12, c.lo12, c.hi12), el('td', 'r num', spc(c.med6)), el('td', 'r num', spc(c.up)), el('td', 'r num', spc(c.dn)));
-      const ok = el('td'); if (c.dangTin) ok.append(el('span', 'tag', 'đáng tin')); tr.append(ok); tb.append(tr);
+      const ok = el('td'); if (c.dangTin) ok.append(el('span', 'tag', tx('web.ui.dang_tin'))); tr.append(ok); tb.append(tr);
     });
     const th = el('thead'); th.append(hr); $('t-tp').replaceChildren(th, tb);
     const weak = [...sd.crit, ...sd.combos].filter((c) => !sd.ranked.includes(c));
-    if (weak.length) { let w = $('s-tp-weak'); if (!w) { w = el('p', 'lead'); w.id = 's-tp-weak'; w.style.margin = '10px 0 0'; $('t-tp').parentElement.after(w); } w.textContent = 'Chưa đủ 3 đợt có kết quả để đánh giá: ' + weak.map((c) => c.ten + (c.coDuLieu ? ` (${c.dot} đợt)` : ' (thiếu dữ liệu)')).join('; ') + '.'; }
+    if (weak.length) { let w = $('s-tp-weak'); if (!w) { w = el('p', 'lead'); w.id = 's-tp-weak'; w.style.margin = '10px 0 0'; $('t-tp').parentElement.after(w); } w.textContent = tx('web.ui.chua_du_3_dot_co_ket') + weak.map((c) => c.ten + (c.coDuLieu ? tx('web.ui.s_0_dot', c.dot) : tx('web.ui.thieu_du_lieu'))).join('; ') + '.'; }
 
     const lv = sd.crit.filter((c) => c.trigger && c.trigger.gia).sort((x, y) => x.trigger.gia - y.trigger.gia);
-    const hl = el('tr'); ['Tiêu chí', 'Ngưỡng', 'Hôm nay', 'Giá BTC để bật', 'Cách giá hiện tại', ''].forEach((t, k) => hl.append(el('th', k >= 1 && k <= 4 ? 'r' : '', t)));
+    const hl = el('tr'); [tx('web.ui.tieu_chi'), tx('web.ui.nguong'), tx('web.ui.hom_nay'), tx('web.ui.gia_btc_de_bat'), tx('web.ui.cach_gia_hien_tai'), ''].forEach((t, k) => hl.append(el('th', k >= 1 && k <= 4 ? 'r' : '', t)));
     const tl = el('tbody');
     lv.forEach((c) => { const d = IND.find((x) => x.id === c.ind), tr = el('tr', c.dangTin ? '' : 'base');
       tr.append(el('td', null, c.ten), el('td', 'r num', nf(d.dec).format(c.trigger.thr) + (d.unit || '')), el('td', 'r num', c.nowVal == null ? '—' : nf(d.dec).format(c.nowVal) + (d.unit || '')), el('td', 'r num', usd(c.trigger.gia)), el('td', 'r num', spc(c.trigger.gia / sd.price - 1)));
-      const t2 = el('td'); if (c.dangTin) t2.append(el('span', 'tag', 'đáng tin')); else t2.append(el('span', 'muted', 'chưa đáng tin')); tr.append(t2); tl.append(tr); });
+      const t2 = el('td'); if (c.dangTin) t2.append(el('span', 'tag', tx('web.ui.dang_tin'))); else t2.append(el('span', 'muted', tx('web.ui.chua_dang_tin'))); tr.append(t2); tl.append(tr); });
     const thl = el('thead'); thl.append(hl); $('t-tplv').replaceChildren(thl, tl);
 
-    const hs = el('tr'); ['Bắt đầu', 'Giữ nguyên 1 BTC', 'Theo quy tắc chốt lời', 'Quy ra BTC', 'Lần bán / mua lại', 'Sụt giảm lớn nhất: giữ / theo quy tắc', 'Tiền mặt cuối kỳ'].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
+    const hs = el('tr'); [tx('web.ui.bat_dau'), tx('web.ui.giu_nguyen_1_btc'), tx('web.ui.theo_quy_tac_chot_loi'), 'Quy ra BTC', tx('web.ui.lan_ban_mua_lai'), tx('web.ui.sut_giam_lon_nhat_giu_theo'), tx('web.ui.tien_mat_cuoi_ky')].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
     const ts = el('tbody');
-    if (!sd.sims.length) { const tr = el('tr'); const td = el('td', 'muted', 'Chưa đủ dữ liệu để mô phỏng.'); td.colSpan = 7; tr.append(td); ts.append(tr); }
+    if (!sd.sims.length) { const tr = el('tr'); const td = el('td', 'muted', tx('web.ui.chua_du_du_lieu_de_mo')); td.colSpan = 7; tr.append(td); ts.append(tr); }
     sd.sims.forEach((x) => { const tr = el('tr'), better = x.tcGT > x.giuGT * 1.001, worse = x.tcGT < x.giuGT * 0.999;
       tr.append(el('td', 'num', `${fmtDate(x.tu)} → ${fmtDate(x.den)}`), el('td', 'r num', usd(x.giuGT)), el('td', 'r num ' + (better ? 'good' : worse ? 'bad' : ''), usd(x.tcGT)), el('td', 'r num', nf(3).format(x.tcBTC) + ' BTC'),
         el('td', 'r num', `${x.ban} / ${x.mua}`), el('td', 'r num', `${spc(x.mddH)} / ${spc(x.mdd)}`), el('td', 'r num', usd(x.tienMat))); ts.append(tr); });
@@ -2015,13 +1708,13 @@ const B3 = (() => {
     g.strokeStyle = c('--ink'); g.lineWidth = 1.5; g.beginPath(); ser.forEach((s, k) => (k ? g.lineTo(x(s.date), y(S.price[s.i])) : g.moveTo(x(s.date), y(S.price[s.i])))); g.stroke();
     const ad = S.dates[st.asOf]; if (ad >= ser[0].date) { const xx = x(ad); g.strokeStyle = c('--blue'); g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(xx, T); g.lineTo(xx, T + ph); g.stroke(); g.setLineDash([]); }
     sgeo = { ser, x, y };
-    $('s-legend').replaceChildren(...fams.map((f) => { const s = el('span'); const i = el('i'); i.style.background = `var(${FAMCOL[f]})`; s.append(i, B3.NHOM_TP[f]); return s; }), el('span', null, 'Màu nhạt: tiêu chí chưa đáng tin'));
+    $('s-legend').replaceChildren(...fams.map((f) => { const s = el('span'); const i = el('i'); i.style.background = `var(${FAMCOL[f]})`; s.append(i, B3.NHOM_TP[f]); return s; }), el('span', null, tx('web.ui.mau_nhat_tieu_chi_chua_dang')));
   }
   const snear = (ev) => { if (!sgeo) return null; const mx = ev.clientX - $('s-chart').getBoundingClientRect().left; let b = null, bd = 1e9; for (const s of sgeo.ser) { const d = Math.abs(sgeo.x(s.date) - mx); if (d < bd) { bd = d; b = s; } } return bd < 24 ? b : null; };
   $('s-chart').addEventListener('mousemove', (ev) => {
     const s = snear(ev), tip = $('s-tip'); if (!s) { tip.style.display = 'none'; return; }
     const names = B3.TP.filter((t, k) => s.on[k]).map((t) => t.ten);
-    tip.replaceChildren(el('b', null, `${fmtDate(s.date)}, ${usd(st.S.price[s.i])}`), el('span', null, `${s.n} nhóm đáng tin đang bật`), el('br'), el('span', 'muted', names.length ? names.slice(0, 4).join('; ') + (names.length > 4 ? '…' : '') : 'Không tiêu chí nào bật'));
+    tip.replaceChildren(el('b', null, `${fmtDate(s.date)}, ${usd(st.S.price[s.i])}`), el('span', null, tx('web.ui.s_0_nhom_dang_tin_dang_bat', s.n)), el('br'), el('span', 'muted', names.length ? names.slice(0, 4).join('; ') + (names.length > 4 ? '…' : '') : tx('web.ui.khong_tieu_chi_nao_bat')));
     tip.style.display = 'block'; tip.style.left = Math.min($('s-chart-box').clientWidth - tip.offsetWidth - 8, Math.max(8, sgeo.x(s.date) + 14)) + 'px'; tip.style.top = Math.max(8, sgeo.y(st.S.price[s.i]) - 60) + 'px';
   });
   $('s-chart').addEventListener('mouseleave', () => { $('s-tip').style.display = 'none'; });
@@ -2041,7 +1734,7 @@ const B3 = (() => {
       const pts = weeks.map((i) => [i, S.v[id][i]]).filter((p) => p[1] != null);
       const now = S.v[id][st.asOf], sc = d.vote ? (d.high ? (now >= d.vote[1] ? 2 : now >= d.vote[0] ? 1 : now < d.vote[2] ? -1 : 0) : (now <= d.vote[1] ? 2 : now <= d.vote[0] ? 1 : now >= d.vote[2] ? -1 : 0)) : null;
       const hd = el('div', 'h'); hd.append(el('b', null, d.ten));
-      hd.append(el('span', sc == null ? 'muted' : sc > 0 ? 'good' : sc < 0 ? 'bad' : 'muted', `${fmtDate(S.dates[st.asOf])}: ${now == null ? '—' : nf(d.dec).format(now) + (d.unit || '')}${sc == null ? '' : sc > 0 ? ', vùng rẻ' : sc < 0 ? ', vùng nóng' : ', bình thường'}`));
+      hd.append(el('span', sc == null ? 'muted' : sc > 0 ? 'good' : sc < 0 ? 'bad' : 'muted', `${fmtDate(S.dates[st.asOf])}: ${now == null ? '—' : nf(d.dec).format(now) + (d.unit || '')}${sc == null ? '' : sc > 0 ? tx('web.ui.vung_re') : sc < 0 ? tx('web.ui.vung_nong') : tx('web.ui.binh_thuong')}`));
       card.append(hd, cv);
       requestAnimationFrame(() => {
         if (!pts.length || !cv.clientWidth) return;
@@ -2076,20 +1769,14 @@ const B3 = (() => {
   new ResizeObserver(() => { const w = $('ind-charts').clientWidth; if (st.a && Math.abs(w - indW) > 2) { indW = w; drawIndCharts(); } }).observe($('ind-charts'));
   $('copy-md').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(report()); } catch (e) { const ta = el('textarea'); ta.value = report(); document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-    $('copy-msg').textContent = 'Đã sao chép. Dán vào khung chat Claude.';
+    $('copy-msg').textContent = tx('web.ui.da_sao_chep_dan_vao_khung');
   });
   const KEY_STORE = 'btc-claude-key';
   try { const k = localStorage.getItem(KEY_STORE); if (k) { $('ck').value = k; $('ck-remember').checked = true; } } catch (e) { /* bỏ qua */ }
   $('ck-remember').addEventListener('change', () => { try { if ($('ck-remember').checked) localStorage.setItem(KEY_STORE, $('ck').value.trim()); else localStorage.removeItem(KEY_STORE); } catch (e) { /* bỏ qua */ } });
   $('ck').addEventListener('change', () => { try { if ($('ck-remember').checked) localStorage.setItem(KEY_STORE, $('ck').value.trim()); } catch (e) { /* bỏ qua */ } });
 
-  const SYS = `Bạn là chuyên gia phân tích định lượng thị trường Bitcoin. Người dùng gửi báo cáo của một bot thống kê (không có trí tuệ AI): bot tính xác suất có lãi bằng kiểm chứng đi tới trên dữ liệu lịch sử.
-Nhiệm vụ của bạn:
-1. Đánh giá độ tin cậy của nhận định: chú ý tỷ lệ thắng của từng khung so với dòng mốc, số đợt độc lập, độ rộng khoảng tin cậy, và kết quả nửa đầu so với nửa sau của bộ chỉ số.
-2. Giải thích các chỉ số đang nói gì, chỉ ra chỗ các kỳ giữ (1 tháng đến 1 năm) hoặc các chỉ số mâu thuẫn nhau, và giữa tỷ lệ nên mua với tỷ lệ nên bán.
-3. Nhận xét phần khối lượng giao dịch: xu hướng giá hiện tại có được khối lượng xác nhận không.
-4. Nếu có công cụ tìm kiếm, đối chiếu với tin tức và bối cảnh vĩ mô hiện tại, ghi rõ nguồn.
-Quy tắc: không bịa số; tách rõ "số liệu của bot" và "nhận định của Claude"; nói thẳng khi dữ liệu yếu. Viết tiếng Việt, gọn, có tiêu đề ngắn, kết thúc bằng phần "Tóm tắt" 3 dòng. Nhắc rằng đây không phải lời khuyên đầu tư.`;
+  const SYS = tx('web.ui.ban_la_chuyen_gia_phan_tich');
   const chat = [];
   function mdToNodes(text) {
     const box = el('div'); const lines = text.split('\n'); let list = null, tbl = null;
@@ -2112,12 +1799,12 @@ Quy tắc: không bịa số; tách rõ "số liệu của bot" và "nhận đ�
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function addMsg(role, text, srcs) {
     const m = el('div', 'msg ' + role);
-    if (role === 'assistant') { m.append(mdToNodes(text)); if (srcs && srcs.length) { const ol = el('ol', 'srcs'); srcs.forEach((x) => { const li = el('li'); const a = el('a', null, x.title); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; li.append(a); ol.append(li); }); m.append(el('div', 'sub', 'Nguồn Claude đã đọc:'), ol); } }
+    if (role === 'assistant') { m.append(mdToNodes(text)); if (srcs && srcs.length) { const ol = el('ol', 'srcs'); srcs.forEach((x) => { const li = el('li'); const a = el('a', null, x.title); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; li.append(a); ol.append(li); }); m.append(el('div', 'sub', tx('web.ui.nguon_claude_da_doc')), ol); } }
     else m.textContent = text;
     $('chat').append(m); m.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
   async function callClaude() {
-    const key = $('ck').value.trim(); if (!key) throw new Error('Hãy dán khóa API của Claude (lấy tại console.anthropic.com).');
+    const key = $('ck').value.trim(); if (!key) throw new Error(tx('web.ui.hay_dan_khoa_api_cua_claude'));
     const body = { model: $('cmodel').value, max_tokens: 4000, system: SYS, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
     if ($('cweb').checked) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
     let text = '', srcs = [];
@@ -2125,9 +1812,9 @@ Quy tắc: không bịa số; tách rõ "số liệu của bot" và "nhận đ�
       let r;
       try {
         r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
-      } catch (e) { throw new Error('Không kết nối được Claude API. Kiểm tra mạng.'); }
+      } catch (e) { throw new Error(tx('web.ui.khong_ket_noi_duoc_claude_api')); }
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(r.status === 401 ? 'Khóa API không hợp lệ.' : r.status === 429 ? 'Claude đang giới hạn số lượt gọi, đợi một lát rồi thử lại.' : `Claude API báo lỗi ${r.status}: ${(j.error && j.error.message) || ''}`);
+      if (!r.ok) throw new Error(r.status === 401 ? tx('web.ui.khoa_api_khong_hop_le') : r.status === 429 ? tx('web.ui.claude_dang_gioi_han_so_luot') : tx('web.ui.claude_api_bao_loi_0_1', r.status, (j.error && j.error.message) || ''));
       for (const b of j.content || []) {
         if (b.type === 'text') { text += b.text; (b.citations || []).forEach((c) => c.url && srcs.push({ title: c.title || c.url, url: c.url })); }
         if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach((x) => x.url && srcs.push({ title: x.title || x.url, url: x.url }));
@@ -2140,19 +1827,73 @@ Quy tắc: không bịa số; tách rõ "số liệu của bot" và "nhận đ�
   }
   async function sendToClaude(q, first) {
     const btns = [$('ai-first'), $('ai-send')]; btns.forEach((b) => { b.disabled = true; }); $('ai-busy').hidden = false; $('ai-err').hidden = true;
-    const content = first ? `Đây là báo cáo mới nhất của bot:\n\n${report()}\n\n${q}` : q;
+    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', report(), q) : q;
     chat.push({ role: 'user', content }); addMsg('user', q);
-    try { const r = await callClaude(); chat.push({ role: 'assistant', content: r.text || '(Claude không trả lời nội dung)' }); addMsg('assistant', r.text, r.srcs); }
+    try { const r = await callClaude(); chat.push({ role: 'assistant', content: r.text || tx('web.ui.claude_khong_tra_loi_noi_dung') }); addMsg('assistant', r.text, r.srcs); }
     catch (e) { chat.pop(); $('ai-err').textContent = e.message; $('ai-err').hidden = false; }
     finally { btns.forEach((b) => { b.disabled = false; }); $('ai-busy').hidden = true; }
   }
-  $('ai-first').addEventListener('click', () => { chat.length = 0; $('chat').replaceChildren(); sendToClaude('Hãy nhận định về kết luận của bot theo các nhiệm vụ đã nêu.', true); });
+  $('ai-first').addEventListener('click', () => { chat.length = 0; $('chat').replaceChildren(); sendToClaude(tx('web.ui.hay_nhan_dinh_ve_ket_luan'), true); });
   $('ai-send').addEventListener('click', () => { const q = $('ai-q').value.trim(); if (!q) return; $('ai-q').value = ''; sendToClaude(q, chat.length === 0); });
   $('ai-q').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('ai-send').click(); });
 
+  // ---------- khuyến nghị giải ngân tuần này (chế độ an toàn: mua đều khi mô hình chưa đạt hoặc dữ liệu cũ) ----------
+  // ⚠ for an indicator set: fewer than 10 independent episodes, or 6-month results of the two halves more than 20 points apart
+  function warnOf(eps, h1, h2) {
+    if (eps < 10) return tx('web.kn.warn_eps', eps);
+    if (h1 && h2 && h1.n && h2.n && Math.abs(h1.win - h2.win) > 0.2) return tx('web.kn.warn_halves', nf(0).format(Math.abs(h1.win - h2.win) * 100));
+    return null;
+  }
+  const knStale = () => !!KN && (Date.now() - Date.parse(KN.generated_at)) / 86400000 > KN.stale_data_days;
+  function renderKN() {
+    const stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, ex = KN ? KN.amount_example_usd : 100;
+    const safe = !KN || stale || KN.mode === 'safe';
+    $('kn-sum').replaceChildren(el('b', null, `${tx('web.kn.m_label')}: ${nf(1).format(m)}`), ` — ${tx('web.kn.amount', usd(ex * m), usd(ex))}. `,
+      el('span', safe ? 'good' : 'mid', safe ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + KN.layer))));
+    const notes = [];
+    if (!KN) notes.push(el('p', 'warn', tx('web.kn.reason_missing')));
+    else {
+      if (stale || KN.reasons.includes('data_stale')) notes.push(el('p', 'warn', tx('web.kn.reason_data_stale')));
+      if (KN.reasons.includes('model_failed')) { const p = el('p', 'lead'); p.append(el('b', null, tx('web.kn.why')), tx('web.kn.reason_model_failed'), ' ', tx('web.kn.current_zone_note')); notes.push(p); }
+    }
+    $('kn-notes').replaceChildren(...notes);
+    const ev = KN && KN.evidence;
+    const h = el('tr');
+    [tx('web.kn.col_strategy'), tx('web.kn.col_median'), tx('web.kn.col_p10'), tx('web.kn.col_cba'), tx('web.kn.col_mdd'), tx('web.kn.col_placebo')]
+      .forEach((x, k) => h.append(el('th', k >= 1 ? 'r' : '', x)));
+    const tb = el('tbody'), tone = (v) => (v == null ? '' : v > 1.0005 ? 'good' : v < 0.9995 ? 'bad' : '');
+    if (ev) for (const [key, name] of [['current_bot', tx('web.kn.row_current')], ['candidate', tx('web.kn.row_candidate')]]) {
+      for (const [pk, pname] of [['validation', tx('web.kn.period_validation')], ['holdout', tx('web.kn.period_holdout')]]) {
+        const x = ev[key][pk], tr = el('tr'), n = el('td'); n.append(el('b', null, name), el('span', 'sub', pname));
+        tr.append(n, el('td', 'r num ' + tone(x.median), nf(3).format(x.median)), el('td', 'r num ' + tone(x.p10), nf(3).format(x.p10)),
+          el('td', 'r num', spc(x.cba, 1)), el('td', 'r num nowrap', `${spc(x.mdd)} / ${spc(x.mdd_dca)}`), el('td', 'r num', pk === 'holdout' ? pc(ev[key].placebo_holdout) : '—'));
+        tb.append(tr);
+      }
+    }
+    const th = el('thead'); th.append(h); $('t-kn').replaceChildren(th, tb);
+    const li = [];
+    if (ev) {
+      Object.entries(ev.episodes).sort((a, b) => Number(b[0]) - Number(a[0])).forEach(([k, n]) => {
+        const x = el('li'); x.append(tx('web.kn.evidence_line', tx('web.kn.bucket', nf(2).format(Number(k))), n));
+        if (n < 10) x.append(' — ', el('b', 'mid', tx('web.kn.low_evidence')));
+        li.push(x);
+      });
+      const ci = (k) => ev[k].ci_holdout.map((v) => nf(3).format(v));
+      li.push(el('li', null, tx('web.kn.ci_line', ...ci('candidate'), ...ci('current_bot'))), el('li', null, tx('web.kn.trials_line', ev.trials)));
+    }
+    $('kn-ev').replaceChildren(...li);
+    const evs = KN ? KN.events.map((e) => el('li', null, tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type)))) : [];
+    $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
+    $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
+      s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
+    if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
+    $('stale').hidden = !stale;
+    if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
+  }
+
   function renderStatus() {
-    const names = { live: 'Giá trực tiếp', fng: 'Fear & Greed (Alternative.me)', cm: 'Giá lịch sử, MVRV, thợ đào (Coin Metrics)', kl: 'Giá và khối lượng ngày (Binance)', cache: 'Dữ liệu lưu trên máy' };
-    $('status').replaceChildren(...Object.entries(st.status).map(([k, s]) => el('li', s.ok ? 'ok' : 'err', `${names[k]}: ${s.ok || k === 'cache' ? s.msg : 'lỗi, ' + s.msg}`)));
+    const names = { live: tx('web.ui.gia_truc_tiep_2'), fng: 'Fear & Greed (Alternative.me)', cm: tx('web.ui.gia_lich_su_mvrv_tho_dao'), kl: tx('web.ui.gia_va_khoi_luong_ngay_binance'), cache: tx('web.ui.du_lieu_luu_tren_may') };
+    $('status').replaceChildren(...Object.entries(st.status).map(([k, s]) => el('li', s.ok ? 'ok' : 'err', `${names[k]}: ${s.ok || k === 'cache' ? s.msg : tx('web.ui.loi') + s.msg}`)));
   }
 
 

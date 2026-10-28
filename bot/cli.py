@@ -4,6 +4,7 @@ fetch           fetch all sources, check quality, save snapshots (daily job)
 record          forward-record open interest and funding only
 check-sources   reachability of every endpoint
 backtest        current bot vs DCA (add --final for the logged holdout run)
+report          weekly recommendation → data/recommendation.json (fail-safe: DCA)
 final --final   phase 7: the single logged run on the locked holdout + acceptance criteria
 """
 from __future__ import annotations
@@ -47,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
         with open(DATA / "derived" / "final_result.pkl", "wb") as f:
             pickle.dump(res, f)
         print("passed:", res["passed"], [(c["id"], c["ok"]) for c in res["criteria"]])
+        return 0
+    if args.command == "report":
+        from bot.report import vi_report
+        print(vi_report.console(vi_report.build()))
         return 0
     if args.command == "check-sources":
         from bot.data import check_sources

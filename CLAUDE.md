@@ -6,13 +6,19 @@ Bot chạy trên máy người dùng (Windows và Mac), giao diện tiếng Vi�
 - `src/engine.js` (đối tượng `BOT`): tải và ghép dữ liệu, tính 10 chỉ số (Fear & Greed, MVRV, MVRV Z-Score, Giá/MA 200 tuần, Mayer, RSI 14 tuần, Pi Cycle, Puell, Giảm từ đỉnh, Khối lượng tương đối), hồi quy logistic, khối lượng giao dịch.
 - `src/analysis.js` (đối tượng `B3`): phân tích theo tuần tại một ngày bất kỳ (`analyze`), tìm bộ chỉ số (`search`), so sánh phương án PA1–PA6 (`compareOptions`), bên bán (`sellSide`), báo cáo và CSV.
 - `src/ui.js`: toàn bộ giao diện (bên mua, bên bán, biểu đồ canvas, Claude API, xuất file).
-- `src/page.html`: khung trang và CSS; có 3 chỗ đánh dấu `/*CORE*/`, `/*B3*/`, `/*UI*/`.
+- `src/page.html`: khung trang và CSS; có 4 chỗ đánh dấu `/*I18N*/`, `/*CORE*/`, `/*B3*/`, `/*UI*/`; chữ trong trang viết dạng `{{web.page.khoa}}`.
+- `src/i18n.js` (`I18N.tx`, `I18N.vnTime`): đọc chữ từ `bot/i18n/vi.yaml`. Mọi chữ người dùng thấy nằm trong `vi.yaml`, mã chỉ dùng `tx('web.ui.khoa', ...)`. `python build.py` sinh `src/vi.json` cho bài kiểm tra node.
+- `bot/` (Python): dữ liệu theo thời điểm công bố, mô phỏng so với mua đều, kiểm định, mô hình, khuyến nghị tuần (`data/recommendation.json`). Kết quả nghiên cứu: `docs/RESULTS.md` (mô hình mới chưa đạt, khuyến nghị luôn là mua đều).
 - `build.py`: ghép thành `bot-xac-suat.html` (một file, chạy bằng cách mở trực tiếp hoặc qua `chay_bot_xac_suat.py`). `python build.py --zip` tạo `dist/BotBTC-Windows.zip` và `dist/BotBTC-Mac.zip`.
 - `chay_bot_xac_suat.py`: máy chủ cục bộ cổng 8789, chuyển tiếp yêu cầu dữ liệu (tránh CORS), lưu bản sao vào `du_lieu_tam/` để dùng khi mất mạng.
 - `Mo-Bot-BTC.bat` (Windows), `Mo-Bot-BTC.command` (Mac): file bấm đúp để chạy.
 
 ## Lệnh
 - Ghép: `python build.py`
+- Kiểm tra tất cả (không cần mạng): `python -m pytest` (gồm `node tests/test_engine.js`, ảnh chụp báo cáo, CSV, chữ, kiểu dáng và ảnh giao diện)
+- Dữ liệu và khuyến nghị: `python -m bot.cli fetch`, `python -m bot.cli report`; mốc so sánh: `python -m bot.cli backtest`
+- Giai đoạn kiểm tra cuối (2023 trở đi) bị khóa; chỉ `python -m bot.cli final --final` mở và được ghi vào `experiments/final_runs.log`. Không chỉnh gì theo kết quả này.
+- Cập nhật ảnh chụp chỉ sau khi đã duyệt khác biệt: `UPDATE_SNAPSHOTS=1 python -m pytest` và `node tests/snapshot_report.js --update`
 - Kiểm tra tính toán (không cần mạng): `node tests/test_engine.js`
 - Kiểm tra giao diện (cần Playwright): `python tests/test_browser.py`
 - Chạy với dữ liệu thật: `python chay_bot_xac_suat.py` rồi mở http://127.0.0.1:8789

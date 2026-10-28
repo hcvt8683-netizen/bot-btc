@@ -1,34 +1,35 @@
 // ===== B3 START =====
 const B3 = (() => {
+  const tx = typeof I18N !== 'undefined' ? I18N.tx : require('./i18n.js').tx;
   const { IND, FAMILIES } = BOT;
   const { featAt, fitLogit, predLogit, median, quant, computeRaw } = BOT._;
   const wilson = BOT.wilson;
   const DAY = 86400000;
 
   const HZ = [
-    { id: '1m', ten: '1 tháng', w: 4, days: 30 }, { id: '3m', ten: '3 tháng', w: 13, days: 91 },
-    { id: '6m', ten: '6 tháng', w: 26, days: 182 }, { id: '1y', ten: '1 năm', w: 52, days: 365 },
+    { id: '1m', ten: tx('web.analysis.s_1_thang'), w: 4, days: 30 }, { id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13, days: 91 },
+    { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26, days: 182 }, { id: '1y', ten: tx('web.analysis.s_1_nam'), w: 52, days: 365 },
   ];
-  const SELL_HZ = [{ id: '3m', ten: '3 tháng', w: 13 }, { id: '6m', ten: '6 tháng', w: 26 }];
+  const SELL_HZ = [{ id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13 }, { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26 }];
   const SELL_DROP = -0.10;
-  const BUY_Z = [{ id: 'phai', ten: 'Phải mua', min: 80 }, { id: 'cannhac', ten: 'Cân nhắc mua', min: 60 }, { id: 'khong', ten: 'Không nên mua', min: 0 }];
-  const SELL_Z = [{ id: 'nen', ten: 'Nên bán', min: 85 }, { id: 'cannhac', ten: 'Cân nhắc bán', min: 70 }, { id: 'khong', ten: 'Không nên bán', min: 0 }];
+  const BUY_Z = [{ id: 'phai', ten: tx('web.analysis.phai_mua'), min: 80 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_mua'), min: 60 }, { id: 'khong', ten: tx('web.analysis.khong_nen_mua'), min: 0 }];
+  const SELL_Z = [{ id: 'nen', ten: tx('web.analysis.nen_ban'), min: 85 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_ban'), min: 70 }, { id: 'khong', ten: tx('web.analysis.khong_nen_ban'), min: 0 }];
   const zoneOf = (Z, v) => (v == null ? null : Z.find((z) => v >= z.min));
   const MIN_TRAIN = 78;
   // các phương án theo thứ tự ưu tiên thiết kế; xếp hạng thật do dữ liệu quyết định
   const OPTIONS = [
-    { id: 'pa1', ten: 'Phương án 1', ids: ['pi', 'mvrv'], lyDo: 'Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.' },
-    { id: 'pa2', ten: 'Phương án 2', ids: ['pi', 'mvrvz'], lyDo: 'Như phương án 1 nhưng dùng MVRV Z-Score.' },
-    { id: 'pa3', ten: 'Phương án 3', ids: ['pi', 'mvrv', 'fng'], lyDo: 'Ba góc nhìn: xu hướng, định giá, tâm lý. Lịch sử ngắn hơn vì Fear & Greed có từ 2018.' },
-    { id: 'pa4', ten: 'Phương án 4', ids: ['pi', 'puell'], lyDo: 'Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving.' },
-    { id: 'pa5', ten: 'Phương án 5', ids: ['fng', 'mvrv', 'wma'], lyDo: 'Bộ cân bằng không dùng Pi Cycle, để so sánh.' },
-    { id: 'pa6', ten: 'Phương án 6', ids: null, lyDo: 'Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.' },
+    { id: 'pa1', ten: tx('web.analysis.phuong_an_1'), ids: ['pi', 'mvrv'], lyDo: tx('web.analysis.xu_huong_gia_dinh_gia_on') },
+    { id: 'pa2', ten: tx('web.analysis.phuong_an_2'), ids: ['pi', 'mvrvz'], lyDo: tx('web.analysis.nhu_phuong_an_1_nhung_dung') },
+    { id: 'pa3', ten: tx('web.analysis.phuong_an_3'), ids: ['pi', 'mvrv', 'fng'], lyDo: tx('web.analysis.ba_goc_nhin_xu_huong_dinh') },
+    { id: 'pa4', ten: tx('web.analysis.phuong_an_4'), ids: ['pi', 'puell'], lyDo: tx('web.analysis.xu_huong_gia_doanh_thu_tho') },
+    { id: 'pa5', ten: tx('web.analysis.phuong_an_5'), ids: ['fng', 'mvrv', 'wma'], lyDo: tx('web.analysis.bo_can_bang_khong_dung_pi') },
+    { id: 'pa6', ten: tx('web.analysis.phuong_an_6'), ids: null, lyDo: tx('web.analysis.bo_bot_tu_tim_co_ty') },
   ];
   const PRESETS = [
-    { id: 'all', ten: 'Tất cả chỉ số', ids: IND.map((d) => d.id) },
-    { id: 'onchain', ten: 'Định giá on-chain', ids: ['mvrv', 'mvrvz', 'puell'] },
-    { id: 'xuhuong', ten: 'Xu hướng giá', ids: ['wma', 'mayer', 'rsiw', 'pi'] },
-    { id: 'tamly_dinhgia', ten: 'Tâm lý và định giá', ids: ['fng', 'mvrv', 'wma'] },
+    { id: 'all', ten: tx('web.analysis.tat_ca_chi_so'), ids: IND.map((d) => d.id) },
+    { id: 'onchain', ten: tx('web.analysis.dinh_gia_on_chain'), ids: ['mvrv', 'mvrvz', 'puell'] },
+    { id: 'xuhuong', ten: tx('web.analysis.xu_huong_gia'), ids: ['wma', 'mayer', 'rsiw', 'pi'] },
+    { id: 'tamly_dinhgia', ten: tx('web.analysis.tam_ly_va_dinh_gia'), ids: ['fng', 'mvrv', 'wma'] },
   ];
 
   // các lần kiểm tra theo tuần (Chủ nhật) đến trước ngày phân tích, cộng thêm chính ngày phân tích
@@ -110,7 +111,7 @@ const B3 = (() => {
     const run = async (ids) => { const key = [...ids].sort().join(','); if (!cache.has(key)) { cache.set(key, quickBuy(S, asOf, ids)); if (tick) await tick(); } return cache.get(key); };
     const singles = [];
     for (const id of cand) { const s = await run([id]); if (s.length) singles.push({ id, first: s[0].date }); }
-    if (!singles.length) throw new Error('Chưa đủ dữ liệu để tìm bộ chỉ số tại ngày này.');
+    if (!singles.length) throw new Error(tx('web.analysis.chua_du_du_lieu_de_tim'));
     const from = singles.map((x) => x.first).sort().pop() > '2021-01-01' ? singles.map((x) => x.first).sort().pop() : '2021-01-01';
     const usable = singles.map((x) => x.id);
     const evalIds = async (ids) => objective(await run(ids), from);
@@ -122,7 +123,7 @@ const B3 = (() => {
       if (chosen.length && ps - best < 0.005) { steps.push({ them: pick, score: ps, dung: true }); break; }
       chosen = [...chosen, pick]; best = ps; steps.push({ them: pick, score: ps });
     }
-    const cands = [{ ten: 'Bộ bot tìm được', ids: chosen }, ...PRESETS.map((p) => ({ ten: p.ten, ids: p.ids.filter((id) => usable.includes(id)) })), ...usable.map((id) => ({ ten: IND.find((d) => d.id === id).ten + ' (riêng)', ids: [id] }))];
+    const cands = [{ ten: tx('web.analysis.bo_bot_tim_duoc'), ids: chosen }, ...PRESETS.map((p) => ({ ten: p.ten, ids: p.ids.filter((id) => usable.includes(id)) })), ...usable.map((id) => ({ ten: IND.find((d) => d.id === id).ten + tx('web.analysis.rieng'), ids: [id] }))];
     const ranking = [];
     for (const c of cands) {
       if (!c.ids.length) continue;
@@ -139,15 +140,15 @@ const B3 = (() => {
   // phân tích đầy đủ một bộ chỉ số tại một ngày
   function analyze(S, asOf, ids) {
     ids = ids.filter((id) => S.avail.includes(id));
-    if (!ids.length) throw new Error('Hãy chọn ít nhất một chỉ số có dữ liệu.');
+    if (!ids.length) throw new Error(tx('web.analysis.hay_chon_it_nhat_mot_chi'));
     const smp = weekly(S, asOf), R = featRows(S, smp, ids);
-    if (!R[R.length - 1].ok) throw new Error('Tại ngày phân tích, một số chỉ số đã chọn chưa có số liệu.');
+    if (!R[R.length - 1].ok) throw new Error(tx('web.analysis.tai_ngay_phan_tich_mot_so'));
     const buyW = HZ.map((h) => walk(S, smp, R, h.w, (r) => (r > 0 ? 1 : 0), 4));
     const sellW = SELL_HZ.map((h) => walk(S, smp, R, h.w, (r) => (r < SELL_DROP ? 1 : 0), 4));
     const buyS = combine(buyW), sellS = combine(sellW);
     const nowJ = smp.length - 1;
     const bNow = buyS.find((x) => x.j === nowJ), sNow = sellS.find((x) => x.j === nowJ);
-    if (!bNow || !sNow) throw new Error('Chưa đủ lịch sử để chấm điểm tại ngày này. Hãy chọn ngày muộn hơn hoặc bớt các chỉ số mới có dữ liệu gần đây (Fear & Greed, Khối lượng).');
+    if (!bNow || !sNow) throw new Error(tx('web.analysis.chua_du_lich_su_de_cham'));
     const from = buyS[0].date;
     // xác suất thắng hôm nay cho từng kỳ giữ: tỉ lệ thực tế của những lần trước có điều kiện gần giống
     const hold = HZ.map((h, k) => {
@@ -190,9 +191,9 @@ const B3 = (() => {
   // lời giải thích khi mốc giá ít ý nghĩa
   function levelNotes(lv) {
     const out = [];
-    if (lv.phang) out.push('Với bộ chỉ số này, tỷ lệ nên mua và nên bán gần như không đổi khi giá trong ngày thay đổi, vì các chỉ số là trung bình dài hạn (ví dụ Pi Cycle dùng trung bình 111 và 350 ngày). Khuyến cáo đổi chủ yếu theo thời gian, không theo một mức giá cụ thể.');
-    if (lv.nguocMua) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.');
-    if (lv.nguocBan) out.push('Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.');
+    if (lv.phang) out.push(tx('web.analysis.voi_bo_chi_so_nay_ty'));
+    if (lv.nguocMua) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so'));
+    if (lv.nguocBan) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so_2'));
     return out;
   }
   // dò từ giá p mỗi bước 1% rồi chia đôi, tìm mốc mà tại đó điều kiện ok(X) đổi so với hôm nay;
@@ -218,82 +219,97 @@ const B3 = (() => {
   }
   const usdT = (x) => Math.round(x).toLocaleString('vi-VN') + ' $';
   function levelText(lv, L) {
-    if (L.gia != null) return `khi giá ${L.kind === 'buy' ? '≤' : '≥'} ${usdT(L.gia)}`;
-    if (!L.dat) return L.kind === 'buy' ? `chưa đạt dù giá giảm tới ${usdT(lv.lo)}` : `chưa đạt dù giá tăng tới ${usdT(lv.hi)}`;
-    return L.kind === 'buy' ? `ở mọi mức giá đến ${usdT(lv.hi)}` : `ở mọi mức giá từ ${usdT(lv.lo)}`;
+    if (L.gia != null) return tx('web.analysis.khi_gia_0_1', L.kind === 'buy' ? '≤' : '≥', usdT(L.gia));
+    if (!L.dat) return L.kind === 'buy' ? tx('web.analysis.chua_dat_du_gia_giam_toi', usdT(lv.lo)) : tx('web.analysis.chua_dat_du_gia_tang_toi', usdT(lv.hi));
+    return L.kind === 'buy' ? tx('web.analysis.o_moi_muc_gia_den_0', usdT(lv.hi)) : tx('web.analysis.o_moi_muc_gia_tu_0', usdT(lv.lo));
   }
 
+  const vnTime = typeof I18N !== 'undefined' ? I18N.vnTime : require('./i18n.js').vnTime;
+  // ⚠ for an indicator set with fewer than 10 independent episodes or two halves more than 20 points apart (6 months)
+  const warnMd = (eps, h1, h2) => (eps < 10 || (h1 && h2 && h1.n && h2.n && Math.abs(h1.win - h2.win) > 0.2) ? tx('web.kn.warn_mark') : '');
   const P = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
   const SP = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
   const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
   const nm = (id) => IND.find((d) => d.id === id).ten;
-  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv) {
+  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn) {
     const L = [], t = (x) => L.push(x);
-    t(`# Báo cáo bot BTC, phân tích tại ngày ${D(a.date)}`); t('');
-    t('Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải trên web, bằng kiểm chứng đi tới (chỉ dùng dữ liệu có đến từng thời điểm).'); t('');
-    t('## Bối cảnh');
-    t(`- Giá BTC tại ngày phân tích: ${Math.round(a.price).toLocaleString('vi-VN')} $` + (isToday ? ' (giá trực tiếp)' : ' (ngày trong quá khứ)'));
-    t(`- Nguồn: ${sources}`); t(`- Bộ chỉ số: ${a.ids.map(nm).join(', ')}`); t(`- Giai đoạn chấm điểm: từ ${D(a.from)} đến ${D(a.date)}, kiểm tra mỗi tuần`); t('');
-    t('## Kết luận');
-    t(`- Tỷ lệ nên mua: **${a.buy.score.toFixed(0)}%**, khung **${a.buy.zone.ten}** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn ${a.buy.score.toFixed(0)}% số tuần trước đó.`);
-    t(`- Tỷ lệ nên bán: **${a.sell.score.toFixed(0)}%**, khung **${a.sell.zone.ten}** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn ${a.sell.score.toFixed(0)}% số tuần trước đó.`); t('');
+    t(tx('web.analysis.bao_cao_bot_btc_phan_tich', D(a.date))); t('');
+    t(tx('web.analysis.bot_thong_ke_khong_co_tri')); t('');
+    t(tx('web.analysis.boi_canh'));
+    t(tx('web.analysis.gia_btc_tai_ngay_phan_tich', Math.round(a.price).toLocaleString('vi-VN')) + (isToday ? tx('web.analysis.gia_truc_tiep') : tx('web.analysis.ngay_trong_qua_khu')));
+    t(tx('web.analysis.nguon_0', sources)); t(tx('web.analysis.bo_chi_so_0', a.ids.map(nm).join(', '))); t(tx('web.analysis.giai_doan_cham_diem_tu_0', D(a.from), D(a.date))); t('');
+    t(tx('web.analysis.ket_luan'));
+    t(tx('web.analysis.ty_le_nen_mua_0_khung', a.buy.score.toFixed(0), a.buy.zone.ten, a.buy.score.toFixed(0)));
+    t(tx('web.analysis.ty_le_nen_ban_0_khung', a.sell.score.toFixed(0), a.sell.zone.ten, a.sell.score.toFixed(0))); t('');
+    if (kn) {
+      const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days, m = stale ? 1 : kn.multiplier, ev = kn.evidence;
+      const d3 = (x) => (x == null ? '—' : x.toFixed(3).replace('.', ','));
+      t(tx('web.kn.md_title'));
+      t(tx('web.kn.md_m', m.toFixed(1).replace('.', ','), stale || kn.mode === 'safe' ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + kn.layer)),
+        usdT(kn.amount_example_usd * m), usdT(kn.amount_example_usd)));
+      if (stale || kn.reasons.includes('data_stale')) t(tx('web.kn.md_why', tx('web.kn.reason_data_stale')));
+      if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.reason_model_failed')));
+      if (ev) { const c = ev.candidate.holdout, b = ev.current_bot.holdout; t(tx('web.kn.md_cmp', d3(c.median), d3(c.p10), d3(b.median), d3(b.p10), P(b.cba, 1), P(b.mdd), P(b.mdd_dca))); }
+      t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
+      t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
+    }
     if (lv) {
-      t(`## Giá đề xuất mua và bán (ngày ${D(lv.date)}, giá ${usdT(lv.price)})`);
-      t('Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.');
-      t('| Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |'); t('|---|---|---|---|');
-      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? 'đang đạt' : 'chưa đạt'} |`));
+      t(tx('web.analysis.gia_de_xuat_mua_va_ban', D(lv.date), usdT(lv.price)));
+      t(tx('web.analysis.gia_btc_de_bot_chuyen_khung'));
+      t(tx('web.analysis.khuyen_cao_dieu_kien_gia_cach')); t('|---|---|---|---|');
+      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? tx('web.analysis.dang_dat') : tx('web.analysis.chua_dat')} |`));
       levelNotes(lv).forEach((s) => t(`- ${s}`));
-      t('Nếu giá ngày phân tích là: ' + lv.ladder.map((r) => `${usdT(r.gia)} (${r.f === 1 ? 'hiện tại' : SP(r.f - 1)}): nên mua ${r.buy == null ? '—' : r.buy.toFixed(0) + '%'}, nên bán ${r.sell == null ? '—' : r.sell.toFixed(0) + '%'}`).join('; ') + '.');
+      t(tx('web.analysis.neu_gia_ngay_phan_tich_la') + lv.ladder.map((r) => tx('web.analysis.s_0_1_nen_mua_2_nen', usdT(r.gia), r.f === 1 ? tx('web.analysis.hien_tai') : SP(r.f - 1), r.buy == null ? '—' : r.buy.toFixed(0) + '%', r.sell == null ? '—' : r.sell.toFixed(0) + '%')).join('; ') + '.');
       t('');
     }
-    t('## Xác suất thắng nếu mua tại ngày phân tích');
-    t('| Giữ | Xác suất thắng | Khoảng tin cậy 95% | Trung bình mọi lúc | Lãi trung vị | Một nửa số lần trong | Số lần tương tự |' + (isToday ? '' : ' Thực tế sau đó |'));
+    t(tx('web.analysis.xac_suat_thang_neu_mua_tai'));
+    t(tx('web.analysis.giu_xac_suat_thang_khoang_tin') + (isToday ? '' : tx('web.analysis.thuc_te_sau_do')));
     t('|---|---|---|---|---|---|---|' + (isToday ? '' : '---|'));
-    a.hold.forEach((h) => t(`| ${h.ten} | ${P(h.win)} | ${P(h.lo)}–${P(h.hi)} | ${P(h.base)} | ${SP(h.med)} | ${SP(h.q1)} đến ${SP(h.q3)} | ${h.n} (${h.eps} đợt) |` + (isToday ? '' : ` ${h.thucTe == null ? 'chưa đủ thời gian' : SP(h.thucTe)} |`)));
+    a.hold.forEach((h) => t(tx('web.analysis.s_0_1_2_3_4_5', h.ten, P(h.win), P(h.lo), P(h.hi), P(h.base), SP(h.med), SP(h.q1), SP(h.q3), h.n, h.eps) + (isToday ? '' : ` ${h.thucTe == null ? tx('web.analysis.chua_du_thoi_gian') : SP(h.thucTe)} |`)));
     t('');
-    t('## Bộ tiêu chí: tỷ lệ thắng thực tế theo từng khung mua (từ ' + D(a.from) + ')');
-    t('| Khung | Số tuần | ' + HZ.map((h) => 'Thắng sau ' + h.ten).join(' | ') + ' |'); t('|---|---|' + HZ.map(() => '---').join('|') + '|');
-    [{ ten: 'Mua bất kỳ lúc nào (mốc)', ...a.buy.ev.base }, ...a.buy.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} (${z.eps} đợt) | ` + z.h.map((x) => `${P(x.win)} (${x.n})`).join(' | ') + ' |'));
+    t(tx('web.analysis.bo_tieu_chi_ty_le_thang') + D(a.from) + ')');
+    t(tx('web.analysis.khung_so_tuan') + HZ.map((h) => tx('web.analysis.thang_sau') + h.ten).join(' | ') + ' |'); t('|---|---|' + HZ.map(() => '---').join('|') + '|');
+    [{ ten: tx('web.analysis.mua_bat_ky_luc_nao_moc'), ...a.buy.ev.base }, ...a.buy.ev.zones].forEach((z) => t(tx('web.analysis.s_0_1_2_dot', z.ten, z.n, z.eps) + z.h.map((x) => `${P(x.win)} (${x.n})`).join(' | ') + ' |'));
     t('');
-    t('## Khung bán: giá có giảm thật không');
-    t('| Khung | Số tuần | ' + SELL_HZ.map((h) => `Giá thấp hơn sau ${h.ten} | Giảm hơn 10% sau ${h.ten}`).join(' | ') + ' |'); t('|---|---|' + SELL_HZ.map(() => '---|---').join('|') + '|');
-    [{ ten: 'Bất kỳ lúc nào (mốc)', ...a.sell.ev.base }, ...a.sell.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} | ` + z.h.map((x) => `${P(x.giam.win)} | ${P(x.giamManh.win)}`).join(' | ') + ' |'));
+    t(tx('web.analysis.khung_ban_gia_co_giam_that'));
+    t(tx('web.analysis.khung_so_tuan') + SELL_HZ.map((h) => tx('web.analysis.gia_thap_hon_sau_0_giam', h.ten, h.ten)).join(' | ') + ' |'); t('|---|---|' + SELL_HZ.map(() => '---|---').join('|') + '|');
+    [{ ten: tx('web.analysis.bat_ky_luc_nao_moc'), ...a.sell.ev.base }, ...a.sell.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} | ` + z.h.map((x) => `${P(x.giam.win)} | ${P(x.giamManh.win)}`).join(' | ') + ' |'));
     t('');
     if (cmp && cmp.ranked.length) {
       const dt = cmp.dongThuan;
-      t(`## So sánh các phương án (chấm trên cùng giai đoạn từ ${D(cmp.from)})`);
-      t(`Đồng thuận hôm nay: ${dt.mua.filter((z) => z.n).map((z) => `${z.n}/${dt.tong} ${z.ten.toLowerCase()}`).join(', ')}; trung bình tỷ lệ nên mua ${dt.tbMua.toFixed(0)}%, nên bán ${dt.tbBan.toFixed(0)}%.`);
-      t('| Hạng | Phương án | Chỉ số | Nên mua hôm nay | Nên bán hôm nay | Thắng khi Phải mua (1t/3t/6t/1n) | Nửa đầu / nửa sau (6t) | Khi Nên bán, giá thấp hơn sau 6t |'); t('|---|---|---|---|---|---|---|---|');
-      cmp.ranked.forEach((x) => t(`| ${x.hang || '—'} | ${x.ten} | ${x.ids.map(nm).join(', ')} | ${x.a.buy.score.toFixed(0)}% ${x.a.buy.zone.ten} | ${x.a.sell.score.toFixed(0)}% ${x.a.sell.zone.ten} | ${x.evB.zones[0].h.map((h) => P(h.win)).join(' / ')} | ${P(x.nua1.win)} / ${P(x.nua2.win)} | ${x.banDung ? P(x.banDung.win) + ' (mốc ' + P(x.banMoc) + ')' : 'ít tín hiệu'} |`));
+      t(tx('web.analysis.so_sanh_cac_phuong_an_cham', D(cmp.from)));
+      t(tx('web.analysis.dong_thuan_hom_nay_0_trung', dt.mua.filter((z) => z.n).map((z) => `${z.n}/${dt.tong} ${z.ten.toLowerCase()}`).join(', '), dt.tbMua.toFixed(0), dt.tbBan.toFixed(0)));
+      t(tx('web.analysis.hang_phuong_an_chi_so_nen')); t('|---|---|---|---|---|---|---|---|');
+      cmp.ranked.forEach((x) => t(`| ${x.hang || '—'} | ${warnMd((x.xepTheo === 'rong' ? x.rong : x.evB.zones[0]).eps, x.nua1, x.nua2)}${x.ten} | ${x.ids.map(nm).join(', ')} | ${x.a.buy.score.toFixed(0)}% ${x.a.buy.zone.ten} | ${x.a.sell.score.toFixed(0)}% ${x.a.sell.zone.ten} | ${x.evB.zones[0].h.map((h) => P(h.win)).join(' / ')} | ${P(x.nua1.win)} / ${P(x.nua2.win)} | ${x.banDung ? P(x.banDung.win) + tx('web.analysis.moc') + P(x.banMoc) + ')' : tx('web.analysis.it_tin_hieu')} |`));
       t('');
     }
     if (rec) {
-      t(`## Bộ chỉ số có tỷ lệ thắng cao nhất (tìm với dữ liệu đến ${D(rec.asOfDate)}, chấm từ ${D(rec.from)})`);
-      t('| Bộ | Thắng 1 tháng | Thắng 3 tháng | Thắng 6 tháng | Thắng 1 năm | Nửa đầu 6 tháng | Nửa sau 6 tháng |'); t('|---|---|---|---|---|---|---|');
-      rec.ranking.slice(0, 8).forEach((r) => t(`| ${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
+      t(tx('web.analysis.bo_chi_so_co_ty_le', D(rec.asOfDate), D(rec.from)));
+      t(tx('web.analysis.bo_thang_1_thang_thang_3')); t('|---|---|---|---|---|---|---|');
+      rec.ranking.slice(0, 8).forEach((r) => t(`| ${warnMd(r.phai.eps, r.nua1[2], r.nua2[2])}${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
       t('');
     }
     if (sd) {
-      t(`## Bên bán: nên giữ hay chốt lời (ngày ${D(sd.date)})`);
-      t(`- Kết luận: **${sd.verdict.ten}**. ${sd.verdict.goiY}`);
-      t(`- Số nhóm tiêu chí đáng tin đang bật: ${sd.nFam}${sd.famNow.length ? ' (' + sd.famNow.map((f) => NHOM_TP[f]).join(', ') + ')' : ''}. Quy tắc: từ 1 nhóm chốt lời một phần, từ 3 nhóm bán phần lớn.`);
-      t(`- Mốc: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn ${P(sd.baseDung6)} số lần, 1 năm sau ${P(sd.baseDung12)}.`);
+      t(tx('web.analysis.ben_ban_nen_giu_hay_chot', D(sd.date)));
+      t(tx('web.analysis.ket_luan_0_1', sd.verdict.ten, sd.verdict.goiY));
+      t(tx('web.analysis.so_nhom_tieu_chi_dang_tin', sd.nFam, sd.famNow.length ? ' (' + sd.famNow.map((f) => NHOM_TP[f]).join(', ') + ')' : ''));
+      t(tx('web.analysis.moc_ban_vao_mot_tuan_bat', P(sd.baseDung6), P(sd.baseDung12)));
       t('');
-      t('| Tiêu chí | Đáng tin | Hôm nay | Số đợt | Giá thấp hơn sau 6 tháng | Khoảng tin cậy | Sau 1 năm | Còn tăng thêm (TV) | Giảm sâu nhất 1 năm (TV) | Giá BTC để bật |'); t('|---|---|---|---|---|---|---|---|---|---|');
-      sd.ranked.forEach((c) => t(`| ${c.ten} | ${c.dangTin ? 'có' : ''} | ${c.nowOn ? 'đang bật' : 'chưa'} | ${c.dot} | ${P(c.dung6)} (${c.n6}) | ${P(c.lo6)}–${P(c.hi6)} | ${P(c.dung12)} (${c.n12}) | ${SP(c.up)} | ${SP(c.dn)} | ${c.trigger && c.trigger.gia ? Math.round(c.trigger.gia).toLocaleString('vi-VN') + ' $' : '—'} |`));
+      t(tx('web.analysis.tieu_chi_dang_tin_hom_nay')); t('|---|---|---|---|---|---|---|---|---|---|');
+      sd.ranked.forEach((c) => t(`| ${c.ten} | ${c.dangTin ? tx('web.analysis.co') : ''} | ${c.nowOn ? tx('web.analysis.dang_bat') : tx('web.analysis.chua')} | ${c.dot} | ${P(c.dung6)} (${c.n6}) | ${P(c.lo6)}–${P(c.hi6)} | ${P(c.dung12)} (${c.n12}) | ${SP(c.up)} | ${SP(c.dn)} | ${c.trigger && c.trigger.gia ? Math.round(c.trigger.gia).toLocaleString('vi-VN') + ' $' : '—'} |`));
       t('');
-      if (sd.sims.length) { t('Mô phỏng giữ 1 BTC và chốt lời theo quy tắc (giữ 90/70/50% khi 1/2/3 nhóm bật, mua lại khi bên mua báo từ Cân nhắc mua):'); t('| Bắt đầu | Giữ nguyên | Theo quy tắc | Quy ra BTC | Bán/mua lại | Sụt giảm lớn nhất giữ/quy tắc |'); t('|---|---|---|---|---|---|');
-        sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3)} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
+      if (sd.sims.length) { t(tx('web.analysis.mo_phong_giu_1_btc_va')); t(tx('web.analysis.bat_dau_giu_nguyen_theo_quy')); t('|---|---|---|---|---|---|');
+        sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3).replace('.', ',')} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
     }
-    t('## Giá trị chỉ số tại ngày phân tích');
+    t(tx('web.analysis.gia_tri_chi_so_tai_ngay'));
     a.feats.forEach((f) => { const d = IND.find((x) => x.id === f.id); t(`- ${d.ten}: ${f.v == null ? '—' : (+f.v).toFixed(d.dec).replace('.', ',') + (d.unit || '')}`); });
-    if (a.weights) t('- Trọng số trong mô hình 6 tháng (dương: chỉ số báo rẻ làm tăng xác suất thắng): ' + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
+    if (a.weights) t(tx('web.analysis.trong_so_trong_mo_hinh_6') + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
     t('');
-    if (vol && vol.last) { t('## Khối lượng giao dịch'); t(`Tuần gần nhất đã đóng (${D(vol.last.date)}): giá ${SP(vol.last.chg)}, khối lượng bằng ${vol.last.rv.toFixed(2).replace('.', ',')} lần trung bình 20 tuần, loại "${BOT.VCLS[vol.last.cls].ten}".`); t(''); }
-    t('## Câu hỏi gợi ý cho Claude');
-    t('- Kết luận của bot có đáng tin không, xét theo số đợt độc lập và khoảng tin cậy?');
-    t('- Bối cảnh vĩ mô và tin tức hiện tại ủng hộ hay mâu thuẫn với kết luận?');
-    t('- Nên chia tiền mua thế nào theo các khung trên?');
+    if (vol && vol.last) { t(tx('web.analysis.khoi_luong_giao_dich')); t(tx('web.analysis.tuan_gan_nhat_da_dong_0', D(vol.last.date), SP(vol.last.chg), vol.last.rv.toFixed(2).replace('.', ','), BOT.VCLS[vol.last.cls].ten)); t(''); }
+    t(tx('web.analysis.cau_hoi_goi_y_cho_claude'));
+    t(tx('web.analysis.ket_luan_cua_bot_co_dang'));
+    t(tx('web.analysis.boi_canh_vi_mo_va_tin'));
+    t(tx('web.analysis.nen_chia_tien_mua_the_nao'));
     return L.join('\n');
   }
 
@@ -304,7 +320,7 @@ const B3 = (() => {
       const ids = (o.id === 'pa6' ? recIds || [] : o.ids).filter((id) => S.avail.includes(id));
       const thieu = (o.id === 'pa6' ? [] : o.ids).filter((id) => !S.avail.includes(id));
       const item = { ...o, ids, thieu, a: null, loi: null };
-      if (!ids.length) item.loi = o.id === 'pa6' ? 'Chưa tìm được bộ khuyến cáo.' : 'Thiếu dữ liệu cho các chỉ số của phương án này.';
+      if (!ids.length) item.loi = o.id === 'pa6' ? tx('web.analysis.chua_tim_duoc_bo_khuyen_cao') : tx('web.analysis.thieu_du_lieu_cho_cac_chi');
       else { try { item.a = analyze(S, asOf, ids); } catch (e) { item.loi = e.message; } }
       list.push(item);
       if (tick) await tick();
@@ -355,7 +371,7 @@ const B3 = (() => {
       ...HZ.map((h) => 'phai_mua_thang_' + h.id), 'phai_mua_so_lan', 'phai_mua_so_dot', ...HZ.map((h) => 'moc_thang_' + h.id),
       'nua_dau_thang_6m', 'nua_sau_thang_6m', 'nen_ban_gia_thap_hon_6m', 'moc_gia_thap_hon_6m', 'cham_tu'];
     const rows = cmp.list.map((x) => { const z = x.evB && x.evB.zones[0];
-      return [x.hang, x.ten, x.ids.map(nm).join(' + '), x.loi || (x.trung ? 'trùng ' + x.trung : x.xepTheo === 'rong' ? 'ít tín hiệu Phải mua, xếp theo khung từ Cân nhắc mua' : ''),
+      return [x.hang, x.ten, x.ids.map(nm).join(' + '), x.loi || (x.trung ? tx('web.analysis.trung') + x.trung : x.xepTheo === 'rong' ? tx('web.analysis.it_tin_hieu_phai_mua_xep') : ''),
         x.a && x.a.buy.score, x.a && x.a.buy.zone.ten, x.a && x.a.sell.score, x.a && x.a.sell.zone.ten,
         ...HZ.map((h, k) => z && z.h[k].win), z && z.n, z && z.eps, ...HZ.map((h, k) => x.evB && x.evB.base.h[k].win),
         x.nua1 && x.nua1.win, x.nua2 && x.nua2.win, x.banDung && x.banDung.win, x.banMoc, cmp.from]; });
@@ -365,25 +381,25 @@ const B3 = (() => {
   // ================================================================ BÊN BÁN: chốt lời hay giữ
   // nhom: để đếm số nhóm cùng báo, không đếm trùng hai chỉ số đo cùng một thứ
   const TP = [
-    { id: 'pi_cat', ind: 'pi', nhom: 'xuhuong', ten: 'Pi Cycle cắt lên (tỉ số ≥ 1)', loai: 'kinh_dien', thr: 1.0 },
+    { id: 'pi_cat', ind: 'pi', nhom: 'xuhuong', ten: tx('web.analysis.pi_cycle_cat_len_ti_so'), loai: 'kinh_dien', thr: 1.0 },
     { id: 'mvrvz_7', ind: 'mvrvz', nhom: 'onchain', ten: 'MVRV Z-Score ≥ 7', loai: 'kinh_dien', thr: 7 },
     { id: 'mvrv_3', ind: 'mvrv', nhom: 'onchain', ten: 'MVRV ≥ 3', loai: 'kinh_dien', thr: 3 },
     { id: 'mayer_24', ind: 'mayer', nhom: 'xuhuong', ten: 'Mayer Multiple ≥ 2,4', loai: 'kinh_dien', thr: 2.4 },
-    { id: 'rsiw_80', ind: 'rsiw', nhom: 'xuhuong', ten: 'RSI 14 tuần ≥ 80', loai: 'kinh_dien', thr: 80 },
+    { id: 'rsiw_80', ind: 'rsiw', nhom: 'xuhuong', ten: tx('web.analysis.rsi_14_tuan_80'), loai: 'kinh_dien', thr: 80 },
     { id: 'fng_90', ind: 'fng', nhom: 'tamly', ten: 'Fear & Greed ≥ 90', loai: 'kinh_dien', thr: 90 },
     { id: 'puell_4', ind: 'puell', nhom: 'thodao', ten: 'Puell Multiple ≥ 4', loai: 'kinh_dien', thr: 4 },
-    { id: 'mvrvz_p', ind: 'mvrvz', nhom: 'onchain', ten: 'MVRV Z-Score thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'mvrv_p', ind: 'mvrv', nhom: 'onchain', ten: 'MVRV thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'mayer_p', ind: 'mayer', nhom: 'xuhuong', ten: 'Mayer Multiple thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'wma_p', ind: 'wma', nhom: 'xuhuong', ten: 'Giá / MA 200 tuần thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'puell_p', ind: 'puell', nhom: 'thodao', ten: 'Puell Multiple thuộc 5% cao nhất 4 năm', loai: 'thich_nghi' },
-    { id: 'bot_nb', ind: null, nhom: 'mohinh', ten: 'Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)', loai: 'mo_hinh' },
+    { id: 'mvrvz_p', ind: 'mvrvz', nhom: 'onchain', ten: tx('web.analysis.mvrv_z_score_thuoc_5_cao'), loai: 'thich_nghi' },
+    { id: 'mvrv_p', ind: 'mvrv', nhom: 'onchain', ten: tx('web.analysis.mvrv_thuoc_5_cao_nhat_4'), loai: 'thich_nghi' },
+    { id: 'mayer_p', ind: 'mayer', nhom: 'xuhuong', ten: tx('web.analysis.mayer_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'wma_p', ind: 'wma', nhom: 'xuhuong', ten: tx('web.analysis.gia_ma_200_tuan_thuoc_5'), loai: 'thich_nghi' },
+    { id: 'puell_p', ind: 'puell', nhom: 'thodao', ten: tx('web.analysis.puell_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'bot_nb', ind: null, nhom: 'mohinh', ten: tx('web.analysis.bot_bao_nen_ban_ty_le'), loai: 'mo_hinh' },
   ];
-  const NHOM_TP = { xuhuong: 'Xu hướng giá', onchain: 'Định giá on-chain', tamly: 'Tâm lý', thodao: 'Thợ đào', mohinh: 'Mô hình của bot' };
+  const NHOM_TP = { xuhuong: tx('web.analysis.xu_huong_gia'), onchain: tx('web.analysis.dinh_gia_on_chain'), tamly: tx('web.analysis.tam_ly'), thodao: tx('web.analysis.tho_dao'), mohinh: tx('web.analysis.mo_hinh_cua_bot') };
   const SELL_VERDICT = [
-    { id: 'ban', ten: 'Bán phần lớn', min: 3, goiY: 'Chốt khoảng 50% lượng đang giữ, phần còn lại đặt mốc chốt tiếp.' },
-    { id: 'chot', ten: 'Chốt lời một phần', min: 1, goiY: 'Chốt khoảng 10–30% để khóa lợi nhuận, giữ phần còn lại.' },
-    { id: 'giu', ten: 'Giữ', min: 0, goiY: 'Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.' },
+    { id: 'ban', ten: tx('web.analysis.ban_phan_lon'), min: 3, goiY: tx('web.analysis.chot_khoang_50_luong_dang_giu') },
+    { id: 'chot', ten: tx('web.analysis.chot_loi_mot_phan'), min: 1, goiY: tx('web.analysis.chot_khoang_10_30_de_khoa') },
+    { id: 'giu', ten: tx('web.analysis.giu'), min: 0, goiY: tx('web.analysis.chua_co_tieu_chi_chot_loi') },
   ];
   const tpOn = (S, c, i, sellScoreAt) => {
     if (c.loai === 'mo_hinh') { const s = sellScoreAt(i); return s == null ? null : s >= 85; }
@@ -431,7 +447,7 @@ const B3 = (() => {
     const trusted = crit.filter((c) => c.dangTin);
     const famAt = (j) => { const f = new Set(); trusted.forEach((c) => { const k = TP.findIndex((t) => t.id === c.id); if (on[k][j]) f.add(c.nhom); }); return f; };
     const famCount = smp.map((_, j) => famAt(j).size);
-    const combos = [1, 2, 3].map((m) => ({ id: 'combo' + m, ten: `Từ ${m} nhóm tiêu chí đáng tin cùng bật`, loai: 'ket_hop', nhom: null, m, ...evalSignal(famCount.map((n) => n >= m)), nowOn: famCount[famCount.length - 1] >= m, coDuLieu: trusted.length > 0 }));
+    const combos = [1, 2, 3].map((m) => ({ id: 'combo' + m, ten: tx('web.analysis.tu_0_nhom_tieu_chi_dang', m), loai: 'ket_hop', nhom: null, m, ...evalSignal(famCount.map((n) => n >= m)), nowOn: famCount[famCount.length - 1] >= m, coDuLieu: trusted.length > 0 }));
     const ranked = [...crit, ...combos].filter((c) => c.coDuLieu && c.n6 >= 3).sort((x, y) => (y.lo6 ?? -1) - (x.lo6 ?? -1));
     const famNow = famAt(smp.length - 1), nFam = famNow.size;
     const verdict = SELL_VERDICT.find((v) => nFam >= v.min);
@@ -460,7 +476,7 @@ const B3 = (() => {
   function csvSell(sd) {
     const head = ['tieu_chi', 'loai', 'nhom', 'dang_tin', 'hom_nay_bat', 'gia_tri_hom_nay', 'gia_kich_hoat_usd', 'so_dot', 'so_tuan_bat',
       'gia_thap_hon_sau_6t', 'can_duoi_6t', 'so_dot_du_6t', 'gia_thap_hon_sau_1n', 'so_dot_du_1n', 'moc_gia_thap_hon_6t', 'lai_trung_vi_6t_sau_tin_hieu', 'con_tang_them_toi_da_trung_vi', 'giam_sau_nhat_1n_trung_vi', 'cac_dot'];
-    const rows = [...sd.crit, ...sd.combos].map((c) => [c.ten, c.loai, c.nhom ? NHOM_TP[c.nhom] : 'kết hợp', c.dangTin ? 'có' : '', c.nowOn ? 'có' : c.nowOn === false ? 'không' : '', c.nowVal, c.trigger && c.trigger.gia,
+    const rows = [...sd.crit, ...sd.combos].map((c) => [c.ten, c.loai, c.nhom ? NHOM_TP[c.nhom] : tx('web.analysis.ket_hop'), c.dangTin ? tx('web.analysis.co') : '', c.nowOn ? tx('web.analysis.co') : c.nowOn === false ? tx('web.analysis.khong') : '', c.nowVal, c.trigger && c.trigger.gia,
       c.dot, c.tuan, c.dung6, c.lo6, c.n6, c.dung12, c.n12, sd.baseDung6, c.med6, c.up, c.dn, (c.ev || []).map((e) => e.date).join(' ')]);
     return csv(head, rows);
   }

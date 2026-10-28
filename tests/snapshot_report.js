@@ -8,6 +8,9 @@ const B3 = require('../src/analysis.js');
 const { make } = require('./gen_data.js');
 
 const END = Date.parse('2026-10-27T00:00:00Z');
+const NOW = Date.parse('2026-10-28T03:00:00Z');
+Date.now = () => NOW; // the report checks data freshness against the clock
+const KN = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'recommendation.json'), 'utf8'));
 const DIR = path.join(__dirname, 'snapshots');
 
 async function produce() {
@@ -24,7 +27,7 @@ async function produce() {
   const volLast = vol && { last: vol.weeks.filter((x) => x.cls && x.date <= a.date).pop() };
   const sources = 'Fear & Greed Alternative.me, Coin Metrics, Binance (giá, khối lượng ngày)';
   return {
-    'report.md': B3.report(S, a, rec, volLast, sources, true, cmp, sd, lv) + '\n',
+    'report.md': B3.report(S, a, rec, volLast, sources, true, cmp, sd, lv, KN) + '\n',
     'weekly.csv': B3.csvWeekly(S, a) + '\n',
     'options.csv': B3.csvOptions(cmp) + '\n',
     'sell.csv': B3.csvSell(sd) + '\n',
