@@ -131,3 +131,4 @@ timestamp,git,config,name,stage,features,params,metrics
 2026-10-28T02:14:58Z,3cd431e+,376b6b8adf93,B:base_for:capitulation,phase5,A,"{""step"": ""base""}","{""cycles_above_1"": 1, ""er_val"": 1.0, ""placebo_pct"": null, ""roll_med_val"": 1.0, ""roll_p10_val"": 1.0, ""sr_active"": null}"
 2026-10-28T02:14:58Z,3cd431e+,9fad93812880,C:event_delay,phase5,A+event_window,"{""hours"": 48}","{""roll_med"": 0.9997130100350302, ""roll_p10"": 0.994327337721803}"
 2026-10-28T02:14:59Z,3cd431e+,0d43f1301fb0,C:macro_cap,phase5,A+macro_cap,"{""cap"": 1.25}","{""cycles_above_1"": 1, ""er_val"": 1.0, ""placebo_pct"": null, ""roll_med_val"": 1.0, ""roll_p10_val"": 1.0, ""sr_active"": null}"
+2026-10-28T02:18:03Z,ecdd857+,60888a3dfccc,SELL:rule,phase6,rsiw_80,"{""min_episodes"": 10, ""rule"": ""10%/30%, cap 50%/26w""}","{""cycles_better"": 0, ""sells"": 0}"

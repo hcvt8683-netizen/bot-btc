@@ -59,3 +59,4 @@ model:
     table: [[0.80, 2.0], [0.60, 1.25], [0.20, 1.0], [0.0, 0.5]]
   layer_b: []
   layer_c: []
+  sell: advisory        # giai đoạn 6: chưa đạt 3/4 chu kỳ, chỉ là lời khuyên dạng chữ (docs/SELL_SIDE.md)

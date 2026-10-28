@@ -47,14 +47,17 @@ class SimResult:
         return self.btc * self.price + self.cash
 
 
-def simulate(price: np.ndarray, mult: np.ndarray | None, cfg_: SimConfig | None = None) -> SimResult:
-    """price: (weeks,) or (runs, weeks); mult: same shape, or None for plain DCA (m = 1, no reserve)."""
+def simulate(price: np.ndarray, mult: np.ndarray | None, cfg_: SimConfig | None = None, sell: np.ndarray | None = None) -> SimResult:
+    """price: (weeks,) or (runs, weeks); mult: same shape, or None for plain DCA (m = 1, no reserve).
+    sell: optional fraction of BTC sold each week (after the contribution, before the buy); proceeds go to the reserve
+    and are bought back only through the buy layer (m > 1)."""
     c = cfg_ or SimConfig.from_config()
     P = np.atleast_2d(np.asarray(price, dtype=float))
     M = np.ones_like(P) if mult is None else np.broadcast_to(np.atleast_2d(np.asarray(mult, dtype=float)), P.shape).copy()
     if mult is None:
         M[:] = 1.0
     R, N = P.shape
+    S = None if sell is None else np.broadcast_to(np.atleast_2d(np.asarray(sell, dtype=float)), P.shape)
     out = {k: np.zeros((R, N)) for k in ("mult", "amount", "btc", "cash", "reserve_before", "contributed", "spent")}
     btc, cash, contrib, spent = np.zeros(R), np.zeros(R), np.zeros(R), np.zeros(R)
     wy = (1 + c.reserve_yield) ** (1 / 52) - 1
@@ -65,6 +68,10 @@ def simulate(price: np.ndarray, mult: np.ndarray | None, cfg_: SimConfig | None 
         m = np.where(reserve > c.reserve_cap_weeks * c.budget, np.maximum(m, 1.0), m)
         cash = cash + c.budget
         contrib = contrib + c.budget
+        if S is not None:
+            q = btc * np.clip(S[:, t], 0, 1)
+            btc = btc - q
+            cash = cash + q * P[:, t] * (1 - c.slippage) * (1 - c.fee)
         amt = np.clip(m * c.budget, 0, cash)
         btc = btc + amt * (1 - c.fee) / (P[:, t] * (1 + c.slippage))
         cash = cash - amt

@@ -21,13 +21,18 @@ def zone_multiplier(score: float) -> float:
     return next(m for thr, m in CURRENT_MAP if score >= thr)
 
 
-def current_bot(scores: pd.DataFrame, dates: pd.DatetimeIndex) -> tuple[np.ndarray, np.ndarray]:
-    """As-of join of weekly buy scores onto decision times. Returns (multiplier, score); m = 1 where no score yet."""
-    s = scores[["date", "buy"]].copy()
+def asof_scores(scores: pd.DataFrame, dates: pd.DatetimeIndex, col: str = "buy") -> np.ndarray:
+    """Weekly scores (Sunday) joined onto decision times once published; NaN when older than two weeks."""
+    s = scores[["date", col]].copy()
     s["available_at"] = s["date"] + SCORE_LAG
     s = s.sort_values("available_at")
     t = pd.DataFrame({"t": decision_time(dates)})
     j = pd.merge_asof(t, s, left_on="t", right_on="available_at", direction="backward")
     stale = (j["t"] - j["available_at"]) > pd.Timedelta(days=14)  # never reuse a score older than two weeks
-    score = j["buy"].where(~stale).to_numpy(dtype=float)
+    return j[col].where(~stale).to_numpy(dtype=float)
+
+
+def current_bot(scores: pd.DataFrame, dates: pd.DatetimeIndex) -> tuple[np.ndarray, np.ndarray]:
+    """As-of join of weekly buy scores onto decision times. Returns (multiplier, score); m = 1 where no score yet."""
+    score = asof_scores(scores, dates, "buy")
     return np.array([zone_multiplier(x) for x in score]), score

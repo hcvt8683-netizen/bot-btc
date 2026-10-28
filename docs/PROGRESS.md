@@ -170,3 +170,29 @@ Mô hình cuối vẫn chỉ là lớp A, giữ `layer_b: []` và `layer_c: []` 
 **Kết quả kiểm tra.** `python -m pytest`: 35/35 đạt.
 
 **Câu hỏi còn mở.** Không có.
+
+## Giai đoạn 6: Bên bán (xong 28/10/2026)
+
+**Tóm tắt.** Dựng lại 13 tiêu chí chốt lời của trang web trên lưới quyết định hằng tuần (dữ liệu 2011–2022). Đếm đợt độc lập như trang web (các tuần bật cách nhau dưới 8 tuần gộp một đợt). Tiêu chí dưới 10 đợt chỉ hiển thị. Quy tắc hành động: bán 10% khi nhóm định giá bật cùng nhóm xu hướng hoặc tâm lý; bán 30% khi từ 3 nhóm; không quá 50% trong 26 tuần; chỉ mua lại qua lớp mua. So với giữ nguyên theo từng chu kỳ halving. Chi tiết: `docs/SELL_SIDE.md`.
+
+**Kết quả.**
+- Chỉ **RSI 14 tuần ≥ 80** đủ 10 đợt (11 đợt). Cả 11 lần giá 26 tuần sau đều **cao hơn**, nên đây là tín hiệu đà tăng tiếp, không phải đỉnh.
+- Các tiêu chí đang được trang web coi là "đáng tin" (Pi Cycle cắt lên, MVRV Z ≥ 7) chỉ có 4–5 đợt từ 2011.
+- Không có tiêu chí định giá nào đủ đợt, nên quy tắc không bao giờ bán: 0 tuần bán, 0/4 chu kỳ cải thiện.
+- **Kết luận: bên bán chỉ là lời khuyên dạng chữ** (`model.sell: advisory`). Logic bên bán hiện tại trên trang web giữ nguyên.
+
+| Tiêu chí (ví dụ) | Số đợt | Giá thấp hơn sau 26 tuần |
+|---|---|---|
+| Pi Cycle cắt lên | 5 | 80% (5) |
+| MVRV Z-Score ≥ 7 | 4 | 100% (4) |
+| MVRV ≥ 3 | 7 | 0% (7) |
+| RSI 14 tuần ≥ 80 | 11 | 0% (11) |
+| Bot báo Nên bán | 1 | 0% (1) |
+
+Số lần thử trong sổ: 133.
+
+**File thay đổi.** `bot/models/sell.py`, `bot/models/sell_eval.py`, `bot/backtest/engine.py` (thêm bán), `bot/backtest/baselines.py` (ghép điểm bán theo thời điểm), `config/bot.yaml`, `docs/SELL_SIDE.md`, `experiments/registry.csv`, `tests/test_sell.py`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 38/38 đạt.
+
+**Câu hỏi còn mở.** Không có.
