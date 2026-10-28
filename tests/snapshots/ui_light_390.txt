@@ -1,0 +1,722 @@
+=== BÊN MUA ===
+Bot mua bán BTC
+1.102 $
+giá trực tiếp
+Cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam)
+Tỷ lệ nên mua, ngày 28/10/2026
+87%
+Phải mua
+Không nên mua
+0–60%
+Cân nhắc mua
+60–80%
+Phải mua
+80–100%
+
+Điều kiện ngày này thuận lợi hơn 87% số tuần trong lịch sử, tính chung cho 4 kỳ giữ.
+
+Lịch sử ở khung phải mua: thắng sau 6 tháng 99%, sau 1 năm 100% (106 tuần, 10 đợt). Mua bất kỳ lúc nào: 62% và 66%.
+
+Tỷ lệ nên bán, ngày 28/10/2026
+22%
+Không nên bán
+Không nên bán
+0–70%
+Cân nhắc bán
+70–85%
+Nên bán
+85–100%
+
+Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn 22% số tuần trong lịch sử.
+
+Lịch sử ở khung không nên bán: giá thấp hơn sau 6 tháng 25%, giảm hơn 10% 22% (279 tuần). Bất kỳ lúc nào: 38% và 32%.
+
+Khuyến nghị giải ngân tuần này
+
+Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.
+
+Hệ số mua: 1,0 — 100 $ trên mỗi 100 $ ngân sách tuần. Chế độ an toàn: mua đều
+
+Vì sao: mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều. Các khung Phải mua, Cân nhắc mua ở trên vẫn là cách đọc tham khảo của bot hiện tại; kiểm định cho thấy mua theo khung (Phải mua × 2,0, Cân nhắc mua × 1,25, Không nên mua × 0,25) chưa hơn mua đều.
+
+So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)
+
+Cách mua	Tỷ số tài sản, trung vị	Kịch bản xấu (10% tệ nhất)	Lợi thế giá vốn	Sụt giảm lớn nhất / mua đều	Hơn ngẫu nhiên
+Mua theo khung của bot hiện tại
+Kiểm định 2020–2022
+	0,974	0,967	−1,6%	−76% / −76%	—
+Mua theo khung của bot hiện tại
+Kiểm tra cuối từ 2023
+	0,940	0,898	−3,1%	−50% / −52%	87%
+Mô hình mới (chưa đạt)
+Kiểm định 2020–2022
+	1,000	1,000	0,0%	−76% / −76%	—
+Mô hình mới (chưa đạt)
+Kiểm tra cuối từ 2023
+	1,000	1,000	0,0%	−52% / −52%	50%
+Hệ số 2,00: 9 đợt độc lập — Ít bằng chứng
+Hệ số 1,25: 19 đợt độc lập
+Hệ số 0,50: 3 đợt độc lập — Ít bằng chứng
+Khoảng tin cậy 95% của tỷ số tài sản, giai đoạn kiểm tra cuối: mô hình mới 1,000–1,000; mua theo khung 0,859–1,045.
+Số lần thử khi nghiên cứu: 135. Chi tiết trong docs/RESULTS.md.
+
+Sự kiện vĩ mô trong 7 ngày tới
+
+01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC
+19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE
+15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng
+Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.
+
+Độ mới của dữ liệu
+
+Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành): đến 27/10/2026
+Fear & Greed (Alternative.me): đến 28/10/2026
+Binance (giá và khối lượng ngày): đến 27/10/2026
+Binance (funding rate hợp đồng vĩnh cửu): đến 28/10/2026
+Binance (khối lượng hợp đồng mở): đến 28/10/2026
+Binance (hợp đồng tương lai quý): đến 27/10/2026
+DefiLlama (tổng cung stablecoin): đến 28/10/2026
+FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026
+FRED (lợi suất thực 10 năm): đến 26/10/2026
+FRED (Nasdaq Composite): đến 26/10/2026
+FRED (cung tiền M2): đến 01/09/2026
+Giá đề xuất mua và bán
+
+Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày 28/10/2026. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.
+
+Giá đề xuất mua: Cân nhắc mua ở mọi mức giá đến 4.407 $; Phải mua ở mọi mức giá đến 4.407 $. Giá đề xuất bán: Cân nhắc bán chưa đạt dù giá tăng tới 4.407 $; Nên bán chưa đạt dù giá tăng tới 4.407 $.
+
+Khuyến cáo	Giá BTC	Cách giá hiện tại	Hôm nay	Lịch sử ở khung này
+Nên bán
+tỷ lệ nên bán từ 85%
+	chưa đạt dù giá tăng tới 4.407 $	—	chưa đạt	Giá thấp hơn sau 6 tháng 41%, giảm hơn 10%: 29% (bất kỳ lúc nào: 38%, 32%)
+126 tuần, 11 đợt
+
+Cân nhắc bán
+tỷ lệ nên bán từ 70%
+	chưa đạt dù giá tăng tới 4.407 $	—	chưa đạt	Giá thấp hơn sau 6 tháng 84%, giảm hơn 10%: 79% (bất kỳ lúc nào: 38%, 32%)
+65 tuần, 18 đợt
+
+Giá ngày phân tích	1.102 $		nên mua 87%, nên bán 22%	
+Cân nhắc mua
+tỷ lệ nên mua từ 60%
+	ở mọi mức giá đến 4.407 $	—	đang đạt	Thắng sau 6 tháng 81%, sau 1 năm 94% (mua bất kỳ lúc nào: 62%, 66%)
+57 tuần, 20 đợt
+
+Phải mua
+tỷ lệ nên mua từ 80%
+	ở mọi mức giá đến 4.407 $	—	đang đạt	Thắng sau 6 tháng 99%, sau 1 năm 100% (mua bất kỳ lúc nào: 62%, 66%)
+106 tuần, 10 đợt
+
+Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.
+
+Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.
+
+Nếu giá ngày phân tích là…
+
+Giá BTC	So với hiện tại	Tỷ lệ nên mua	Tỷ lệ nên bán
+771 $	−30%	61,2%
+Cân nhắc mua
+	54,0%
+Không nên bán
+
+881 $	−20%	77,8%
+Cân nhắc mua
+	35,4%
+Không nên bán
+
+991 $	−10%	83,6%
+Phải mua
+	27,1%
+Không nên bán
+
+1.047 $	−5%	85,5%
+Phải mua
+	24,0%
+Không nên bán
+
+1.102 $	hiện tại	87,1%
+Phải mua
+	21,9%
+Không nên bán
+
+1.157 $	+5%	89,5%
+Phải mua
+	19,8%
+Không nên bán
+
+1.212 $	+10%	91,7%
+Phải mua
+	17,7%
+Không nên bán
+
+1.322 $	+20%	95,2%
+Phải mua
+	12,7%
+Không nên bán
+
+1.432 $	+30%	97,5%
+Phải mua
+	7,3%
+Không nên bán
+
+1.652 $	+50%	100,0%
+Phải mua
+	0,8%
+Không nên bán
+So sánh các phương án
+
+Bot chạy cả 6 phương án tại ngày 28/10/2026 và chấm trên cùng giai đoạn từ 01/01/2021. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút "Tự động: phương án tốt nhất" luôn dùng phương án hạng 1. ⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.
+
+Đồng thuận của 6 phương án: 1 phải mua, 1 cân nhắc mua, 4 không nên mua; 2 nên bán, 2 cân nhắc bán, 2 không nên bán. Trung bình tỷ lệ nên mua 54%, nên bán 67%. Các phương án đang bất đồng (có phương án báo Phải mua và có phương án báo Không nên mua), nên độ chắc chắn thấp. Hạng 1 là Phương án 6: phải mua (87%).
+
+Hạng	Phương án	Nên mua hôm nay	Nên bán hôm nay	Thắng 1 tháng	Thắng 3 tháng	Thắng 6 tháng	Thắng 1 năm	Nửa đầu / nửa sau	Khi Nên bán, giá thấp hơn sau 6 tháng	
+1	⚠ Phương án 6tốt nhất
+Ít bằng chứng: 4 đợt độc lập
+Mayer Multiple + Giá / MA 200 tuần. Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.
+	87%
+Phải mua
+	22%
+Không nên bán
+	94%
+54 lần
+	100%
+48 lần
+	98%
+48 lần
+	100%
+48 lần
+	98% / —	48%
+mốc 51%, 85 lần
+	Dùng
+2	⚠ Phương án 2
+Ít bằng chứng: 2 đợt độc lập
+Tỉ số Pi Cycle + MVRV Z-Score. Như phương án 1 nhưng dùng MVRV Z-Score.
+	27%
+Không nên mua
+	73%
+Cân nhắc bán
+	86%
+42 lần
+	74%
+42 lần
+	62%
+42 lần
+	81%
+42 lần
+	89% / 7%	49%
+mốc 51%, 69 lần
+	Dùng
+3	⚠ Phương án 4
+Hai nửa lệch 86 điểm %
+Tỉ số Pi Cycle + Puell Multiple. Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving.
+	73%
+Cân nhắc mua
+	35%
+Không nên bán
+	87%
+61 lần, khung rộng
+	84%
+56 lần, khung rộng
+	73%
+56 lần, khung rộng
+	89%
+56 lần, khung rộng
+	86% / 0%	46%
+mốc 51%, 61 lần
+	Dùng
+4	Phương án 5
+Fear & Greed + MVRV + Giá / MA 200 tuần. Bộ cân bằng không dùng Pi Cycle, để so sánh.
+	54%
+Không nên mua
+	100%
+Nên bán
+	59%
+61 lần, khung rộng
+	60%
+55 lần, khung rộng
+	65%
+43 lần, khung rộng
+	82%
+28 lần, khung rộng
+	— / —	36%
+mốc 51%, 64 lần
+	Dùng
+5	Phương án 3
+Tỉ số Pi Cycle + MVRV + Fear & Greed. Ba góc nhìn: xu hướng, định giá, tâm lý. Lịch sử ngắn hơn vì Fear & Greed có từ 2018.
+	52%
+Không nên mua
+	100%
+Nên bán
+	59%
+61 lần, khung rộng
+	62%
+55 lần, khung rộng
+	65%
+43 lần, khung rộng
+	58%
+31 lần, khung rộng
+	100% / —	36%
+mốc 51%, 64 lần
+	Dùng
+—	⚠ Phương án 1
+Ít bằng chứng: 1 đợt độc lập
+Tỉ số Pi Cycle + MVRV. Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.
+	29%
+Không nên mua
+	73%
+Cân nhắc bán
+	77%
+43 lần
+	65%
+43 lần
+	63%
+43 lần
+	77%
+43 lần
+	88% / 28%	48%
+mốc 51%, 67 lần
+	Dùng
+
+Tỷ lệ thắng ở khung Phải mua, theo kỳ giữ
+
+1 tháng
+3 tháng
+6 tháng
+1 năm
+mua bất kỳ lúc nào
+
+Tỷ lệ nên mua và nên bán tại ngày phân tích
+
+Mua: Phải mua
+Cân nhắc
+Bán: Nên bán
+Mỗi phương án: dải trên là mua, dải dưới là bán; vạch đen là giá trị hôm nay
+Xác suất thắng nếu mua ngày 28/10/2026 (giá 1.102 $) và giữ
+
+"Thắng" là giá sau kỳ giữ cao hơn giá mua. Con số là tỷ lệ thắng thực tế trong lịch sử ở những lúc điều kiện giống ngày phân tích. Vạch đen nhỏ là tỷ lệ thắng trung bình nếu mua bất kỳ lúc nào.
+
+Giữ 1 tháng
+93%
+Khoảng tin cậy 81%–98%. Mua bất kỳ lúc nào: 61%.
+Lãi trung vị +21%; một nửa số lần trong +7% đến +29%. Dựa trên 43 lần, 13 đợt.
+Giữ 3 tháng
+100%
+Khoảng tin cậy 94%–100%. Mua bất kỳ lúc nào: 59%.
+Lãi trung vị +77%; một nửa số lần trong +59% đến +115%. Dựa trên 60 lần, 10 đợt.
+Giữ 6 tháng
+94%
+Khoảng tin cậy 83%–98%. Mua bất kỳ lúc nào: 59%.
+Lãi trung vị +140%; một nửa số lần trong +84% đến +187%. Dựa trên 48 lần, 15 đợt.
+Giữ 1 năm
+100%
+Khoảng tin cậy 88%–100%. Mua bất kỳ lúc nào: 66%.
+Lãi trung vị +673%; một nửa số lần trong +367% đến +1.198%. Dựa trên 29 lần, 7 đợt.
+Bộ tiêu chí đánh giá: tỷ lệ thắng thực tế theo từng khung
+
+Kiểm tra mỗi tuần từ 05/11/2017 đến 28/10/2026, chỉ dùng dữ liệu có đến từng tuần. Bảng trên: tỷ lệ thắng nếu mua ở khung đó rồi giữ hết kỳ; xanh là cao hơn mốc ít nhất 5 điểm %, đỏ là thấp hơn. Bảng dưới: tỷ lệ giá giảm sau khi ở khung bán; đỏ là nguy cơ giảm cao hơn mốc, xanh là thấp hơn.
+
+Khung mua	Số tuần	Thắng sau 1 tháng	Thắng sau 3 tháng	Thắng sau 6 tháng	Thắng sau 1 năm
+Mua bất kỳ lúc nào (mốc)	470 tuần	64%
+59%–68%, 466 lần
+	63%
+59%–68%, 457 lần
+	62%
+58%–67%, 444 lần
+	66%
+61%–70%, 418 lần
+
+Phải muađang ở đây	106 (10 đợt)	90%
+83%–95%, 102 lần
+	100%
+96%–100%, 96 lần
+	99%
+94%–100%, 96 lần
+	100%
+96%–100%, 96 lần
+
+Cân nhắc mua	57 (20 đợt)	91%
+81%–96%, 57 lần
+	93%
+82%–97%, 54 lần
+	81%
+69%–89%, 53 lần
+	94%
+85%–98%, 53 lần
+
+Không nên mua	307 (12 đợt)	50%
+44%–55%, 307 lần
+	47%
+41%–52%, 307 lần
+	47%
+41%–53%, 295 lần
+	48%
+42%–54%, 269 lần
+Khung bán	Số tuần	Giá thấp hơn sau 3 tháng	Giảm hơn 10% sau 3 tháng	Giá thấp hơn sau 6 tháng	Giảm hơn 10% sau 6 tháng
+Bất kỳ lúc nào (mốc)	470 tuần	37%
+32%–41%, 457 lần
+	26%
+22%–30%, 457 lần
+	38%
+33%–42%, 444 lần
+	32%
+28%–36%, 444 lần
+
+Nên bán	126 (11 đợt)	51%
+42%–59%, 126 lần
+	30%
+23%–39%, 126 lần
+	41%
+32%–50%, 120 lần
+	29%
+22%–38%, 120 lần
+
+Cân nhắc bán	65 (18 đợt)	78%
+67%–87%, 65 lần
+	71%
+59%–80%, 65 lần
+	84%
+73%–91%, 62 lần
+	79%
+67%–87%, 62 lần
+
+Không nên bánđang ở đây	279 (8 đợt)	20%
+16%–25%, 266 lần
+	13%
+10%–18%, 266 lần
+	25%
+20%–31%, 262 lần
+	22%
+17%–27%, 262 lần
+Tỷ lệ nên mua: điều kiện ngày phân tích thuận lợi hơn bao nhiêu phần trăm số tuần trong lịch sử, tính trung bình cho 4 kỳ giữ 1 tháng, 3 tháng, 6 tháng, 1 năm. Từ 80% là Phải mua, 60–80% là Cân nhắc mua, dưới 60% là Không nên mua.
+Tỷ lệ nên bán: nguy cơ giá giảm hơn 10% sau 3 tháng và sau 6 tháng cao hơn bao nhiêu phần trăm số tuần trong lịch sử. Từ 85% là Nên bán, 70–85% là Cân nhắc bán, dưới 70% là Không nên bán.
+Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua đã biết kết quả tại thời điểm đó. Các ngưỡng 60, 70, 80, 85 cố định, không dò cho đẹp.
+Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.
+Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử
+
+Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ 01/01/2021 đến 28/10/2026, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa. ⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.
+
+Bộ chỉ số	Thắng 1 tháng	Thắng 3 tháng	Thắng 6 tháng	Thắng 1 năm	Nửa đầu, 6 tháng	Nửa sau, 6 tháng	
+Mua bất kỳ lúc nào (mốc)	56%	52%	49%	51%			
+⚠ Bộ bot tìm đượccao nhất
+Mayer Multiple, Giá / MA 200 tuần
+Ít bằng chứng: 4 đợt độc lập
+	94%
+54 lần
+	100%
+48 lần
+	98%
+48 lần
+	100%
+48 lần
+	98% (48)	không có tín hiệu	Dùng bộ này
+⚠ Xu hướng giá
+Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle
+Ít bằng chứng: 2 đợt độc lập
+	94%
+70 lần
+	96%
+67 lần
+	87%
+67 lần
+	99%
+67 lần
+	95% (61)	0% (6)	Dùng bộ này
+⚠ Mayer Multiple (riêng)
+Mayer Multiple
+Ít bằng chứng: 4 đợt độc lập
+	93%
+46 lần
+	93%
+46 lần
+	80%
+46 lần
+	98%
+46 lần
+	93% (40)	0% (6)	Dùng bộ này
+⚠ MVRV Z-Score (riêng)
+MVRV Z-Score
+Ít bằng chứng: 3 đợt độc lập
+	94%
+36 lần
+	86%
+36 lần
+	69%
+36 lần
+	92%
+36 lần
+	89% (28)	0% (8)	Dùng bộ này
+⚠ MVRV (riêng)
+MVRV
+Ít bằng chứng: 3 đợt độc lập
+	91%
+32 lần
+	75%
+32 lần
+	56%
+32 lần
+	84%
+32 lần
+	86% (21)	0% (11)	Dùng bộ này
+⚠ Khối lượng tương đối (riêng)
+Khối lượng tương đối
+Hai nửa lệch 48 điểm %
+	47%
+76 lần
+	42%
+74 lần
+	31%
+64 lần
+	46%
+52 lần
+	55% (33)	6% (31)	Dùng bộ này
+⚠ Tất cả chỉ số
+Fear & Greed, MVRV, MVRV Z-Score, Giá / MA 200 tuần, Mayer Multiple, RSI 14 tuần, Tỉ số Pi Cycle, Puell Multiple, Giảm từ đỉnh, Khối lượng tương đối
+Hai nửa lệch 56 điểm %
+	41%
+39 lần
+	43%
+37 lần
+	44%
+27 lần
+	64%
+11 lần
+	86% (7)	30% (20)	Dùng bộ này
+⚠ Giảm từ đỉnh (riêng)
+Giảm từ đỉnh
+Hai nửa lệch 25 điểm %
+	29%
+28 lần
+	7%
+28 lần
+	7%
+28 lần
+	27%
+26 lần
+	25% (8)	0% (20)	Dùng bộ này
+
+Không đủ tín hiệu Phải mua để xếp hạng (dưới 20 tuần hoặc chỉ 1 đợt): Định giá on-chain, Tâm lý và định giá, Fear & Greed (riêng), Giá / MA 200 tuần (riêng), RSI 14 tuần (riêng), Tỉ số Pi Cycle (riêng), Puell Multiple (riêng).
+
+Tỷ lệ nên mua, nên bán qua thời gian
+
+Nền màu là khung mua mỗi tuần; dải dưới là khung bán. Bấm vào một điểm để phân tích lại tại ngày đó.
+
+Phải mua
+Cân nhắc mua
+Dải dưới: Nên bán
+Dải dưới: Cân nhắc bán
+Giá trị các chỉ số tại ngày phân tích
+
+Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.
+
+Chỉ số	Nhóm	Giá trị	Trọng số 6 tháng	Ý nghĩa
+Mayer Multiple	Xu hướng giá	1,25	−1,64	
+Xem
+
+Giá / MA 200 tuần	Xu hướng giá	0,57	+0,68	
+Xem
+
+Khối lượng (Binance): tuần kết thúc 25/10/2026, giá +2%, khối lượng bằng 1,16 lần trung bình 20 tuần, loại "khối lượng và giá bình thường".
+
+Biểu đồ từng chỉ số trong bộ đang dùng
+
+Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.
+
+Mayer Multiple
+28/10/2026: 1,25, bình thường
+Giá / MA 200 tuần
+28/10/2026: 0,57, vùng rẻ
+Hỏi Claude về nhận định của bot
+
+Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.
+
+Cách 1: xuất file, kéo vào claude.ai
+
+Tải báo cáo (.md)
+Dữ liệu từng tuần (.csv)
+So sánh phương án (.csv)
+Sao chép báo cáo
+
+Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.
+
+Cách 2: gọi Claude API ngay tại đây
+
+Khóa API (console.anthropic.com)
+Ghi nhớ khóa trên máy này
+Mô hình
+Claude Sonnet 5.5 (khuyên dùng)
+Claude Opus 5.5 (suy luận sâu nhất)
+Claude Haiku 5.5 (nhanh, rẻ)
+Cho Claude tìm tin tức hiện tại trên web
+Câu hỏi thêm
+Nhờ Claude nhận định
+Gửi câu hỏi
+Nguồn dữ liệu
+Fear & Greed (Alternative.me): 3191 ngày
+Giá lịch sử, MVRV, thợ đào (Coin Metrics): đến 2026-10-27
+Giá trực tiếp: Binance
+Giá và khối lượng ngày (Binance): giá và khối lượng ngày từ 08/2017 (3359 ngày)
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+
+=== BÊN BÁN ===
+Nên giữ hay chốt lời? Ngày 28/10/2026, giá 1.102 $
+Giữ
+
+Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.
+
+Số nhóm tiêu chí đáng tin đang bật: 0/1. Từ 1 nhóm là chốt lời một phần, từ 3 nhóm là bán phần lớn.
+
+Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)
+
+Tỷ lệ nên bán của bot: 22% (không nên bán).
+
+Giá vốn trung bình ($)
+Số BTC đang giữ
+Nhập giá vốn để xem lãi, lỗ và số lượng nên chốt.
+Giữ tiếp có lợi không, tính từ ngày 28/10/2026
+
+Tỷ lệ giá cao hơn hôm nay sau mỗi kỳ, ở những lúc điều kiện giống ngày phân tích. Trên 50% nghĩa là giữ tiếp thường có lợi hơn bán ngay. Vạch đen nhỏ là mức trung bình mọi lúc.
+
+Giá cao hơn sau 1 tháng
+93%
+Giữ tiếp: lãi trung vị +21%, một nửa số lần trong +7% đến +29%. Mọi lúc: 61%.
+Giá cao hơn sau 3 tháng
+100%
+Giữ tiếp: lãi trung vị +77%, một nửa số lần trong +59% đến +115%. Mọi lúc: 59%.
+Giá cao hơn sau 6 tháng
+94%
+Giữ tiếp: lãi trung vị +140%, một nửa số lần trong +84% đến +187%. Mọi lúc: 59%.
+Giá cao hơn sau 1 năm
+100%
+Giữ tiếp: lãi trung vị +673%, một nửa số lần trong +367% đến +1.198%. Mọi lúc: 66%.
+Bộ tiêu chí chốt lời, xếp theo độ chính xác
+
+Mỗi đợt là lần đầu tiêu chí bật (các tuần bật cách nhau dưới 8 tuần gộp một đợt). "Đúng" nghĩa là giá sau đó thấp hơn lúc bật. Mốc so sánh: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn 40% số lần. Một tiêu chí được coi là đáng tin khi có từ 3 đợt và cận dưới khoảng tin cậy vẫn cao hơn mốc. Bảng xếp theo cận dưới đó.
+
+Tiêu chí	Hôm nay	Số đợt	Giá thấp hơn sau 6 tháng	Sau 1 năm	Giá 6 tháng sau tín hiệu (TV)	Còn tăng thêm trước khi giảm (TV)	Giảm sâu nhất trong 1 năm (TV)	
+Bán vào một tuần bất kỳ (mốc)			40%	39%				
+Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)
+Mô hình của bot, mô hình của bot
+	Chưa bật
+22%
+	6	83%
+44%–97%, 6 đợt
+	80%
+38%–96%, 5 đợt
+	−30%	+4%	−47%	đáng tin
+Từ 1 nhóm tiêu chí đáng tin cùng bật
+Kết hợp nhiều nhóm
+	Chưa bật	6	83%
+44%–97%, 6 đợt
+	80%
+38%–96%, 5 đợt
+	−30%	+4%	−47%	
+RSI 14 tuần ≥ 80
+Xu hướng giá, ngưỡng kinh điển
+	Đang bật
+82
+	12	18%
+5%–48%, 11 đợt
+	18%
+5%–48%, 11 đợt
+	+139%	+158%	−4%	
+MVRV ≥ 3
+Định giá on-chain, ngưỡng kinh điển
+	Chưa bật
+0,69
+	5	20%
+4%–62%, 5 đợt
+	20%
+4%–62%, 5 đợt
+	+142%	+145%	−6%	
+Fear & Greed ≥ 90
+Tâm lý, ngưỡng kinh điển
+	Chưa bật
+54
+	5	0%
+0%–43%, 5 đợt
+	0%
+0%–43%, 5 đợt
+	+166%	+166%	−2%	
+MVRV Z-Score thuộc 5% cao nhất 4 năm
+Định giá on-chain, ngưỡng thích nghi
+	Chưa bật
+-0,58
+	7	0%
+0%–35%, 7 đợt
+	14%
+3%–51%, 7 đợt
+	+134%	+134%	−6%	
+MVRV thuộc 5% cao nhất 4 năm
+Định giá on-chain, ngưỡng thích nghi
+	Chưa bật
+0,69
+	5	0%
+0%–43%, 5 đợt
+	0%
+0%–43%, 5 đợt
+	+142%	+145%	−1%	
+Mayer Multiple thuộc 5% cao nhất 4 năm
+Xu hướng giá, ngưỡng thích nghi
+	Chưa bật
+1,25
+	8	0%
+0%–32%, 8 đợt
+	0%
+0%–32%, 8 đợt
+	+143%	+144%	−3%	
+Giá / MA 200 tuần thuộc 5% cao nhất 4 năm
+Xu hướng giá, ngưỡng thích nghi
+	Chưa bật
+0,57
+	4	0%
+0%–49%, 4 đợt
+	0%
+0%–49%, 4 đợt
+	+163%	+174%	−3%	
+Puell Multiple thuộc 5% cao nhất 4 năm
+Thợ đào, ngưỡng thích nghi
+	Chưa bật
+1,00
+	6	0%
+0%–39%, 6 đợt
+	0%
+0%–39%, 6 đợt
+	+136%	+149%	−3%	
+
+Chưa đủ 3 đợt có kết quả để đánh giá: Pi Cycle cắt lên (tỉ số ≥ 1) (1 đợt); MVRV Z-Score ≥ 7 (1 đợt); Mayer Multiple ≥ 2,4 (1 đợt); Puell Multiple ≥ 4 (1 đợt); Từ 2 nhóm tiêu chí đáng tin cùng bật (0 đợt); Từ 3 nhóm tiêu chí đáng tin cùng bật (0 đợt).
+
+Tải bộ tiêu chí chốt lời (.csv)
+Mốc giá chốt lời
+
+Giá BTC cần đạt để từng tiêu chí bật, tính từ số liệu ngày phân tích. Các mốc dịch chuyển dần theo thời gian. Pi Cycle, RSI và Fear & Greed không quy đổi thẳng ra giá được.
+
+Tiêu chí	Ngưỡng	Hôm nay	Giá BTC để bật	Cách giá hiện tại	
+Mayer Multiple thuộc 5% cao nhất 4 năm	2,23	1,25	1.963 $	+78%	chưa đáng tin
+Mayer Multiple ≥ 2,4	2,40	1,25	2.116 $	+92%	chưa đáng tin
+Puell Multiple thuộc 5% cao nhất 4 năm	3,32	1,00	3.657 $	+232%	chưa đáng tin
+Puell Multiple ≥ 4	4,00	1,00	4.412 $	+300%	chưa đáng tin
+MVRV ≥ 3	3,00	0,69	4.802 $	+336%	chưa đáng tin
+MVRV Z-Score ≥ 7	7,00	-0,58	7.606 $	+590%	chưa đáng tin
+MVRV thuộc 5% cao nhất 4 năm	4,78	0,69	7.654 $	+595%	chưa đáng tin
+MVRV Z-Score thuộc 5% cao nhất 4 năm	7,63	-0,58	8.151 $	+640%	chưa đáng tin
+Giá / MA 200 tuần thuộc 5% cao nhất 4 năm	8,31	0,57	16.182 $	+1.369%	chưa đáng tin
+Các lần tiêu chí chốt lời bật trong lịch sử
+
+Mỗi vạch màu là một tuần có tiêu chí đáng tin bật, mỗi hàng là một nhóm. Nền đỏ càng đậm, càng nhiều nhóm cùng bật. Bấm vào biểu đồ để phân tích lại tại ngày đó.
+
+Xu hướng giá
+Định giá on-chain
+Tâm lý
+Thợ đào
+Mô hình của bot
+Màu nhạt: tiêu chí chưa đáng tin
+Nếu đã giữ 1 BTC và chốt lời theo quy tắc này
+
+Quy tắc: 1 nhóm bật thì giữ 90% vị thế, 2 nhóm thì 70%, từ 3 nhóm thì 50%. Mua lại toàn bộ khi không còn nhóm nào bật và bên mua báo từ Cân nhắc mua. Chỉ dùng dữ liệu có đến từng tuần.
+
+Bắt đầu	Giữ nguyên 1 BTC	Theo quy tắc chốt lời	Quy ra BTC	Lần bán / mua lại	Sụt giảm lớn nhất: giữ / theo quy tắc	Tiền mặt cuối kỳ
+05/11/2017 → 25/10/2026	1.129 $	1.406 $	1,246 BTC	3 / 3	−82% / −76%	0 $
+07/01/2018 → 25/10/2026	1.129 $	1.399 $	1,239 BTC	3 / 3	−82% / −76%	0 $
+03/01/2021 → 25/10/2026	1.129 $	1.449 $	1,284 BTC	2 / 2	−82% / −76%	0 $

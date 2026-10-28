@@ -1,0 +1,12 @@
+du_lieu_tam/
+__pycache__/
+dist/
+tests/out/
+config.json
+.DS_Store
+.env
+config/personal.yaml
+.pytest_cache/
+tests/snapshots/*.new
+data/derived/
+site/

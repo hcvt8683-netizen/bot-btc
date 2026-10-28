@@ -1,0 +1,1906 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo cáo bot BTC</title>
+<meta name="description" content="Bot thống kê tham khảo cho việc mua thêm và chốt lời BTC: tỷ lệ nên mua, nên bán, giá đề xuất và khuyến nghị giải ngân hằng tuần so với mua đều. Không phải lời khuyên đầu tư.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #EEF1F4; --panel: #FFFFFF; --ink: #17212C; --muted: #5C6773; --line: #D5DCE2; --soft: #F4F6F8;
+    --jade: #1E7B57; --brass: #9A6B12; --cinnabar: #B23A27; --blue: #2B5BA8;
+    --font: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { color-scheme: dark; --bg: #0F151C; --panel: #18212B; --ink: #E5EAEF; --muted: #98A4B0; --line: #2C3946; --soft: #1F2a35;
+      --jade: #5BC496; --brass: #DDB160; --cinnabar: #EB8570; --blue: #84A9EC; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 18px 70px; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .good { color: var(--jade); } .mid { color: var(--brass); } .bad { color: var(--cinnabar); } .muted { color: var(--muted); }
+  [hidden] { display: none !important; }
+
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 14px; }
+  .top h1 { margin: 0 auto 0 0; font-size: 18px; font-weight: 700; }
+  .top .price { font-size: 24px; font-weight: 700; }
+  .top .when { color: var(--muted); font-size: 14px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .panel + .panel, section + section, .panel + section, section + .panel { margin-top: 16px; }
+  h2 { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .lead { margin: 0 0 14px; color: var(--muted); max-width: 52em; font-size: 14px; }
+
+  /* điều khiển */
+  .ctrl { display: grid; gap: 14px; }
+  .row { display: grid; grid-template-columns: 128px 1fr; gap: 10px; align-items: start; }
+  .row > .lab { font-weight: 600; padding-top: 7px; font-size: 14px; }
+  .row .help { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+  @media (max-width: 680px) { .row { grid-template-columns: 1fr; } .row > .lab { padding-top: 0; } }
+  .inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  input[type=date] { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 10px; }
+  .btn { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
+  .btn:hover { border-color: var(--muted); }
+  .btn.main { background: var(--ink); color: var(--panel); border-color: var(--ink); font-weight: 600; padding: 9px 20px; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; padding: 6px 13px; cursor: pointer; font-size: 14px; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  .inds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .inds label { display: inline-flex; gap: 6px; align-items: center; font-size: 13.5px; padding: 4px 10px 4px 8px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--soft); }
+  .inds label:has(input:checked) { border-color: var(--ink); background: var(--panel); }
+  .inds label.na { opacity: .45; cursor: not-allowed; }
+  .inds input { accent-color: var(--ink); }
+  .using { font-size: 14px; margin-top: 8px; }
+  .progress { color: var(--muted); font-size: 14px; }
+  .warn { background: color-mix(in srgb, var(--brass) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--brass) 40%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+
+  /* mua / bán */
+  .duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
+  .duo > .panel { margin-top: 0; }
+  .cons { background: var(--soft); border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 0 0 12px; }
+  .sm { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+  .nowrap { white-space: nowrap; }
+  .zlab b { font-weight: 600; color: var(--ink); }
+  .gauge h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
+  .gauge .big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 2px 0 10px; }
+  .gauge .big b { font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
+  .gauge .big span { font-size: 26px; font-weight: 700; }
+  .zbar { position: relative; display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 4px 0 4px; }
+  .zbar i { display: block; height: 100%; }
+  .zmark { position: relative; height: 0; }
+  .zmark b { position: absolute; top: -22px; width: 4px; height: 22px; margin-left: -2px; background: var(--ink); border-radius: 2px; }
+  .zlab { display: flex; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .zlab span { text-align: center; }
+  .gauge p { margin: 0 0 6px; font-size: 14px; }
+
+  /* xác suất theo kỳ giữ */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+  .tile { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+  .tile .h { font-size: 14px; font-weight: 600; }
+  .tile .p { font-size: 40px; font-weight: 700; line-height: 1.1; margin: 4px 0 2px; }
+  .tile .c { font-size: 13px; color: var(--muted); }
+  .rng { position: relative; height: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 4px; margin: 8px 0 6px; }
+  .rng i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: currentColor; opacity: .35; }
+  .rng b { position: absolute; top: -3px; width: 3px; height: 14px; background: currentColor; border-radius: 1px; }
+  .rng s { position: absolute; top: -5px; width: 2px; height: 18px; background: var(--ink); opacity: .6; }
+  .act { margin-top: 8px; font-size: 13.5px; padding: 6px 10px; border-radius: 8px; background: var(--panel); }
+
+  /* bảng */
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 500; font-size: 13px; color: var(--muted); background: var(--soft); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.r, th.r { text-align: right; }
+  td .sub { display: block; font-size: 12px; color: var(--muted); }
+  tr.base td { color: var(--muted); }
+  tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
+  tr.here td:first-child { font-weight: 700; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; background: color-mix(in srgb, var(--blue) 16%, transparent); color: var(--blue); }
+  .zdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: 0; }
+  ul.crit { margin: 14px 0 0; padding-left: 20px; font-size: 14px; max-width: 60em; } ul.crit li { margin-bottom: 4px; }
+
+  .chart { position: relative; }
+  #t-pa td:nth-child(2), #t-pa th:nth-child(2) { min-width: 250px; }
+  #t-pa td:nth-child(2) .sub { max-width: 34em; }
+  #t-pa td, #t-pa th { padding-left: 10px; padding-right: 10px; }
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+  .mode { text-align: left; border: 1.5px solid var(--line); background: var(--soft); border-radius: 12px; padding: 10px 14px; cursor: pointer; display: grid; gap: 2px; }
+  .mode b { font-size: 16px; } .mode span { font-size: 13px; color: var(--muted); }
+  #mode-buy[aria-pressed="true"] { border-color: var(--jade); background: color-mix(in srgb, var(--jade) 12%, var(--panel)); }
+  #mode-sell[aria-pressed="true"] { border-color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); }
+  .verdict-big { font-size: 52px; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; margin: 4px 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .chip { font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); }
+  .chip.on { border-color: var(--cinnabar); color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); font-weight: 600; }
+  .pl { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .pl label { display: grid; gap: 3px; font-size: 13px; color: var(--muted); } .pl input { width: 150px; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 9px; color: var(--ink); }
+  #t-tp td:first-child, #t-tp th:first-child, #t-tplv td:first-child { min-width: 260px; }
+  #t-tp td, #t-tp th { padding-left: 10px; padding-right: 10px; }
+  .ind-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 14px; }
+  .ind-card { background: var(--soft); border-radius: 12px; padding: 10px 12px 6px; }
+  .ind-card .h { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; margin-bottom: 4px; }
+  .ind-card canvas { display: block; width: 100%; }
+  .chart canvas { display: block; width: 100%; cursor: crosshair; }
+  .tip { position: absolute; pointer-events: none; display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.12); white-space: nowrap; z-index: 2; }
+  .tip b { display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  details { margin-top: 10px; } summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+  details p { margin: 6px 0; font-size: 14px; color: var(--muted); }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 16px; }
+  .field { display: grid; gap: 4px; margin-bottom: 10px; font-size: 14px; }
+  .field input, .field select, textarea { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 8px 10px; width: 100%; }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 6px; }
+  .chat { display: grid; gap: 12px; margin: 14px 0; }
+  .msg { padding: 12px 14px; border-radius: 12px; max-width: 56em; }
+  .msg.user { background: color-mix(in srgb, var(--blue) 12%, var(--panel)); justify-self: end; }
+  .msg.assistant { background: var(--soft); }
+  .msg p, .msg h4 { margin: 0 0 8px; } .msg ul, .msg ol { margin: 0 0 8px; padding-left: 20px; }
+  .msg table { margin-bottom: 10px; background: var(--panel); }
+  .srcs { margin: 4px 0 0; padding-left: 20px; font-size: 13px; } .srcs a { color: var(--blue); word-break: break-word; }
+  .err { color: var(--cinnabar); }
+  .status { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 13.5px; }
+  .status li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: var(--muted); vertical-align: middle; }
+  .status li.ok::before { background: var(--jade); } .status li.err::before { background: var(--cinnabar); }
+  .loading { padding: 50px 0; color: var(--muted); }
+  .foot { margin-top: 26px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Bot mua bán BTC</h1>
+    <span class="price num" id="price">—</span>
+    <span class="when" id="when"></span>
+    <span class="when" id="updated" hidden></span>
+  </div>
+
+  <div class="panel ctrl">
+    <div class="row"><span class="lab">Bạn đang</span>
+      <div class="modes" role="group" aria-label="Chế độ">
+        <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>Bên mua</b><span>Tôi muốn mua thêm BTC</span></button>
+        <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>Bên bán</b><span>Tôi đang giữ BTC: nên giữ hay chốt lời?</span></button>
+      </div></div>
+    <div class="row"><span class="lab">Ngày phân tích</span>
+      <div><div class="inline"><input type="date" id="date"><button class="btn" type="button" id="today">Hôm nay</button></div>
+        <span class="help">Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.</span></div></div>
+    <div class="row"><span class="lab">Bộ chỉ số</span>
+      <div><div class="seg" id="sets"></div>
+        <div class="inds" id="inds"></div>
+        <div class="using" id="using"></div></div></div>
+    <div class="row"><span class="lab"></span>
+      <div class="inline"><button class="btn main" type="button" id="run" disabled>Chạy bot</button>
+        <button class="btn" type="button" id="research" disabled>Tìm lại bộ có tỷ lệ thắng cao nhất</button>
+        <span class="progress" id="progress">Đang tải dữ liệu thật từ web…</span></div></div>
+  </div>
+
+  <div class="loading" id="loading">Đang tải giá BTC, Fear &amp; Greed, MVRV, dữ liệu thợ đào và khối lượng từ 2010 đến nay. Lần đầu mất khoảng 10–40 giây.</div>
+
+  <div id="app" hidden>
+    <p class="warn" id="lookahead" hidden></p>
+    <p class="warn" id="stale" hidden></p>
+
+    <div id="sell-view" hidden>
+      <section class="panel" id="s-hero"></section>
+
+      <section class="panel">
+        <h2 id="s-hold-title">Giữ tiếp có lợi không</h2>
+        <p class="lead">Tỷ lệ giá cao hơn hôm nay sau mỗi kỳ, ở những lúc điều kiện giống ngày phân tích. Trên 50% nghĩa là giữ tiếp thường có lợi hơn bán ngay. Vạch đen nhỏ là mức trung bình mọi lúc.</p>
+        <div class="tiles" id="s-tiles"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Bộ tiêu chí chốt lời, xếp theo độ chính xác</h2>
+        <p class="lead" id="s-tp-lead"></p>
+        <div class="scroll"><table id="t-tp"></table></div>
+        <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-tp">Tải bộ tiêu chí chốt lời (.csv)</button></div>
+      </section>
+
+      <section class="panel">
+        <h2>Mốc giá chốt lời</h2>
+        <p class="lead">Giá BTC cần đạt để từng tiêu chí bật, tính từ số liệu ngày phân tích. Các mốc dịch chuyển dần theo thời gian. Pi Cycle, RSI và Fear &amp; Greed không quy đổi thẳng ra giá được.</p>
+        <div class="scroll"><table id="t-tplv"></table></div>
+      </section>
+
+      <section class="panel">
+        <h2>Các lần tiêu chí chốt lời bật trong lịch sử</h2>
+        <p class="lead">Mỗi vạch màu là một tuần có tiêu chí đáng tin bật, mỗi hàng là một nhóm. Nền đỏ càng đậm, càng nhiều nhóm cùng bật. Bấm vào biểu đồ để phân tích lại tại ngày đó.</p>
+        <div class="chart" id="s-chart-box"><canvas id="s-chart" height="360"></canvas><div class="tip" id="s-tip"></div></div>
+        <div class="legend" id="s-legend"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Nếu đã giữ 1 BTC và chốt lời theo quy tắc này</h2>
+        <p class="lead">Quy tắc: 1 nhóm bật thì giữ 90% vị thế, 2 nhóm thì 70%, từ 3 nhóm thì 50%. Mua lại toàn bộ khi không còn nhóm nào bật và bên mua báo từ Cân nhắc mua. Chỉ dùng dữ liệu có đến từng tuần.</p>
+        <div class="scroll"><table id="t-sim"></table></div>
+      </section>
+    </div>
+
+    <div class="duo" style="margin-top:16px">
+      <div class="panel gauge" id="g-buy"></div>
+      <div class="panel gauge" id="g-sell"></div>
+    </div>
+
+    <section class="panel" id="kn-sec" style="margin:16px 0">
+      <h2>Khuyến nghị giải ngân tuần này</h2>
+      <p class="lead">Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.</p>
+      <p class="cons" id="kn-sum"></p>
+      <div id="kn-notes"></div>
+      <p class="sm" style="margin-top:16px">So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)</p>
+      <div class="scroll"><table id="t-kn"></table></div>
+      <ul class="crit" id="kn-ev"></ul>
+      <div class="two" style="margin-top:16px">
+        <div><p class="sm">Sự kiện vĩ mô trong 7 ngày tới</p><ul class="status" id="kn-events"></ul></div>
+        <div><p class="sm">Độ mới của dữ liệu</p><ul class="status" id="kn-fresh"></ul></div>
+      </div>
+    </section>
+
+    <section class="panel" id="lv-sec" style="margin:16px 0">
+      <h2>Giá đề xuất mua và bán</h2>
+      <p class="lead" id="lv-lead"></p>
+      <p class="cons" id="lv-sum"></p>
+      <div class="scroll"><table id="t-lv"></table></div>
+      <div id="lv-notes"></div>
+      <p class="sm" style="margin-top:16px">Nếu giá ngày phân tích là…</p>
+      <div class="scroll"><table id="t-lvl"></table></div>
+    </section>
+
+    <div id="buy-view">
+    <section class="panel" id="pa-sec">
+      <h2>So sánh các phương án</h2>
+      <p class="lead" id="pa-lead"></p>
+      <p class="cons" id="pa-cons"></p>
+      <div class="scroll"><table id="t-pa"></table></div>
+      <div class="two" style="margin-top:16px">
+        <div><p class="sm">Tỷ lệ thắng ở khung Phải mua, theo kỳ giữ</p><div class="chart"><canvas id="c-pa-win" height="300"></canvas></div><div class="legend" id="l-pa-win"></div></div>
+        <div><p class="sm">Tỷ lệ nên mua và nên bán tại ngày phân tích</p><div class="chart"><canvas id="c-pa-today" height="300"></canvas></div><div class="legend" id="l-pa-today"></div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="hold-title">Xác suất thắng nếu mua và giữ</h2>
+      <p class="lead">"Thắng" là giá sau kỳ giữ cao hơn giá mua. Con số là tỷ lệ thắng thực tế trong lịch sử ở những lúc điều kiện giống ngày phân tích. Vạch đen nhỏ là tỷ lệ thắng trung bình nếu mua bất kỳ lúc nào.</p>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Bộ tiêu chí đánh giá: tỷ lệ thắng thực tế theo từng khung</h2>
+      <p class="lead" id="crit-lead"></p>
+      <div class="scroll"><table id="t-buy"></table></div>
+      <div class="scroll" style="margin-top:12px"><table id="t-sell"></table></div>
+      <ul class="crit">
+        <li><b>Tỷ lệ nên mua</b>: điều kiện ngày phân tích thuận lợi hơn bao nhiêu phần trăm số tuần trong lịch sử, tính trung bình cho 4 kỳ giữ 1 tháng, 3 tháng, 6 tháng, 1 năm. Từ 80% là <b>Phải mua</b>, 60–80% là <b>Cân nhắc mua</b>, dưới 60% là <b>Không nên mua</b>.</li>
+        <li><b>Tỷ lệ nên bán</b>: nguy cơ giá giảm hơn 10% sau 3 tháng và sau 6 tháng cao hơn bao nhiêu phần trăm số tuần trong lịch sử. Từ 85% là <b>Nên bán</b>, 70–85% là <b>Cân nhắc bán</b>, dưới 70% là <b>Không nên bán</b>.</li>
+        <li>Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua đã biết kết quả tại thời điểm đó. Các ngưỡng 60, 70, 80, 85 cố định, không dò cho đẹp.</li>
+        <li>Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử</h2>
+      <p class="lead" id="rec-lead"></p>
+      <div class="scroll"><table id="t-rec"></table></div>
+      <p class="lead" id="rec-weak" style="margin:10px 0 0"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Tỷ lệ nên mua, nên bán qua thời gian</h2>
+      <p class="lead">Nền màu là khung mua mỗi tuần; dải dưới là khung bán. Bấm vào một điểm để phân tích lại tại ngày đó.</p>
+      <div class="chart" id="chart-box"><canvas id="chart" height="340"></canvas><div class="tip" id="tip"></div></div>
+      <div class="legend" id="legend"></div>
+    </section>
+    </div>
+
+
+
+    <section class="panel">
+      <h2>Giá trị các chỉ số tại ngày phân tích</h2>
+      <p class="lead">Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.</p>
+      <div class="scroll"><table id="t-feat"></table></div>
+      <p class="lead" id="vol-line" style="margin:12px 0 0"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Biểu đồ từng chỉ số trong bộ đang dùng</h2>
+      <p class="lead">Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.</p>
+      <div class="ind-grid" id="ind-charts"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Hỏi Claude về nhận định của bot</h2>
+      <p class="lead">Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.</p>
+      <div class="two">
+        <div>
+          <p style="margin:0 0 8px;font-weight:600">Cách 1: xuất file, kéo vào claude.ai</p>
+          <div class="inline"><button class="btn main" type="button" id="dl-md">Tải báo cáo (.md)</button><button class="btn" type="button" id="dl-csv">Dữ liệu từng tuần (.csv)</button><button class="btn" type="button" id="dl-pa">So sánh phương án (.csv)</button><button class="btn" type="button" id="copy-md">Sao chép báo cáo</button></div>
+          <p class="muted" style="font-size:13px;margin:8px 0 0">Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.</p>
+          <p class="muted" id="copy-msg" style="font-size:13px"></p>
+        </div>
+        <div>
+          <p style="margin:0 0 8px;font-weight:600">Cách 2: gọi Claude API ngay tại đây</p>
+          <label class="field">Khóa API (console.anthropic.com)<input type="password" id="ck" placeholder="sk-ant-…" autocomplete="off"></label>
+          <label class="check"><input type="checkbox" id="ck-remember">Ghi nhớ khóa trên máy này</label>
+          <label class="field">Mô hình<select id="cmodel"><option value="claude-sonnet-5-5">Claude Sonnet 5.5 (khuyên dùng)</option><option value="claude-opus-5-5">Claude Opus 5.5 (suy luận sâu nhất)</option><option value="claude-haiku-5-5">Claude Haiku 5.5 (nhanh, rẻ)</option></select></label>
+          <label class="check"><input type="checkbox" id="cweb" checked>Cho Claude tìm tin tức hiện tại trên web</label>
+        </div>
+      </div>
+      <div class="chat" id="chat"></div>
+      <label class="field">Câu hỏi thêm<textarea id="ai-q" rows="2" placeholder="Ví dụ: Với kết quả này nên chia tiền mua thế nào?"></textarea></label>
+      <div class="inline"><button class="btn main" type="button" id="ai-first">Nhờ Claude nhận định</button><button class="btn" type="button" id="ai-send">Gửi câu hỏi</button><span class="progress" id="ai-busy" hidden>Claude đang đọc báo cáo…</span></div>
+      <p class="err" id="ai-err" hidden></p>
+    </section>
+
+    <section class="panel">
+      <h2>Nguồn dữ liệu</h2>
+      <ul class="status" id="status"></ul>
+    </section>
+    <p class="foot">Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.</p>
+  </div>
+</div>
+<script>
+// ===== I18N START =====
+// User-facing text lookup for the web page. Source of truth: bot/i18n/vi.yaml (build.py writes src/vi.json and
+// inlines it into the page). Usage: tx('web.ui.key', arg0, arg1) fills {0}, {1} exactly like a template literal.
+const I18N = (() => {
+  const VI = typeof window === 'undefined' && typeof require !== 'undefined' ? require('./vi.json') : {"sources": {"binance_basis": "Binance (hợp đồng tương lai quý)", "binance_funding": "Binance (funding rate hợp đồng vĩnh cửu)", "binance_oi": "Binance (khối lượng hợp đồng mở)", "binance_spot": "Binance (giá và khối lượng ngày)", "coinmetrics": "Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành)", "fng": "Fear & Greed (Alternative.me)", "fred_DFII10": "FRED (lợi suất thực 10 năm)", "fred_DTWEXBGS": "FRED (chỉ số đô la Mỹ rộng)", "fred_M2SL": "FRED (cung tiền M2)", "fred_NASDAQCOM": "FRED (Nasdaq Composite)", "stablecoins": "DefiLlama (tổng cung stablecoin)", "status_err": "lỗi: {err}", "status_ok": "đến {last}"}, "web": {"analysis": {"ba_goc_nhin_xu_huong_dinh": "Ba góc nhìn: xu hướng, định giá, tâm lý. Lịch sử ngắn hơn vì Fear & Greed có từ 2018.", "ban_phan_lon": "Bán phần lớn", "bao_cao_bot_btc_phan_tich": "# Báo cáo bot BTC, phân tích tại ngày {0}", "bat_dau_giu_nguyen_theo_quy": "| Bắt đầu | Giữ nguyên | Theo quy tắc | Quy ra BTC | Bán/mua lại | Sụt giảm lớn nhất giữ/quy tắc |", "bat_ky_luc_nao_moc": "Bất kỳ lúc nào (mốc)", "ben_ban_nen_giu_hay_chot": "## Bên bán: nên giữ hay chốt lời (ngày {0})", "bo_bot_tim_duoc": "Bộ bot tìm được", "bo_bot_tu_tim_co_ty": "Bộ bot tự tìm có tỷ lệ thắng cao nhất trên dữ liệu.", "bo_can_bang_khong_dung_pi": "Bộ cân bằng không dùng Pi Cycle, để so sánh.", "bo_chi_so_0": "- Bộ chỉ số: {0}", "bo_chi_so_co_ty_le": "## Bộ chỉ số có tỷ lệ thắng cao nhất (tìm với dữ liệu đến {0}, chấm từ {1})", "bo_thang_1_thang_thang_3": "| Bộ | Thắng 1 tháng | Thắng 3 tháng | Thắng 6 tháng | Thắng 1 năm | Nửa đầu 6 tháng | Nửa sau 6 tháng |", "bo_tieu_chi_ty_le_thang": "## Bộ tiêu chí: tỷ lệ thắng thực tế theo từng khung mua (từ ", "boi_canh": "## Bối cảnh", "boi_canh_vi_mo_va_tin": "- Bối cảnh vĩ mô và tin tức hiện tại ủng hộ hay mâu thuẫn với kết luận?", "bot_bao_nen_ban_ty_le": "Bot báo Nên bán (tỷ lệ nên bán ≥ 85%)", "bot_thong_ke_khong_co_tri": "Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải trên web, bằng kiểm chứng đi tới (chỉ dùng dữ liệu có đến từng thời điểm).", "can_nhac_ban": "Cân nhắc bán", "can_nhac_mua": "Cân nhắc mua", "cau_hoi_goi_y_cho_claude": "## Câu hỏi gợi ý cho Claude", "chot_khoang_10_30_de_khoa": "Chốt khoảng 10–30% để khóa lợi nhuận, giữ phần còn lại.", "chot_khoang_50_luong_dang_giu": "Chốt khoảng 50% lượng đang giữ, phần còn lại đặt mốc chốt tiếp.", "chot_loi_mot_phan": "Chốt lời một phần", "chua": "chưa", "chua_co_tieu_chi_chot_loi": "Chưa có tiêu chí chốt lời đáng tin nào bật; tiếp tục giữ.", "chua_dat": "chưa đạt", "chua_dat_du_gia_giam_toi": "chưa đạt dù giá giảm tới {0}", "chua_dat_du_gia_tang_toi": "chưa đạt dù giá tăng tới {0}", "chua_du_du_lieu_de_tim": "Chưa đủ dữ liệu để tìm bộ chỉ số tại ngày này.", "chua_du_lich_su_de_cham": "Chưa đủ lịch sử để chấm điểm tại ngày này. Hãy chọn ngày muộn hơn hoặc bớt các chỉ số mới có dữ liệu gần đây (Fear & Greed, Khối lượng).", "chua_du_thoi_gian": "chưa đủ thời gian", "chua_tim_duoc_bo_khuyen_cao": "Chưa tìm được bộ khuyến cáo.", "co": "có", "dang_bat": "đang bật", "dang_dat": "đang đạt", "dinh_gia_on_chain": "Định giá on-chain", "dong_thuan_hom_nay_0_trung": "Đồng thuận hôm nay: {0}; trung bình tỷ lệ nên mua {1}%, nên bán {2}%.", "gia_btc_de_bot_chuyen_khung": "Giá BTC để bot chuyển khung nếu giá đi tới mức đó ngay ngày phân tích; mô hình và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng) giữ nguyên. Mốc dịch chuyển theo thời gian.", "gia_btc_tai_ngay_phan_tich": "- Giá BTC tại ngày phân tích: {0} $", "gia_de_xuat_mua_va_ban": "## Giá đề xuất mua và bán (ngày {0}, giá {1})", "gia_ma_200_tuan_thuoc_5": "Giá / MA 200 tuần thuộc 5% cao nhất 4 năm", "gia_thap_hon_sau_0_giam": "Giá thấp hơn sau {0} | Giảm hơn 10% sau {1}", "gia_tri_chi_so_tai_ngay": "## Giá trị chỉ số tại ngày phân tích", "gia_truc_tiep": " (giá trực tiếp)", "giai_doan_cham_diem_tu_0": "- Giai đoạn chấm điểm: từ {0} đến {1}, kiểm tra mỗi tuần", "giu": "Giữ", "giu_xac_suat_thang_khoang_tin": "| Giữ | Xác suất thắng | Khoảng tin cậy 95% | Trung bình mọi lúc | Lãi trung vị | Một nửa số lần trong | Số lần tương tự |", "hang_phuong_an_chi_so_nen": "| Hạng | Phương án | Chỉ số | Nên mua hôm nay | Nên bán hôm nay | Thắng khi Phải mua (1t/3t/6t/1n) | Nửa đầu / nửa sau (6t) | Khi Nên bán, giá thấp hơn sau 6t |", "hay_chon_it_nhat_mot_chi": "Hãy chọn ít nhất một chỉ số có dữ liệu.", "hien_tai": "hiện tại", "it_tin_hieu": "ít tín hiệu", "it_tin_hieu_phai_mua_xep": "ít tín hiệu Phải mua, xếp theo khung từ Cân nhắc mua", "ket_hop": "kết hợp", "ket_luan": "## Kết luận", "ket_luan_0_1": "- Kết luận: **{0}**. {1}", "ket_luan_cua_bot_co_dang": "- Kết luận của bot có đáng tin không, xét theo số đợt độc lập và khoảng tin cậy?", "khi_gia_0_1": "khi giá {0} {1}", "khoi_luong_giao_dich": "## Khối lượng giao dịch", "khong": "không", "khong_nen_ban": "Không nên bán", "khong_nen_mua": "Không nên mua", "khung_ban_gia_co_giam_that": "## Khung bán: giá có giảm thật không", "khung_so_tuan": "| Khung | Số tuần | ", "khuyen_cao_dieu_kien_gia_cach": "| Khuyến cáo | Điều kiện giá | Cách giá hiện tại | Hôm nay |", "mayer_multiple_thuoc_5_cao_nhat": "Mayer Multiple thuộc 5% cao nhất 4 năm", "mo_hinh_cua_bo_chi_so": "Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.", "mo_hinh_cua_bo_chi_so_2": "Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.", "mo_hinh_cua_bot": "Mô hình của bot", "mo_phong_giu_1_btc_va": "Mô phỏng giữ 1 BTC và chốt lời theo quy tắc (giữ 90/70/50% khi 1/2/3 nhóm bật, mua lại khi bên mua báo từ Cân nhắc mua):", "moc": " (mốc ", "moc_ban_vao_mot_tuan_bat": "- Mốc: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn {0} số lần, 1 năm sau {1}.", "mua_bat_ky_luc_nao_moc": "Mua bất kỳ lúc nào (mốc)", "mvrv_thuoc_5_cao_nhat_4": "MVRV thuộc 5% cao nhất 4 năm", "mvrv_z_score_thuoc_5_cao": "MVRV Z-Score thuộc 5% cao nhất 4 năm", "nen_ban": "Nên bán", "nen_chia_tien_mua_the_nao": "- Nên chia tiền mua thế nào theo các khung trên?", "neu_gia_ngay_phan_tich_la": "Nếu giá ngày phân tích là: ", "ngay_trong_qua_khu": " (ngày trong quá khứ)", "nguon_0": "- Nguồn: {0}", "nhu_phuong_an_1_nhung_dung": "Như phương án 1 nhưng dùng MVRV Z-Score.", "o_moi_muc_gia_den_0": "ở mọi mức giá đến {0}", "o_moi_muc_gia_tu_0": "ở mọi mức giá từ {0}", "phai_mua": "Phải mua", "phuong_an_1": "Phương án 1", "phuong_an_2": "Phương án 2", "phuong_an_3": "Phương án 3", "phuong_an_4": "Phương án 4", "phuong_an_5": "Phương án 5", "phuong_an_6": "Phương án 6", "pi_cycle_cat_len_ti_so": "Pi Cycle cắt lên (tỉ số ≥ 1)", "puell_multiple_thuoc_5_cao_nhat": "Puell Multiple thuộc 5% cao nhất 4 năm", "rieng": " (riêng)", "rsi_14_tuan_80": "RSI 14 tuần ≥ 80", "s_0_1_2_3_4_5": "| {0} | {1} | {2}–{3} | {4} | {5} | {6} đến {7} | {8} ({9} đợt) |", "s_0_1_2_dot": "| {0} | {1} ({2} đợt) | ", "s_0_1_nen_mua_2_nen": "{0} ({1}): nên mua {2}, nên bán {3}", "s_1_nam": "1 năm", "s_1_thang": "1 tháng", "s_3_thang": "3 tháng", "s_6_thang": "6 tháng", "so_nhom_tieu_chi_dang_tin": "- Số nhóm tiêu chí đáng tin đang bật: {0}{1}. Quy tắc: từ 1 nhóm chốt lời một phần, từ 3 nhóm bán phần lớn.", "so_sanh_cac_phuong_an_cham": "## So sánh các phương án (chấm trên cùng giai đoạn từ {0})", "tai_ngay_phan_tich_mot_so": "Tại ngày phân tích, một số chỉ số đã chọn chưa có số liệu.", "tam_ly": "Tâm lý", "tam_ly_va_dinh_gia": "Tâm lý và định giá", "tat_ca_chi_so": "Tất cả chỉ số", "thang_sau": "Thắng sau ", "thieu_du_lieu_cho_cac_chi": "Thiếu dữ liệu cho các chỉ số của phương án này.", "tho_dao": "Thợ đào", "thuc_te_sau_do": " Thực tế sau đó |", "tieu_chi_dang_tin_hom_nay": "| Tiêu chí | Đáng tin | Hôm nay | Số đợt | Giá thấp hơn sau 6 tháng | Khoảng tin cậy | Sau 1 năm | Còn tăng thêm (TV) | Giảm sâu nhất 1 năm (TV) | Giá BTC để bật |", "trong_so_trong_mo_hinh_6": "- Trọng số trong mô hình 6 tháng (dương: chỉ số báo rẻ làm tăng xác suất thắng): ", "trung": "trùng ", "tu_0_nhom_tieu_chi_dang": "Từ {0} nhóm tiêu chí đáng tin cùng bật", "tuan_gan_nhat_da_dong_0": "Tuần gần nhất đã đóng ({0}): giá {1}, khối lượng bằng {2} lần trung bình 20 tuần, loại \"{3}\".", "ty_le_nen_ban_0_khung": "- Tỷ lệ nên bán: **{0}%**, khung **{1}** (Nên bán từ 85%, Cân nhắc bán 70–85%). Ý nghĩa: nguy cơ giảm hơn 10% trong 3–6 tháng cao hơn {2}% số tuần trước đó.", "ty_le_nen_mua_0_khung": "- Tỷ lệ nên mua: **{0}%**, khung **{1}** (Phải mua từ 80%, Cân nhắc mua 60–80%). Ý nghĩa: điều kiện hôm nay thuận lợi hơn {2}% số tuần trước đó.", "voi_bo_chi_so_nay_ty": "Với bộ chỉ số này, tỷ lệ nên mua và nên bán gần như không đổi khi giá trong ngày thay đổi, vì các chỉ số là trung bình dài hạn (ví dụ Pi Cycle dùng trung bình 111 và 350 ngày). Khuyến cáo đổi chủ yếu theo thời gian, không theo một mức giá cụ thể.", "xac_suat_thang_neu_mua_tai": "## Xác suất thắng nếu mua tại ngày phân tích", "xu_huong_gia": "Xu hướng giá", "xu_huong_gia_dinh_gia_on": "Xu hướng giá + định giá on-chain: hai nguồn thông tin độc lập.", "xu_huong_gia_doanh_thu_tho": "Xu hướng giá + doanh thu thợ đào; Puell bị nhiễu quanh mỗi lần halving."}, "engine": {"chenh_lech_von_hoa_thi_truong": "Chênh lệch vốn hóa thị trường và vốn hóa thực, chia cho độ lệch chuẩn lịch sử.", "chu_ky": "Chu kỳ", "chua_du_lich_su_khoi_luong": "Chưa đủ lịch sử khối lượng để so sánh.", "dinh_gia_on_chain": "Định giá on-chain", "gia_chia_cho_gia_von_trung": "Giá chia cho giá vốn trung bình của toàn bộ BTC đang lưu hành. Dưới 1 là người giữ trung bình đang lỗ.", "gia_ma_200_tuan": "Giá / MA 200 tuần", "gia_so_voi_trung_binh_200": "Giá so với trung bình 200 ngày.", "gia_so_voi_trung_binh_khoang": "Giá so với trung bình khoảng 4 năm; đường này từng là đáy của nhiều chu kỳ.", "gia_thap_hon_dinh_cao_nhat": "Giá thấp hơn đỉnh cao nhất bao nhiêu phần trăm. Đáy các chu kỳ trước giảm 77–84%, chu kỳ 2026 khoảng 54%.", "gia_tri_btc_moi_phat_hanh": "Giá trị BTC mới phát hành cho thợ đào so với trung bình 365 ngày. Halving làm chỉ số tụt cơ học.", "giam_kem_khoi_luong_lon": "Giảm kèm khối lượng lớn", "giam_kem_khoi_luong_lon_ap": "Giảm kèm khối lượng lớn: áp lực bán thật.", "giam_tu_dinh": "Giảm từ đỉnh", "giam_voi_khoi_luong_thap": "Giảm với khối lượng thấp", "giam_voi_khoi_luong_thap_chu": "Giảm với khối lượng thấp: chủ yếu do cạn lực mua.", "khoi_luong": "Khối lượng", "khoi_luong_binh_thuong": "Khối lượng bình thường.", "khoi_luong_don_manh_ve_cuoi": "Khối lượng dồn mạnh về cuối đợt: dấu hiệu bán tháo đầu hàng, thường gần đáy.", "khoi_luong_giao_dich_trung_binh": "Khối lượng giao dịch trung bình 30 ngày chia cho trung bình 365 ngày, cặp BTC/USDT trên Binance (có từ 08/2017). Trên 1 là sôi động hơn bình thường. Không dùng trong biểu quyết vì khối lượng cao xuất hiện cả ở đỉnh lẫn đáy; để mô hình tự học chiều tác động.", "khoi_luong_lon_nhung_giam_dan": "Khối lượng lớn nhưng giảm dần về cuối đợt: lực mua yếu đi.", "khoi_luong_tuong_doi": "Khối lượng tương đối", "khoi_luong_va_gia_binh_thuong": "Khối lượng và giá bình thường", "khong_co_du_lieu_gia_lich": "Không có dữ liệu giá lịch sử", "ma_111_ngay_chia_cho_2": "MA 111 ngày chia cho 2 lần MA 350 ngày. Chạm 1 từng báo đỉnh 2013, 2017, 4/2021, nhưng không chạm ở đỉnh 2025.", "moi_tuan_moc_so_sanh": "Mọi tuần (mốc so sánh)", "rsi_14_tuan": "RSI 14 tuần", "suc_manh_gia_tren_khung_tuan": "Sức mạnh giá trên khung tuần, 0–100. Dưới 30 là bán quá đà, trên 80 là mua quá đà.", "tam_ly": "Tâm lý", "tam_ly_dam_dong_0_100": "Tâm lý đám đông 0–100 của Alternative.me, có từ 02/2018. Thấp là sợ hãi.", "tang_co_khoi_luong_xac_nhan": "Tăng có khối lượng xác nhận", "tang_kem_khoi_luong_lon_va": "Tăng kèm khối lượng lớn và tăng dần: có lực mua thật.", "tang_nhung_khoi_luong_thap": "Tăng nhưng khối lượng thấp", "tang_voi_khoi_luong_thap_thieu": "Tăng với khối lượng thấp: thiếu xác nhận, dễ bị đảo chiều.", "tho_dao": "Thợ đào", "ti_so_pi_cycle": "Tỉ số Pi Cycle", "xu_huong_gia": "Xu hướng giá"}, "kn": {"amount": "{0} trên mỗi {1} ngân sách tuần", "bucket": "Hệ số {0}", "ci_line": "Khoảng tin cậy 95% của tỷ số tài sản, giai đoạn kiểm tra cuối: mô hình mới {0}–{1}; mua theo khung {2}–{3}.", "cmp_title": "So với mua đều (kiểm tra lịch sử, cùng tiền nạp mỗi tuần; tỷ số tài sản 1,000 = bằng mua đều)", "col_cba": "Lợi thế giá vốn", "col_mdd": "Sụt giảm lớn nhất / mua đều", "col_median": "Tỷ số tài sản, trung vị", "col_p10": "Kịch bản xấu (10% tệ nhất)", "col_period": "Giai đoạn", "col_placebo": "Hơn ngẫu nhiên", "col_strategy": "Cách mua", "current_zone_note": "Các khung Phải mua, Cân nhắc mua ở trên vẫn là cách đọc tham khảo của bot hiện tại; kiểm định cho thấy mua theo khung (Phải mua × 2,0, Cân nhắc mua × 1,25, Không nên mua × 0,25) chưa hơn mua đều.", "ev_cpi": "Chỉ số giá tiêu dùng Mỹ (CPI)", "ev_fomc": "Quyết định lãi suất FOMC", "ev_opex": "Đáo hạn quyền chọn BTC hằng tháng", "ev_pce": "Chỉ số giá chi tiêu PCE", "event_line": "{0} (giờ Việt Nam): {1}", "events_none": "Không có sự kiện vĩ mô trong 7 ngày tới.", "events_title": "Sự kiện vĩ mô trong 7 ngày tới", "evidence_line": "{0}: {1} đợt độc lập", "evidence_title": "Mức bằng chứng", "fresh_err": "{0}: lỗi, {1}", "fresh_ok": "{0}: đến {1}", "fresh_title": "Độ mới của dữ liệu", "layer_A": "Lớp chu kỳ", "layer_B": "Lớp ngắn hạn", "layer_C": "Lớp vĩ mô", "lead": "Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.", "low_evidence": "Ít bằng chứng", "m_label": "Hệ số mua", "md_cmp": "- So với mua đều, giai đoạn kiểm tra cuối: mô hình mới trung vị {0}, kịch bản xấu {1}; mua theo khung của bot hiện tại trung vị {2}, kịch bản xấu {3}, lợi thế giá vốn {4}, sụt giảm lớn nhất {5} (mua đều {6}).", "md_events": "- Sự kiện vĩ mô trong 7 ngày tới: {0}. Lệnh không bị hoãn.", "md_fresh": "- Dữ liệu cập nhật lúc {0} (giờ Việt Nam).", "md_m": "- Hệ số mua: **{0}** ({1}). Số tiền: {2} trên mỗi {3} ngân sách tuần.", "md_title": "## Khuyến nghị giải ngân tuần này", "md_why": "- Vì sao: {0}", "mode_model": "Theo mô hình, lớp quyết định: {0}", "mode_safe": "Chế độ an toàn: mua đều", "no_delay": "Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.", "period_holdout": "Kiểm tra cuối từ 2023", "period_validation": "Kiểm định 2020–2022", "reason_data_stale": "Dữ liệu thiếu hoặc cũ → mua đều như DCA (hệ số 1,0).", "reason_missing": "Chưa có dữ liệu khuyến nghị → mua đều như DCA (hệ số 1,0).", "reason_model_failed": "mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều.", "row_candidate": "Mô hình mới (chưa đạt)", "row_current": "Mua theo khung của bot hiện tại", "stale_banner": "⚠ Dữ liệu chưa cập nhật, đang hiển thị báo cáo gần nhất ({0}). Khuyến nghị: mua đều như DCA (hệ số 1,0).", "title": "Khuyến nghị giải ngân tuần này", "trials_line": "Số lần thử khi nghiên cứu: {0}. Chi tiết trong docs/RESULTS.md.", "updated": "Cập nhật lúc {0} (giờ Việt Nam)", "warn_eps": "Ít bằng chứng: {0} đợt độc lập", "warn_halves": "Hai nửa lệch {0} điểm %", "warn_legend": "⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.", "warn_mark": "⚠ ", "why": "Vì sao: "}, "page": {"ban_dang": "Bạn đang", "ben_ban": "Bên bán", "ben_mua": "Bên mua", "bieu_do_tung_chi_so_trong": "Biểu đồ từng chỉ số trong bộ đang dùng", "bo_chi_so": "Bộ chỉ số", "bo_chi_so_khuyen_cao_ty": "Bộ chỉ số khuyến cáo: tỷ lệ thắng cao nhất trong lịch sử", "bo_tieu_chi_chot_loi_xep": "Bộ tiêu chí chốt lời, xếp theo độ chính xác", "bo_tieu_chi_danh_gia_ty": "Bộ tiêu chí đánh giá: tỷ lệ thắng thực tế theo từng khung", "bot_chi_lam_thong_ke_claude": "Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.", "bot_mua_ban_btc": "Bot mua bán BTC", "cac_lan_tieu_chi_chot_loi": "Các lần tiêu chí chốt lời bật trong lịch sử", "cach_1_xuat_file_keo_vao": "Cách 1: xuất file, kéo vào claude.ai", "cach_2_goi_claude_api_ngay": "Cách 2: gọi Claude API ngay tại đây", "can_nhac_ban": "Cân nhắc bán", "can_nhac_mua": "Cân nhắc mua", "cau_hoi_them": "Câu hỏi thêm", "chay_bot": "Chạy bot", "che_do": "Chế độ", "cho_claude_tim_tin_tuc_hien": "Cho Claude tìm tin tức hiện tại trên web", "chon_ngay_trong_qua_khu_hoac": "Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.", "claude_dang_doc_bao_cao": "Claude đang đọc báo cáo…", "claude_haiku_5_5_nhanh_re": "Claude Haiku 5.5 (nhanh, rẻ)", "claude_opus_5_5_suy_luan": "Claude Opus 5.5 (suy luận sâu nhất)", "claude_sonnet_5_5_khuyen_dung": "Claude Sonnet 5.5 (khuyên dùng)", "dang_tai_du_lieu_that_tu": "Đang tải dữ liệu thật từ web…", "dang_tai_gia_btc_fear_amp": "Đang tải giá BTC, Fear &amp; Greed, MVRV, dữ liệu thợ đào và khối lượng từ 2010 đến nay. Lần đầu mất khoảng 10–40 giây.", "dieu_kien_ngay_phan_tich_thuan": ": điều kiện ngày phân tích thuận lợi hơn bao nhiêu phần trăm số tuần trong lịch sử, tính trung bình cho 4 kỳ giữ 1 tháng, 3 tháng, 6 tháng, 1 năm. Từ 80% là", "du_lieu_tung_tuan_csv": "Dữ liệu từng tuần (.csv)", "duoi_60_la": ", dưới 60% là", "duoi_70_la": ", dưới 70% là", "ghi_nho_khoa_tren_may_nay": "Ghi nhớ khóa trên máy này", "gia_btc_can_dat_de_tung": "Giá BTC cần đạt để từng tiêu chí bật, tính từ số liệu ngày phân tích. Các mốc dịch chuyển dần theo thời gian. Pi Cycle, RSI và Fear &amp; Greed không quy đổi thẳng ra giá được.", "gia_de_xuat_mua_va_ban": "Giá đề xuất mua và bán", "gia_tri_cac_chi_so_tai": "Giá trị các chỉ số tại ngày phân tích", "gia_tri_theo_tuan_tu_2014": "Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.", "giu_tiep_co_loi_khong": "Giữ tiếp có lợi không", "gui_ca_bao_cao_va_hai": "Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.", "gui_cau_hoi": "Gửi câu hỏi", "hoi_claude_ve_nhan_dinh_cua": "Hỏi Claude về nhận định của bot", "hom_nay": "Hôm nay", "ket_qua_trong_qua_khu_khong": "Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.", "khoa_api_console_anthropic_com": "Khóa API (console.anthropic.com)", "khong_nen_ban": "Không nên bán", "khong_nen_mua": "Không nên mua", "meta_description": "Bot thống kê tham khảo cho việc mua thêm và chốt lời BTC: tỷ lệ nên mua, nên bán, giá đề xuất và khuyến nghị giải ngân hằng tuần so với mua đều. Không phải lời khuyên đầu tư.", "mo_hinh": "Mô hình", "mo_hinh_hoc_lai_moi_4": "Mô hình học lại mỗi 4 tuần, mỗi lần chỉ dùng những lần mua đã biết kết quả tại thời điểm đó. Các ngưỡng 60, 70, 80, 85 cố định, không dò cho đẹp.", "moc_gia_chot_loi": "Mốc giá chốt lời", "moi_vach_mau_la_mot_tuan": "Mỗi vạch màu là một tuần có tiêu chí đáng tin bật, mỗi hàng là một nhóm. Nền đỏ càng đậm, càng nhiều nhóm cùng bật. Bấm vào biểu đồ để phân tích lại tại ngày đó.", "mot_khung_dang_tin_khi_ty": "Một khung đáng tin khi tỷ lệ thắng cao hơn rõ dòng mốc và có nhiều đợt độc lập; số tuần liền nhau thuộc cùng một đợt.", "nen_ban": "Nên bán", "nen_mau_la_khung_mua_moi": "Nền màu là khung mua mỗi tuần; dải dưới là khung bán. Bấm vào một điểm để phân tích lại tại ngày đó.", "neu_da_giu_1_btc_va": "Nếu đã giữ 1 BTC và chốt lời theo quy tắc này", "neu_gia_ngay_phan_tich_la": "Nếu giá ngày phân tích là…", "ngay_phan_tich": "Ngày phân tích", "nguon_du_lieu": "Nguồn dữ liệu", "nguy_co_gia_giam_hon_10": ": nguy cơ giá giảm hơn 10% sau 3 tháng và sau 6 tháng cao hơn bao nhiêu phần trăm số tuần trong lịch sử. Từ 85% là", "nho_claude_nhan_dinh": "Nhờ Claude nhận định", "phai_mua": "Phải mua", "quy_tac_1_nhom_bat_thi": "Quy tắc: 1 nhóm bật thì giữ 90% vị thế, 2 nhóm thì 70%, từ 3 nhóm thì 50%. Mua lại toàn bộ khi không còn nhóm nào bật và bên mua báo từ Cân nhắc mua. Chỉ dùng dữ liệu có đến từng tuần.", "s_60_80_la": ", 60–80% là", "s_70_85_la": ", 70–85% là", "sao_chep_bao_cao": "Sao chép báo cáo", "so_sanh_cac_phuong_an": "So sánh các phương án", "so_sanh_phuong_an_csv": "So sánh phương án (.csv)", "tai_bao_cao_md": "Tải báo cáo (.md)", "tai_bo_tieu_chi_chot_loi": "Tải bộ tiêu chí chốt lời (.csv)", "thang_la_gia_sau_ky_giu": "\"Thắng\" là giá sau kỳ giữ cao hơn giá mua. Con số là tỷ lệ thắng thực tế trong lịch sử ở những lúc điều kiện giống ngày phân tích. Vạch đen nhỏ là tỷ lệ thắng trung bình nếu mua bất kỳ lúc nào.", "tim_lai_bo_co_ty_le": "Tìm lại bộ có tỷ lệ thắng cao nhất", "title": "Báo cáo bot BTC", "toi_dang_giu_btc_nen_giu": "Tôi đang giữ BTC: nên giữ hay chốt lời?", "toi_muon_mua_them_btc": "Tôi muốn mua thêm BTC", "trong_so_lay_tu_mo_hinh": "Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.", "ty_le_gia_cao_hon_hom": "Tỷ lệ giá cao hơn hôm nay sau mỗi kỳ, ở những lúc điều kiện giống ngày phân tích. Trên 50% nghĩa là giữ tiếp thường có lợi hơn bán ngay. Vạch đen nhỏ là mức trung bình mọi lúc.", "ty_le_nen_ban": "Tỷ lệ nên bán", "ty_le_nen_mua": "Tỷ lệ nên mua", "ty_le_nen_mua_nen_ban": "Tỷ lệ nên mua, nên bán qua thời gian", "ty_le_nen_mua_va_nen": "Tỷ lệ nên mua và nên bán tại ngày phân tích", "ty_le_thang_o_khung_phai": "Tỷ lệ thắng ở khung Phải mua, theo kỳ giữ", "vi_du_voi_ket_qua_nay": "Ví dụ: Với kết quả này nên chia tiền mua thế nào?", "xac_suat_thang_neu_mua_va": "Xác suất thắng nếu mua và giữ"}, "ui": {"bam_chay_bot_de_tinh_lai": " (bấm Chạy bot để tính lại)", "bam_de_phan_tich_ngay_nay": "Bấm để phân tích ngày này", "ban": "bán", "ban_2": "Bán", "ban_co_loi_hon": "bán có lợi hơn", "ban_dang": "Bạn đang ", "ban_la_chuyen_gia_phan_tich": "Bạn là chuyên gia phân tích định lượng thị trường Bitcoin. Người dùng gửi báo cáo của một bot thống kê (không có trí tuệ AI): bot tính xác suất có lãi bằng kiểm chứng đi tới trên dữ liệu lịch sử.\nNhiệm vụ của bạn:\n1. Đánh giá độ tin cậy của nhận định: chú ý tỷ lệ thắng của từng khung so với dòng mốc, số đợt độc lập, độ rộng khoảng tin cậy, và kết quả nửa đầu so với nửa sau của bộ chỉ số.\n2. Giải thích các chỉ số đang nói gì, chỉ ra chỗ các kỳ giữ (1 tháng đến 1 năm) hoặc các chỉ số mâu thuẫn nhau, và giữa tỷ lệ nên mua với tỷ lệ nên bán.\n3. Nhận xét phần khối lượng giao dịch: xu hướng giá hiện tại có được khối lượng xác nhận không.\n4. Nếu có công cụ tìm kiếm, đối chiếu với tin tức và bối cảnh vĩ mô hiện tại, ghi rõ nguồn.\nQuy tắc: không bịa số; tách rõ \"số liệu của bot\" và \"nhận định của Claude\"; nói thẳng khi dữ liệu yếu. Viết tiếng Việt, gọn, có tiêu đề ngắn, kết thúc bằng phần \"Tóm tắt\" 3 dòng. Nhắc rằng đây không phải lời khuyên đầu tư.", "ban_luu_tren_may": "bản lưu trên máy", "ban_nen_ban": "Bán: Nên bán", "ban_vao_mot_tuan_bat_ky": "Bán vào một tuần bất kỳ (mốc)", "bat_dau": "Bắt đầu", "bat_ky": "Bất kỳ", "bat_ky_luc_nao_moc": "Bất kỳ lúc nào (mốc)", "binance_gia_khoi_luong_ngay": "Binance (giá, khối lượng ngày)", "binh_thuong": ", bình thường", "bo_chi_so": "Bộ chỉ số", "bot_chay_ca_6_phuong_an": "Bot chạy cả 6 phương án tại ngày {0} và chấm trên cùng giai đoạn từ {1}. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút \"Tự động: phương án tốt nhất\" luôn dùng phương án hạng 1.", "bot_thu_them_dan_tung_chi": "Bot thử thêm dần từng chỉ số và giữ lại chỉ số làm tỷ lệ thắng ở khung Phải mua tăng thật. Các bộ được so trên cùng giai đoạn từ {0} đến {1}, xếp theo mức thắng thấp nhất có thể (cận dưới khoảng tin cậy) để bộ ít tín hiệu không được xếp cao nhờ may mắn. Hai cột cuối chia đôi giai đoạn: bộ tốt thật phải thắng ở cả hai nửa.", "bot_tu_tim": "Bot tự tìm", "cac_phuong_an_dang_bat_dong": "Các phương án đang bất đồng (có phương án báo Phải mua và có phương án báo Không nên mua), nên độ chắc chắn thấp.", "cac_phuong_an_khong_mau_thuan": "Các phương án không mâu thuẫn nhau về chiều mua.", "cach_gia_hien_tai": "Cách giá hiện tại", "can_nhac": "Cân nhắc", "can_nhac_ban_0_nen_ban": "Cân nhắc bán {0}; Nên bán {1}.", "can_nhac_mua": "Cân nhắc mua", "can_nhac_mua_0_phai_mua": "Cân nhắc mua {0}; Phải mua {1}. ", "cao_nhat": "cao nhất", "chi_so": "Chỉ số", "chua_bat": "Chưa bật", "chua_chay_duoc_cac_phuong_an": "Chưa chạy được các phương án tại ngày này.", "chua_chon_chi_so_nao": "chưa chọn chỉ số nào", "chua_co_du_lieu_khoi_luong": "Chưa có dữ liệu khối lượng cho ngày này.", "chua_co_ket_qua_so_sanh": "Chưa có kết quả so sánh phương án; bấm Chạy bot trước.", "chua_co_tuan_nao_o_khung": "Chưa có tuần nào ở khung này.", "chua_co_tuan_nao_trong_lich": "Chưa có tuần nào trong lịch sử thuộc khung này.", "chua_dang_tin": "chưa đáng tin", "chua_dat": "chưa đạt", "chua_du_3_dot_co_ket": "Chưa đủ 3 đợt có kết quả để đánh giá: ", "chua_du_du_lieu": "Chưa đủ dữ liệu.", "chua_du_du_lieu_de_mo": "Chưa đủ dữ liệu để mô phỏng.", "chua_tim_duoc_bo_khuyen_cao": "Chưa tìm được bộ khuyến cáo. Bấm \"Tìm lại bộ có tỷ lệ thắng cao nhất\".", "claude_api_bao_loi_0_1": "Claude API báo lỗi {0}: {1}", "claude_dang_gioi_han_so_luot": "Claude đang giới hạn số lượt gọi, đợi một lát rồi thử lại.", "claude_khong_tra_loi_noi_dung": "(Claude không trả lời nội dung)", "con_tang_them_truoc_khi_giam": "Còn tăng thêm trước khi giảm (TV)", "da_sao_chep_dan_vao_khung": "Đã sao chép. Dán vào khung chat Claude.", "dai_duoi_can_nhac_ban": "Dải dưới: Cân nhắc bán", "dai_duoi_nen_ban": "Dải dưới: Nên bán", "dang_bat": "Đang bật: ", "dang_bat_2": "Đang bật", "dang_chay_6_phuong_an": "Đang chạy 6 phương án…", "dang_chay_6_phuong_an_0": "Đang chạy 6 phương án… {0}/6", "dang_dat": "đang đạt", "dang_dung": "Đang dùng: ", "dang_o_day": "đang ở đây", "dang_phan_tich": "Đang phân tích…", "dang_tai_du_lieu_that_tu": "Đang tải dữ liệu thật từ web…", "dang_thu_cac_bo_chi_so": "Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất…", "dang_thu_cac_bo_chi_so_2": "Đang thử các bộ chỉ số để tìm bộ có tỷ lệ thắng cao nhất… đã thử {0} bộ", "dang_tin": "đáng tin", "day_la_bao_cao_moi_nhat": "Đây là báo cáo mới nhất của bot:\n\n{0}\n\n{1}", "den_0": "đến {0}", "dieu_kien_ngay_nay_thuan_loi": "Điều kiện ngày này thuận lợi hơn {0}% số tuần trong lịch sử, tính chung cho 4 kỳ giữ.", "dong_thuan_cua_0_phuong_an": "Đồng thuận của {0} phương án: ", "du_lieu_luu_tren_may": "Dữ liệu lưu trên máy", "du_lieu_vua_tai_da_duoc": "dữ liệu vừa tải đã được lưu vào thư mục du_lieu_tam để dùng khi mất mạng", "dung": "Dùng", "dung_bo_nay": "Dùng bộ này", "gia_6_thang_sau_tin_hieu": "Giá 6 tháng sau tín hiệu (TV)", "gia_btc": "Giá BTC", "gia_btc_de_bat": "Giá BTC để bật", "gia_btc_de_bot_chuyen_sang": "Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày {0}. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.", "gia_cao_hon_sau": "Giá cao hơn sau ", "gia_de_xuat_ban": "Giá đề xuất bán: ", "gia_de_xuat_mua": "Giá đề xuất mua: ", "gia_dong_cua_0": "giá đóng cửa {0}", "gia_lich_su_mvrv_tho_dao": "Giá lịch sử, MVRV, thợ đào (Coin Metrics)", "gia_ngay_phan_tich": "Giá ngày phân tích", "gia_thap_hon_sau_0": "Giá thấp hơn sau {0}", "gia_thap_hon_sau_6_thang": "Giá thấp hơn sau 6 tháng {0}, giảm hơn 10%: {1} (bất kỳ lúc nào: {2}, {3})", "gia_thap_hon_sau_6_thang_2": "Giá thấp hơn sau 6 tháng", "gia_tri": "Giá trị", "gia_truc_tiep": "giá trực tiếp", "gia_truc_tiep_2": "Giá trực tiếp", "gia_truc_tiep_binance_coingecko": "giá trực tiếp Binance/CoinGecko", "gia_va_khoi_luong_ngay_binance": "Giá và khối lượng ngày (Binance)", "gia_va_khoi_luong_ngay_tu": "giá và khối lượng ngày từ 08/2017 ({0} ngày)", "gia_von_trung_binh": "Giá vốn trung bình ($)", "giam_hon_10_sau_0": "Giảm hơn 10% sau {0}", "giam_sau_nhat_trong_1_nam": "Giảm sâu nhất trong 1 năm (TV)", "giam_tu_dinh": "Giảm từ đỉnh", "giu": "Giữ ", "giu_co_loi_hon": "giữ có lợi hơn", "giu_nguyen_1_btc": "Giữ nguyên 1 BTC", "giu_tiep_co_loi_khong_tinh": "Giữ tiếp có lợi không, tính từ ngày {0}", "giu_tiep_lai_trung_vi_0": "Giữ tiếp: lãi trung vị {0}, một nửa số lần trong {1} đến {2}. Mọi lúc: {3}.", "hang": "Hạng", "hang_1_la_0_1_2": " Hạng 1 là {0}: {1} ({2}%).", "hang_2": "hạng ", "hay_dan_khoa_api_cua_claude": "Hãy dán khóa API của Claude (lấy tại console.anthropic.com).", "hay_nhan_dinh_ve_ket_luan": "Hãy nhận định về kết luận của bot theo các nhiệm vụ đã nêu.", "het_thoi_gian_cho": "hết thời gian chờ", "hien_tai": "hiện tại", "hom_nay": "Hôm nay", "it_dot_doc_lap_nen_chua": ", ít đợt độc lập nên chưa đáng tin", "it_tin_hieu": "ít tín hiệu", "ket_hop_nhieu_nhom": "Kết hợp nhiều nhóm", "khi_nen_ban_gia_thap_hon": "Khi Nên bán, giá thấp hơn sau 6 tháng", "khoa_api_khong_hop_le": "Khóa API không hợp lệ.", "khoang_tin_cay_0_1_mua": "Khoảng tin cậy {0}–{1}. Mua bất kỳ lúc nào: {2}.", "khoi_luong": "Khối lượng", "khoi_luong_binance_tuan_ket_thuc": "Khối lượng (Binance): tuần kết thúc {0}, giá {1}, khối lượng bằng {2} lần trung bình 20 tuần, loại \"{3}\".", "khong_co_du_lieu": "không có dữ liệu", "khong_co_du_lieu_khoi_luong": ". Không có dữ liệu khối lượng.", "khong_co_tin_hieu": "không có tín hiệu", "khong_du_tin_hieu_phai_mua": "Không đủ tín hiệu Phải mua để xếp hạng (dưới 20 tuần hoặc chỉ 1 đợt): {0}.", "khong_hon_moc": "; không hơn mốc", "khong_ket_noi_duoc_claude_api": "Không kết nối được Claude API. Kiểm tra mạng.", "khong_tai_duoc_gia_lich_su": "Không tải được giá lịch sử.", "khong_tieu_chi_nao_bat": "Không tiêu chí nào bật", "khung_ban": "Khung bán", "khung_rong": ", khung rộng", "khung_rong_2": "khung rộng", "khuyen_cao": "Khuyến cáo", "kiem_tra_mang_hoac_mo_bang": " Kiểm tra mạng, hoặc mở bằng Mo-Bot-BTC.command (Mac) hoặc Mo-Bot-BTC.bat (Windows).", "kiem_tra_moi_tuan_tu_0": "Kiểm tra mỗi tuần từ {0} đến {1}, chỉ dùng dữ liệu có đến từng tuần. Bảng trên: tỷ lệ thắng nếu mua ở khung đó rồi giữ hết kỳ; xanh là cao hơn mốc ít nhất 5 điểm %, đỏ là thấp hơn. Bảng dưới: tỷ lệ giá giảm sau khi ở khung bán; đỏ là nguy cơ giảm cao hơn mốc, xanh là thấp hơn.", "lai": "lãi", "lai_trung_vi_0_mot_nua": "Lãi trung vị {0}; một nửa số lần trong {1} đến {2}. Dựa trên {3} lần, {4} đợt.", "lan_ban_mua_lai": "Lần bán / mua lại", "lich_su_o_khung_0_gia": "Lịch sử ở khung {0}: giá thấp hơn sau 6 tháng {1}, giảm hơn 10% {2} ({3} tuần). Bất kỳ lúc nào: {4} và {5}.", "lich_su_o_khung_0_thang": "Lịch sử ở khung {0}: thắng sau 6 tháng {1}, sau 1 năm {2} ({3} tuần, {4} đợt). Mua bất kỳ lúc nào: {5} và {6}.", "lich_su_o_khung_nay": "Lịch sử ở khung này", "lo": "lỗ", "loi": "lỗi, ", "luu_y_bo_khuyen_cao_duoc": "Lưu ý: bộ khuyến cáo được tìm bằng dữ liệu đến {0}, sau ngày phân tích {1}. Kết quả quá khứ vì thế có thể đẹp hơn thực tế lúc đó. Bấm \"Tìm lại bộ có tỷ lệ thắng cao nhất\" để tìm chỉ bằng dữ liệu đến ngày phân tích.", "ma200_tuan": "MA200 tuần", "mau_nhat_tieu_chi_chua_dang": "Màu nhạt: tiêu chí chưa đáng tin", "mo_hinh_cua_bot": "mô hình của bot", "moc_0_1_lan": "mốc {0}, {1} lần", "moi_dot_la_lan_dau_tieu": "Mỗi đợt là lần đầu tiêu chí bật (các tuần bật cách nhau dưới 8 tuần gộp một đợt). \"Đúng\" nghĩa là giá sau đó thấp hơn lúc bật. Mốc so sánh: bán vào một tuần bất kỳ thì giá 6 tháng sau thấp hơn {0} số lần. Một tiêu chí được coi là đáng tin khi có từ 3 đợt và cận dưới khoảng tin cậy vẫn cao hơn mốc. Bảng xếp theo cận dưới đó.", "moi_phuong_an_dai_tren_la": "Mỗi phương án: dải trên là mua, dải dưới là bán; vạch đen là giá trị hôm nay", "mot_so_nguon_khong_truy_cap": "một số nguồn không truy cập được, bot đang dùng dữ liệu đã lưu trên máy lúc {0} ngày {1}/{2}/{3}. Kết quả có thể chưa phải mới nhất.", "mua_bat_ky": "Mua bất kỳ", "mua_bat_ky_luc_nao": "mua bất kỳ lúc nào", "mua_bat_ky_luc_nao_moc": "Mua bất kỳ lúc nào (mốc)", "mua_phai_mua": "Mua: Phải mua", "nen_ban_0_1": "Nên bán {0}% ({1})", "nen_ban_hom_nay": "Nên bán hôm nay", "nen_giu_hay_chot_loi_ngay": "Nên giữ hay chốt lời? Ngày {0}, giá {1}", "nen_mua_0_1": "Nên mua {0}% ({1})", "nen_mua_0_nen_ban_1": "nên mua {0}%, nên bán {1}%", "nen_mua_hom_nay": "Nên mua hôm nay", "ngay_phan_tich": "Ngày phân tích", "nguon_claude_da_doc": "Nguồn Claude đã đọc:", "nguon_du_lieu_chua_tai_duoc": " Nguồn dữ liệu chưa tải được.", "nguong": "Ngưỡng", "nguong_kinh_dien": "ngưỡng kinh điển", "nguong_thich_nghi": "ngưỡng thích nghi", "nguy_co_gia_giam_hon_10": "Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn {0}% số tuần trong lịch sử.", "nhap_gia_von_de_xem_lai": "Nhập giá vốn để xem lãi, lỗ và số lượng nên chốt.", "nhom": "Nhóm", "nua_dau_6_thang": "Nửa đầu, 6 tháng", "nua_dau_nua_sau": "Nửa đầu / nửa sau", "nua_sau_6_thang": "Nửa sau, 6 tháng", "phai_mua": "Phải mua", "phuong_an": "Phương án", "phuong_an_2": "Phương án ", "rsi_tuan": "RSI tuần", "s_0_1_2_dot": "{0}–{1}, {2} đợt", "s_0_1_2_lan": "{0}–{1}, {2} lần", "s_0_1_dot": "{0} ({1} đợt)", "s_0_coin_metrics_chua_cong_bo": "{0}. Coin Metrics chưa công bố vốn hóa và MVRV của {1} ngày cuối (đến {2}); bot ước tính từ ngày {3} theo biến động giá, nên MVRV và MVRV Z-Score những ngày này là số gần đúng", "s_0_dot": " ({0} đợt)", "s_0_lan": "{0} lần", "s_0_lan_1": "{0} lần{1}", "s_0_ngay": "{0} ngày", "s_0_nhom_dang_tin_dang_bat": "{0} nhóm đáng tin đang bật", "s_0_tuan": "{0} tuần", "s_0_tuan_1_dot_2_3": "{0} tuần, {1} đợt{2}{3}", "sau_1_nam": "Sau 1 năm", "so_btc_dang_giu": "Số BTC đang giữ", "so_dot": "Số đợt", "so_nhom_tieu_chi_dang_tin": "Số nhóm tiêu chí đáng tin đang bật: {0}/{1}. Từ 1 nhóm là chốt lời một phần, từ 3 nhóm là bán phần lớn.", "so_tuan": "Số tuần", "so_voi_hien_tai": "So với hiện tại", "sut_giam_lon_nhat_giu_theo": "Sụt giảm lớn nhất: giữ / theo quy tắc", "tam_dung_gia_binance_mvrv_mvrv": ". Tạm dùng giá Binance; MVRV, MVRV Z-Score, Puell không dùng được.", "tat_ca_chi_so": "Tất cả chỉ số", "thang": "thắng", "thang_2": "Thắng ", "thang_sau": "Thắng sau ", "thang_sau_6_thang_0_sau": "Thắng sau 6 tháng {0}, sau 1 năm {1} (mua bất kỳ lúc nào: {2}, {3})", "thap_hon_moc": "; thấp hơn mốc", "theo_goi_y_chot_khoang_0": " Theo gợi ý: chốt khoảng {0} BTC, tức {1}.", "theo_goi_y_chua_can_ban": " Theo gợi ý: chưa cần bán.", "theo_quy_tac_chot_loi": "Theo quy tắc chốt lời", "thieu_du_lieu": " (thiếu dữ liệu)", "thieu_du_lieu_0": " Thiếu dữ liệu: {0}.", "thieu_du_lieu_tho_dao": ", thiếu dữ liệu thợ đào", "thuc_te_chua_du_thoi_gian": "Thực tế: chưa đủ thời gian", "thuc_te_sau_do": "Thực tế sau đó: ", "tien_mat_cuoi_ky": "Tiền mặt cuối kỳ", "tieu_chi": "Tiêu chí", "tot_nhat": "tốt nhất", "trinh_duyet_bi_chan_hoac_mat": "trình duyệt bị chặn hoặc mất mạng", "trong_lich_su_chua_tieu_chi": "Trong lịch sử, chưa tiêu chí chốt lời nào đủ chính xác (ít nhất 3 đợt và đúng nhiều hơn rõ so với bán bất kỳ lúc nào), nên bot không có cơ sở để khuyên bán. Kết luận Giữ ở đây nghĩa là không có tín hiệu đáng tin, không phải là bảo đảm giá sẽ tăng.", "trong_so_6_thang": "Trọng số 6 tháng", "trung_0": "Trùng {0}", "trung_binh_ty_le_nen_mua": "Trung bình tỷ lệ nên mua {0}%, nên bán {1}%. ", "tu_chon": "Tự chọn", "tu_dong_phuong_an_tot_nhat": "Tự động: phương án tốt nhất", "ty_le_nen_0_tu_1": "tỷ lệ nên {0} từ {1}%", "ty_le_nen_ban": "Tỷ lệ nên bán", "ty_le_nen_ban_cua_bot": "Tỷ lệ nên bán của bot: {0}% ({1}).", "ty_le_nen_ban_ngay_0": "Tỷ lệ nên bán, ngày {0}", "ty_le_nen_mua": "Tỷ lệ nên mua", "ty_le_nen_mua_ngay_0": "Tỷ lệ nên mua, ngày {0}", "vi_du_0_5": "ví dụ 0,5", "vi_du_62000": "ví dụ 62000", "vung_nong": ", vùng nóng", "vung_re": ", vùng rẻ", "xac_suat_thang_neu_mua_ngay": "Xác suất thắng nếu mua ngày {0} (giá {1}) và giữ", "xong_phan_tich_ngay_0_voi": "Xong. Phân tích ngày {0} với {1} chỉ số.", "y_nghia": "Ý nghĩa"}}};
+  function tx(key, ...args) {
+    let v = VI;
+    for (const k of key.split('.')) v = v == null ? undefined : v[k];
+    if (v == null) throw new Error('missing text for key ' + key);
+    return args.length ? String(v).replace(/\{(\d+)\}/g, (m, i) => (+i < args.length ? String(args[+i]) : m)) : String(v);
+  }
+  // 'HH:mm dd/mm/yyyy' in Vietnam time (Asia/Ho_Chi_Minh) from an ISO UTC string
+  function vnTime(iso) {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric', hourCycle: 'h23' })
+      .formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+    return `${p.hour}:${p.minute} ${p.day}/${p.month}/${p.year}`;
+  }
+  return { tx, vnTime, VI };
+})();
+// ===== I18N END =====
+
+</script>
+<script>
+// ===== CORE START =====
+const BOT = (() => {
+  const tx = typeof I18N !== 'undefined' ? I18N.tx : require('./i18n.js').tx;
+  const DAY = 86400000;
+  const iso = (t) => new Date(t).toISOString().slice(0, 10);
+  const num = (x) => { const v = Number(x); return x == null || x === '' || !isFinite(v) ? null : v; };
+  const WIN = 1461;
+  const MAX_UOC = 3; // số ngày cuối tối đa được ước tính vốn hóa và MVRV khi Coin Metrics chưa công bố
+
+  const FAMILIES = { tamly: tx('web.engine.tam_ly'), onchain: tx('web.engine.dinh_gia_on_chain'), xuhuong: tx('web.engine.xu_huong_gia'), thodao: tx('web.engine.tho_dao'), chuky: tx('web.engine.chu_ky'), khoiluong: tx('web.engine.khoi_luong') };
+  // dir -1: giá trị thấp là rẻ; +1: giá trị cao là rẻ. feat: 'pct' = vị trí trong 4 năm gần nhất, 'raw' = giá trị gốc × scale
+  // vote: ngưỡng cho phương pháp biểu quyết [ngưỡng +1, ngưỡng +2, ngưỡng nóng]
+  const IND = [
+    { id: 'fng', ten: 'Fear & Greed', nhom: 'tamly', dir: -1, feat: 'raw', scale: 0.01, dec: 0, vote: [24, 9, 75], need: 'fng',
+      y: tx('web.engine.tam_ly_dam_dong_0_100') },
+    { id: 'mvrv', ten: 'MVRV', nhom: 'onchain', dir: -1, feat: 'pct', dec: 2, vote: [1.3, 1.0, 2.4], need: 'cm',
+      y: tx('web.engine.gia_chia_cho_gia_von_trung') },
+    { id: 'mvrvz', ten: 'MVRV Z-Score', nhom: 'onchain', dir: -1, feat: 'pct', dec: 2, vote: [0.5, 0, 3], need: 'cm',
+      y: tx('web.engine.chenh_lech_von_hoa_thi_truong') },
+    { id: 'wma', ten: tx('web.engine.gia_ma_200_tuan'), nhom: 'xuhuong', dir: -1, feat: 'pct', dec: 2, vote: [1.15, 1.0, 2.5],
+      y: tx('web.engine.gia_so_voi_trung_binh_khoang') },
+    { id: 'mayer', ten: 'Mayer Multiple', nhom: 'xuhuong', dir: -1, feat: 'pct', dec: 2, vote: [0.8, 0.65, 2.4],
+      y: tx('web.engine.gia_so_voi_trung_binh_200') },
+    { id: 'rsiw', ten: tx('web.engine.rsi_14_tuan'), nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 0.01, dec: 0, vote: [35, 30, 80],
+      y: tx('web.engine.suc_manh_gia_tren_khung_tuan') },
+    { id: 'pi', ten: tx('web.engine.ti_so_pi_cycle'), nhom: 'xuhuong', dir: -1, feat: 'raw', scale: 1, dec: 2, vote: [0.4, 0.33, 0.95],
+      y: tx('web.engine.ma_111_ngay_chia_cho_2') },
+    { id: 'puell', ten: 'Puell Multiple', nhom: 'thodao', dir: -1, feat: 'pct', dec: 2, vote: [0.6, 0.5, 3.5], need: 'iss',
+      y: tx('web.engine.gia_tri_btc_moi_phat_hanh') },
+    { id: 'dd', ten: tx('web.engine.giam_tu_dinh'), nhom: 'chuky', dir: 1, feat: 'raw', scale: 0.01, dec: 1, unit: '%', vote: [45, 60, 15], high: true,
+      y: tx('web.engine.gia_thap_hon_dinh_cao_nhat') },
+    { id: 'vol', ten: tx('web.engine.khoi_luong_tuong_doi'), nhom: 'khoiluong', dir: 1, feat: 'raw', scale: 1, dec: 2, vote: null, need: 'vol',
+      y: tx('web.engine.khoi_luong_giao_dich_trung_binh') },
+  ];
+
+  // ---------------------------------------------------------------- dữ liệu
+  function buildSeries({ cm, kl, fng, live }) {
+    const rows = new Map();
+    if (cm && cm.length) {
+      for (const r of cm) { const p = Number(r.PriceUSD); if (p > 0) rows.set(String(r.time).slice(0, 10), { p, mc: num(r.CapMrktCurUSD), mv: num(r.CapMVRVCur), iss: num(r.IssTotUSD) }); }
+    } else if (kl && kl.length) {
+      for (const k of kl) { const p = Number(k[4]); if (p > 0) rows.set(iso(Number(k[0])), { p, mc: null, mv: null, iss: null }); }
+    }
+    const qvMap = new Map();
+    if (kl && kl.length) for (const k of kl) { const q = Number(k[7]); if (q > 0) qvMap.set(iso(Number(k[0])), q); }
+    const keys = [...rows.keys()].sort();
+    if (!keys.length) throw new Error(tx('web.engine.khong_co_du_lieu_gia_lich'));
+    const full = []; let last = null;
+    for (let t = Date.parse(keys[0] + 'T00:00:00Z'), e = Date.parse(keys[keys.length - 1] + 'T00:00:00Z'); t <= e; t += DAY) {
+      const d = iso(t), r = rows.get(d); if (r) last = r; full.push([d, r || { ...last, iss: null }]);
+    }
+    // Coin Metrics có thể công bố giá trước, vốn hóa và MVRV sau: các ngày cuối còn thiếu (tối đa MAX_UOC ngày)
+    // được ước tính từ ngày gần nhất có đủ số liệu, theo tỉ lệ giá. Chỉ dùng số liệu đến chính ngày đó.
+    let k0 = full.length - 1, uocTinh = null;
+    while (k0 >= 0 && (full[k0][1].mc == null || full[k0][1].mv == null)) k0--;
+    if (k0 >= 0 && k0 < full.length - 1 && full.length - 1 - k0 <= MAX_UOC) {
+      const b = full[k0][1];
+      for (let k = k0 + 1; k < full.length; k++) { const r = full[k][1], f = r.p / b.p; full[k] = [full[k][0], { ...r, mc: b.mc * f, mv: b.mv * f }]; }
+      uocTinh = { tu: full[k0][0], den: full[full.length - 1][0], ngay: full.length - 1 - k0 };
+    }
+    const today = iso(Date.now());
+    if (live && live.price > 0) {
+      const lr = full[full.length - 1][1], k = live.price / lr.p;
+      const mk = () => ({ p: live.price, mc: lr.mc != null ? lr.mc * k : null, mv: lr.mv != null ? lr.mv * k : null, iss: null });
+      if (full[full.length - 1][0] === today) full[full.length - 1] = [today, mk()];
+      else if (full[full.length - 1][0] < today) {
+        for (let t = Date.parse(full[full.length - 1][0] + 'T00:00:00Z') + DAY; iso(t) < today; t += DAY) full.push([iso(t), { ...lr, iss: null }]);
+        full.push([today, mk()]);
+      }
+    }
+    const n = full.length;
+    const S = { dates: full.map((x) => x[0]), price: new Float64Array(n), mc: [], mv: [], iss: [], fng: new Array(n).fill(null),
+      has: { cm: !!(cm && cm.length) && full.some((x) => x[1].mv != null), iss: full.some((x) => x[1].iss != null), fng: !!(fng && fng.length), vol: qvMap.size > 400 } };
+    full.forEach(([, r], i) => { S.price[i] = r.p; S.mc.push(r.mc); S.mv.push(r.mv); S.iss.push(r.iss); });
+    S.uocTinh = uocTinh;
+    S.qv = S.dates.map((d) => qvMap.get(d) ?? null);
+    if (S.qv[n - 1] != null) S.qv[n - 1] = null; // ngày hôm nay chưa đóng, khối lượng chưa đủ
+    if (fng && fng.length) {
+      const m = new Map(fng.map((f) => [iso(Number(f.timestamp) * 1000), Number(f.value)])); let lf = null;
+      for (let i = 0; i < n; i++) { const v = m.get(S.dates[i]); if (v != null) lf = v; S.fng[i] = v != null ? v : (i === n - 1 ? lf : null); }
+    }
+    computeRaw(S);
+    return S;
+  }
+
+  function computeRaw(S) {
+    const n = S.price.length, P = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) P[i + 1] = P[i] + S.price[i];
+    const sma = (i, w) => (i + 1 >= w ? (P[i + 1] - P[i + 1 - w]) / w : null);
+    const IS = new Float64Array(n + 1), IC = new Int32Array(n + 1);
+    for (let i = 0; i < n; i++) { const v = S.iss[i]; IS[i + 1] = IS[i] + (v ?? 0); IC[i + 1] = IC[i] + (v != null ? 1 : 0); }
+    const QS = new Float64Array(n + 1), QC = new Int32Array(n + 1);
+    for (let i = 0; i < n; i++) { const q = S.qv ? S.qv[i] : null; QS[i + 1] = QS[i] + (q ?? 0); QC[i + 1] = QC[i] + (q != null ? 1 : 0); }
+    const qavg = (i, w, minc) => { const a = Math.max(0, i + 1 - w), c = QC[i + 1] - QC[a]; return c >= minc ? (QS[i + 1] - QS[a]) / c : null; };
+    S.qavg = qavg;
+    const V = {}; IND.forEach((d) => { V[d.id] = new Array(n).fill(null); });
+    let ath = 0, cnt = 0, mean = 0, m2 = 0, lastPuell = null;
+    for (let i = 0; i < n; i++) {
+      const p = S.price[i]; ath = Math.max(ath, p);
+      V.dd[i] = (1 - p / ath) * 100;
+      V.fng[i] = S.fng[i];
+      const a200 = sma(i, 200), a1400 = sma(i, 1400), a111 = sma(i, 111), a350 = sma(i, 350);
+      if (a200) V.mayer[i] = p / a200;
+      if (a1400) V.wma[i] = p / a1400;
+      if (a111 && a350) V.pi[i] = a111 / (2 * a350);
+      if (i >= 7 * 14) { // RSI 14 tuần, tính trên giá cách nhau 7 ngày
+        let up = 0, dn = 0; for (let k = 0; k < 14; k++) { const d = S.price[i - 7 * k] - S.price[i - 7 * (k + 1)]; if (d > 0) up += d; else dn -= d; }
+        V.rsiw[i] = dn === 0 ? 100 : 100 - 100 / (1 + up / dn);
+      }
+      const mc = S.mc[i], mv = S.mv[i];
+      if (mc != null) { cnt++; const d = mc - mean; mean += d / cnt; m2 += d * (mc - mean); }
+      if (mc != null && mv != null && mv > 0 && cnt > 30) { V.mvrv[i] = mv; V.mvrvz[i] = (mc - mc / mv) / Math.sqrt(m2 / cnt); (S.zsd = S.zsd || [])[i] = Math.sqrt(m2 / cnt); }
+      { const s30 = qavg(i, 30, 25), s365 = qavg(i, 365, 300); if (s30 && s365) V.vol[i] = s30 / s365; else if (i === n - 1 && V.vol[i - 1] != null) V.vol[i] = V.vol[i - 1]; }
+      const a = Math.max(0, i + 1 - 365), c = IC[i + 1] - IC[a];
+      if (S.iss[i] != null && c >= 300) { lastPuell = S.iss[i] / ((IS[i + 1] - IS[a]) / c); V.puell[i] = lastPuell; }
+      else if (i === n - 1 && lastPuell != null) V.puell[i] = lastPuell;
+    }
+    S.v = V; S.pctMemo = {};
+    S.avail = IND.filter((d) => !d.need || S.has[d.need]).map((d) => d.id);
+  }
+
+  function pctAt(S, id, i) {
+    const key = id + ':' + i; if (key in S.pctMemo) return S.pctMemo[key];
+    const v = S.v[id], x = v[i]; let r = null;
+    if (x != null) {
+      let less = 0, eq = 0, tot = 0;
+      for (let j = Math.max(0, i - WIN + 1); j <= i; j++) { const y = v[j]; if (y == null) continue; tot++; if (y < x) less++; else if (y === x) eq++; }
+      if (tot >= 365) r = (less + 0.5 * eq) / tot;
+    }
+    S.pctMemo[key] = r; return r;
+  }
+  function featAt(S, id, i) {
+    const d = IND.find((x) => x.id === id);
+    if (d.feat === 'pct') return pctAt(S, id, i);
+    const v = S.v[id][i]; return v == null ? null : v * d.scale;
+  }
+  // ---------------------------------------------------------------- hồi quy logistic có điều chuẩn
+  function solve(A, b) {
+    const n = b.length, M = A.map((r, i) => [...r, b[i]]);
+    for (let c = 0; c < n; c++) {
+      let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+      [M[c], M[p]] = [M[p], M[c]];
+      const pv = M[c][c] || 1e-12;
+      for (let r = 0; r < n; r++) { if (r === c) continue; const f = M[r][c] / pv; if (!f) continue; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; }
+    }
+    return M.map((r, i) => r[n] / (r[i] || 1e-12));
+  }
+  function fitLogit(X, y, init, lambda = 2) {
+    const n = X.length, d = X[0].length, mu = new Array(d).fill(0), sd = new Array(d).fill(0);
+    for (const x of X) for (let k = 0; k < d; k++) mu[k] += x[k] / n;
+    for (const x of X) for (let k = 0; k < d; k++) sd[k] += (x[k] - mu[k]) ** 2 / n;
+    for (let k = 0; k < d; k++) sd[k] = Math.sqrt(sd[k]) || 1;
+    const Z = X.map((x) => [1, ...x.map((v, k) => (v - mu[k]) / sd[k])]);
+    let w = init && init.length === d + 1 ? [...init] : new Array(d + 1).fill(0);
+    if (!init) { const m = y.reduce((a, b) => a + b, 0) / n; w[0] = Math.log((m + 1e-3) / (1 - m + 1e-3)); }
+    for (let it = 0; it < 30; it++) {
+      const g = new Array(d + 1).fill(0), Hm = Array.from({ length: d + 1 }, () => new Array(d + 1).fill(0));
+      for (let s = 0; s < n; s++) {
+        const z = Z[s]; let e = 0; for (let k = 0; k <= d; k++) e += w[k] * z[k];
+        const p = 1 / (1 + Math.exp(-e)), q = p * (1 - p), res = y[s] - p;
+        for (let a = 0; a <= d; a++) { g[a] += res * z[a]; const qa = q * z[a]; for (let b = a; b <= d; b++) Hm[a][b] += qa * z[b]; }
+      }
+      for (let a = 0; a <= d; a++) for (let b = 0; b < a; b++) Hm[a][b] = Hm[b][a];
+      for (let k = 1; k <= d; k++) { g[k] -= lambda * w[k]; Hm[k][k] += lambda; }
+      const delta = solve(Hm, g); let mx = 0;
+      for (let k = 0; k <= d; k++) { w[k] += delta[k]; mx = Math.max(mx, Math.abs(delta[k])); }
+      if (mx < 1e-6) break;
+    }
+    return { w, mu, sd };
+  }
+  const predLogit = (m, x) => { let e = m.w[0]; for (let k = 0; k < x.length; k++) e += m.w[k + 1] * (x[k] - m.mu[k]) / m.sd[k]; return 1 / (1 + Math.exp(-e)); };
+
+  // ---------------------------------------------------------------- đo lường
+  function wilson(k, n) { if (!n) return [null, null]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = p + z * z / (2 * n), m = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)); return [Math.max(0, (c - m) / d), Math.min(1, (c + m) / d)]; }
+  const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const quant = (a, q) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.max(0, Math.round(q * (s.length - 1))))]; };
+
+  // ---------------------------------------------------------------- khối lượng giao dịch
+  const VCLS = {
+    tang_xn: { ten: tx('web.engine.tang_co_khoi_luong_xac_nhan'), tone: 'good' },
+    tang_yeu: { ten: tx('web.engine.tang_nhung_khoi_luong_thap'), tone: 'mid' },
+    giam_manh: { ten: tx('web.engine.giam_kem_khoi_luong_lon'), tone: 'bad' },
+    giam_yeu: { ten: tx('web.engine.giam_voi_khoi_luong_thap'), tone: 'mid' },
+    thuong: { ten: tx('web.engine.khoi_luong_va_gia_binh_thuong'), tone: '' },
+  };
+  function volumeStudy(S) {
+    if (!S.has.vol) return null;
+    const n = S.price.length, weeks = [];
+    for (let i = 7; i < n - 1; i++) {
+      if (new Date(S.dates[i] + 'T00:00:00Z').getUTCDay() !== 0) continue;
+      let v = 0, c = 0; for (let k = 0; k < 7; k++) { const q = S.qv[i - k]; if (q != null) { v += q; c++; } }
+      if (c < 6) continue;
+      weeks.push({ i, date: S.dates[i], vol: v * 7 / c, chg: S.price[i] / S.price[i - 7] - 1 });
+    }
+    weeks.forEach((w, k) => {
+      const prev = weeks.slice(Math.max(0, k - 20), k);
+      w.rv = prev.length >= 10 ? w.vol / (prev.reduce((a, x) => a + x.vol, 0) / prev.length) : null;
+      const up = w.chg > 0.02, dn = w.chg < -0.02, hi = w.rv != null && w.rv >= 1.25, lo = w.rv != null && w.rv <= 0.8;
+      w.cls = w.rv == null ? null : up && hi ? 'tang_xn' : up && lo ? 'tang_yeu' : dn && hi ? 'giam_manh' : dn && lo ? 'giam_yeu' : 'thuong';
+      w.f4 = k + 4 < weeks.length ? S.price[weeks[k + 4].i] / S.price[w.i] - 1 : null;
+      w.f13 = k + 13 < weeks.length ? S.price[weeks[k + 13].i] / S.price[w.i] - 1 : null;
+    });
+    // kiểm chứng: sau mỗi loại tuần, giá đi tiếp thế nào
+    const testOf = (pick) => {
+      const sel = weeks.filter(pick), out = { n: sel.length };
+      for (const h of ['f4', 'f13']) {
+        const r = sel.map((w) => w[h]).filter((x) => x != null), k = r.filter((x) => x > 0).length, [lo, hi] = wilson(k, r.length);
+        out[h] = { n: r.length, win: r.length ? k / r.length : null, lo, hi, med: median(r) };
+      }
+      return out;
+    };
+    const test = [{ id: 'all', ten: tx('web.engine.moi_tuan_moc_so_sanh'), ...testOf((w) => w.cls != null) }]
+      .concat(Object.entries(VCLS).map(([id, c]) => ({ id, ten: c.ten, tone: c.tone, ...testOf((w) => w.cls === id) })));
+    // các đợt tăng/giảm từ 20% trở lên (zigzag trên giá đóng cửa ngày)
+    const start = S.qv.findIndex((q) => q != null), thr = 0.2, piv = [];
+    if (start >= 0) {
+      let dir = 0, ext = start, base = start;
+      for (let i = start + 1; i < n; i++) {
+        const p = S.price[i];
+        if (dir >= 0 && p > S.price[ext]) ext = i;
+        if (dir <= 0 && p < S.price[ext]) ext = i;
+        if (dir === 0) { if (p >= S.price[base] * (1 + thr)) { dir = 1; piv.push(base); ext = i; } else if (p <= S.price[base] * (1 - thr)) { dir = -1; piv.push(base); ext = i; } continue; }
+        if (dir === 1 && p <= S.price[ext] * (1 - thr)) { piv.push(ext); dir = -1; ext = i; }
+        else if (dir === -1 && p >= S.price[ext] * (1 + thr)) { piv.push(ext); dir = 1; ext = i; }
+      }
+      piv.push(n - 1);
+    }
+    const waves = [];
+    for (let k = 0; k + 1 < piv.length; k++) {
+      const a = piv[k], b = piv[k + 1]; if (b - a < 3) continue;
+      const qs = []; for (let i = a + 1; i <= b; i++) if (S.qv[i] != null) qs.push(S.qv[i]);
+      if (qs.length < 3) continue;
+      const avg = qs.reduce((x, y) => x + y, 0) / qs.length, ref = S.qavg(a, 365, 200);
+      const h1 = qs.slice(0, qs.length >> 1), h2 = qs.slice(qs.length >> 1);
+      const trend = h1.length && h2.length ? (h2.reduce((x, y) => x + y, 0) / h2.length) / (h1.reduce((x, y) => x + y, 0) / h1.length) : null;
+      const chg = S.price[b] / S.price[a] - 1, rel = ref ? avg / ref : null, up = chg > 0;
+      let note;
+      if (rel == null) note = tx('web.engine.chua_du_lich_su_khoi_luong');
+      else if (up) note = rel >= 1.2 && trend >= 1 ? tx('web.engine.tang_kem_khoi_luong_lon_va')
+        : rel >= 1.2 ? tx('web.engine.khoi_luong_lon_nhung_giam_dan')
+        : rel < 0.9 ? tx('web.engine.tang_voi_khoi_luong_thap_thieu') : tx('web.engine.khoi_luong_binh_thuong');
+      else note = trend != null && trend >= 1.3 && rel >= 1 ? tx('web.engine.khoi_luong_don_manh_ve_cuoi')
+        : rel >= 1.2 ? tx('web.engine.giam_kem_khoi_luong_lon_ap')
+        : rel < 0.9 ? tx('web.engine.giam_voi_khoi_luong_thap_chu') : tx('web.engine.khoi_luong_binh_thuong');
+      waves.push({ from: S.dates[a], to: S.dates[b], open: b === n - 1, chg, days: b - a, rel, trend, note });
+    }
+    const done = weeks.filter((w) => w.cls != null);
+    return { weeks, test, waves, last: done[done.length - 1] || null, recent: done.slice(-8) };
+  }
+
+  return { IND, FAMILIES, VCLS, buildSeries, wilson, volumeStudy,
+    _: { featAt, fitLogit, predLogit, median, quant, computeRaw } };
+})();
+// ===== CORE END =====
+
+</script>
+<script>
+// ===== B3 START =====
+const B3 = (() => {
+  const tx = typeof I18N !== 'undefined' ? I18N.tx : require('./i18n.js').tx;
+  const { IND, FAMILIES } = BOT;
+  const { featAt, fitLogit, predLogit, median, quant, computeRaw } = BOT._;
+  const wilson = BOT.wilson;
+  const DAY = 86400000;
+
+  const HZ = [
+    { id: '1m', ten: tx('web.analysis.s_1_thang'), w: 4, days: 30 }, { id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13, days: 91 },
+    { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26, days: 182 }, { id: '1y', ten: tx('web.analysis.s_1_nam'), w: 52, days: 365 },
+  ];
+  const SELL_HZ = [{ id: '3m', ten: tx('web.analysis.s_3_thang'), w: 13 }, { id: '6m', ten: tx('web.analysis.s_6_thang'), w: 26 }];
+  const SELL_DROP = -0.10;
+  const BUY_Z = [{ id: 'phai', ten: tx('web.analysis.phai_mua'), min: 80 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_mua'), min: 60 }, { id: 'khong', ten: tx('web.analysis.khong_nen_mua'), min: 0 }];
+  const SELL_Z = [{ id: 'nen', ten: tx('web.analysis.nen_ban'), min: 85 }, { id: 'cannhac', ten: tx('web.analysis.can_nhac_ban'), min: 70 }, { id: 'khong', ten: tx('web.analysis.khong_nen_ban'), min: 0 }];
+  const zoneOf = (Z, v) => (v == null ? null : Z.find((z) => v >= z.min));
+  const MIN_TRAIN = 78;
+  // các phương án theo thứ tự ưu tiên thiết kế; xếp hạng thật do dữ liệu quyết định
+  const OPTIONS = [
+    { id: 'pa1', ten: tx('web.analysis.phuong_an_1'), ids: ['pi', 'mvrv'], lyDo: tx('web.analysis.xu_huong_gia_dinh_gia_on') },
+    { id: 'pa2', ten: tx('web.analysis.phuong_an_2'), ids: ['pi', 'mvrvz'], lyDo: tx('web.analysis.nhu_phuong_an_1_nhung_dung') },
+    { id: 'pa3', ten: tx('web.analysis.phuong_an_3'), ids: ['pi', 'mvrv', 'fng'], lyDo: tx('web.analysis.ba_goc_nhin_xu_huong_dinh') },
+    { id: 'pa4', ten: tx('web.analysis.phuong_an_4'), ids: ['pi', 'puell'], lyDo: tx('web.analysis.xu_huong_gia_doanh_thu_tho') },
+    { id: 'pa5', ten: tx('web.analysis.phuong_an_5'), ids: ['fng', 'mvrv', 'wma'], lyDo: tx('web.analysis.bo_can_bang_khong_dung_pi') },
+    { id: 'pa6', ten: tx('web.analysis.phuong_an_6'), ids: null, lyDo: tx('web.analysis.bo_bot_tu_tim_co_ty') },
+  ];
+  const PRESETS = [
+    { id: 'all', ten: tx('web.analysis.tat_ca_chi_so'), ids: IND.map((d) => d.id) },
+    { id: 'onchain', ten: tx('web.analysis.dinh_gia_on_chain'), ids: ['mvrv', 'mvrvz', 'puell'] },
+    { id: 'xuhuong', ten: tx('web.analysis.xu_huong_gia'), ids: ['wma', 'mayer', 'rsiw', 'pi'] },
+    { id: 'tamly_dinhgia', ten: tx('web.analysis.tam_ly_va_dinh_gia'), ids: ['fng', 'mvrv', 'wma'] },
+  ];
+
+  // các lần kiểm tra theo tuần (Chủ nhật) đến trước ngày phân tích, cộng thêm chính ngày phân tích
+  function weekly(S, asOf) {
+    const out = [];
+    for (let i = 0; i < asOf; i++) if (new Date(S.dates[i] + 'T00:00:00Z').getUTCDay() === 0) out.push(i);
+    out.push(asOf);
+    return out;
+  }
+  const featRows = (S, smp, ids) => smp.map((i, j) => { const f = ids.map((id) => featAt(S, id, i)); return { j, i, date: S.dates[i], f, ok: f.every((x) => x != null) }; });
+
+  // vị trí 0–100 của mức chênh e trong thang so sánh đã sắp xếp
+  const rankIn = (arr, e) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < e) lo = m + 1; else hi = m; } let eq = lo; while (eq < arr.length && arr[eq] === e) eq++; return ((lo + 0.5 * (eq - lo)) / arr.length) * 100; };
+  // dự báo đi tới: tại mỗi lần, chỉ học từ những lần đã biết kết quả trước đó
+  function walk(S, smp, R, H, target, refit) {
+    const preds = [], X = [], Y = [];
+    let model = null, lastFit = -1e9, k = 0, sumY = 0, ref = null;
+    for (const r of R) {
+      while (k + H <= r.j) { const q = R[k]; if (q.ok) { const ret = S.price[smp[k + H]] / S.price[q.i] - 1; X.push(q.f); Y.push(target(ret)); sumY += Y[Y.length - 1]; } k++; }
+      if (!r.ok || X.length < MIN_TRAIN) continue;
+      const p0 = sumY / X.length;
+      if (!model || r.j - lastFit >= refit) {
+        model = fitLogit(X, Y, model && model.w); lastFit = r.j;
+        // thang so sánh: mức chênh của mọi lần đã biết kết quả, theo mô hình vừa học (không nhìn trước)
+        ref = X.map((x) => predLogit(model, x) - p0).sort((a, b) => a - b);
+      }
+      const p = predLogit(model, r.f), e = p - p0;
+      const ret = r.j + H < smp.length ? S.price[smp[r.j + H]] / S.price[r.i] - 1 : null;
+      preds.push({ j: r.j, i: r.i, date: r.date, p, p0, e, r: ret, rank: rankIn(ref, e) });
+    }
+    return { preds, model, ref };
+  }
+  // mô hình cuối cùng của từng kỳ giữ, để tính lại tỷ lệ tại ngày phân tích với giá giả định
+  const fitOf = (ws) => ws.map((w) => ({ model: w.model, ref: w.ref, p0: w.preds[w.preds.length - 1].p0 }));
+
+  // điểm tổng = trung bình vị trí của các kỳ giữ
+  function combine(list) {
+    const maps = list.map((w) => new Map(w.preds.map((x) => [x.j, x])));
+    const out = [];
+    for (const x of list[0].preds) {
+      const xs = maps.map((m) => m.get(x.j));
+      if (xs.some((y) => !y || y.rank == null)) continue;
+      out.push({ j: x.j, i: x.i, date: x.date, score: xs.reduce((a, y) => a + y.rank, 0) / xs.length, rs: xs.map((y) => y.r) });
+    }
+    return out;
+  }
+
+  const winStat = (rets, cond) => { const r = rets.filter((x) => x != null); const k = r.filter(cond).length; const [lo, hi] = wilson(k, r.length); return { n: r.length, win: r.length ? k / r.length : null, lo, hi, med: median(r) }; };
+  const eps = (list) => { let e = 0, prev = -9; for (const x of list) { if (x.j - prev > 1) e++; prev = x.j; } return e; };
+
+  function buyEvidence(series, from) {
+    const s = series.filter((x) => x.date >= from);
+    const rowsOf = (pick) => { const sel = s.filter(pick); return { n: sel.length, eps: eps(sel), h: HZ.map((h, k) => winStat(sel.map((x) => x.rs[k]), (r) => r > 0)) }; };
+    return { base: rowsOf(() => true), zones: BUY_Z.map((z) => ({ ...z, ...rowsOf((x) => zoneOf(BUY_Z, x.score) === z) })) };
+  }
+  function sellEvidence(series, from) {
+    const s = series.filter((x) => x.date >= from);
+    const rowsOf = (pick) => { const sel = s.filter(pick); return { n: sel.length, eps: eps(sel), h: SELL_HZ.map((h, k) => ({ giam: winStat(sel.map((x) => x.rs[k]), (r) => r < 0), giamManh: winStat(sel.map((x) => x.rs[k]), (r) => r < SELL_DROP) })) }; };
+    return { base: rowsOf(() => true), zones: SELL_Z.map((z) => ({ ...z, ...rowsOf((x) => zoneOf(SELL_Z, x.score) === z) })) };
+  }
+
+  // đánh giá nhanh một bộ chỉ số (chỉ chiều mua), dùng khi tìm bộ tốt nhất
+  function quickBuy(S, asOf, ids, refit = 8) {
+    const smp = weekly(S, asOf), R = featRows(S, smp, ids);
+    const ws = HZ.map((h) => walk(S, smp, R, h.w, (r) => (r > 0 ? 1 : 0), refit));
+    return combine(ws);
+  }
+  function objective(series, from) {
+    const ev = buyEvidence(series, from), z = ev.zones[0];
+    if (z.n < 20 || z.eps < 2) return { score: -Infinity, ev };
+    const lbs = z.h.map((x) => (x.n >= 10 ? x.lo : null)).filter((x) => x != null);
+    if (!lbs.length) return { score: -Infinity, ev };
+    return { score: lbs.reduce((a, b) => a + b, 0) / lbs.length, ev };
+  }
+
+  async function search(S, asOf, cand, tick) {
+    cand = cand.filter((id) => S.avail.includes(id));
+    const cache = new Map();
+    const run = async (ids) => { const key = [...ids].sort().join(','); if (!cache.has(key)) { cache.set(key, quickBuy(S, asOf, ids)); if (tick) await tick(); } return cache.get(key); };
+    const singles = [];
+    for (const id of cand) { const s = await run([id]); if (s.length) singles.push({ id, first: s[0].date }); }
+    if (!singles.length) throw new Error(tx('web.analysis.chua_du_du_lieu_de_tim'));
+    const from = singles.map((x) => x.first).sort().pop() > '2021-01-01' ? singles.map((x) => x.first).sort().pop() : '2021-01-01';
+    const usable = singles.map((x) => x.id);
+    const evalIds = async (ids) => objective(await run(ids), from);
+    let chosen = [], best = -Infinity; const steps = [];
+    while (chosen.length < 6) {
+      let pick = null, ps = -Infinity;
+      for (const id of usable) { if (chosen.includes(id)) continue; const o = await evalIds([...chosen, id]); if (o.score > ps) { ps = o.score; pick = id; } }
+      if (!pick) break;
+      if (chosen.length && ps - best < 0.005) { steps.push({ them: pick, score: ps, dung: true }); break; }
+      chosen = [...chosen, pick]; best = ps; steps.push({ them: pick, score: ps });
+    }
+    const cands = [{ ten: tx('web.analysis.bo_bot_tim_duoc'), ids: chosen }, ...PRESETS.map((p) => ({ ten: p.ten, ids: p.ids.filter((id) => usable.includes(id)) })), ...usable.map((id) => ({ ten: IND.find((d) => d.id === id).ten + tx('web.analysis.rieng'), ids: [id] }))];
+    const ranking = [];
+    for (const c of cands) {
+      if (!c.ids.length) continue;
+      const series = await run(c.ids), o = objective(series, from);
+      const mid = series.filter((x) => x.date >= from); const midDate = mid.length ? mid[Math.floor(mid.length / 2)].date : from;
+      const half = (a, b) => { const z = buyEvidence(series.filter((x) => x.date >= a && (!b || x.date < b)), a).zones[0]; return z.h; };
+      ranking.push({ ...c, score: o.score, phai: o.ev.zones[0], base: o.ev.base, nua1: half(from, midDate), nua2: half(midDate) });
+    }
+    ranking.sort((a, b) => b.score - a.score);
+    const seen = new Set(), uniq = ranking.filter((r) => { const k = [...r.ids].sort().join(','); if (seen.has(k)) return false; seen.add(k); return true; });
+    return { ids: chosen, from, steps, ranking: uniq, asOfDate: S.dates[asOf], midNote: true };
+  }
+
+  // phân tích đầy đủ một bộ chỉ số tại một ngày
+  function analyze(S, asOf, ids) {
+    ids = ids.filter((id) => S.avail.includes(id));
+    if (!ids.length) throw new Error(tx('web.analysis.hay_chon_it_nhat_mot_chi'));
+    const smp = weekly(S, asOf), R = featRows(S, smp, ids);
+    if (!R[R.length - 1].ok) throw new Error(tx('web.analysis.tai_ngay_phan_tich_mot_so'));
+    const buyW = HZ.map((h) => walk(S, smp, R, h.w, (r) => (r > 0 ? 1 : 0), 4));
+    const sellW = SELL_HZ.map((h) => walk(S, smp, R, h.w, (r) => (r < SELL_DROP ? 1 : 0), 4));
+    const buyS = combine(buyW), sellS = combine(sellW);
+    const nowJ = smp.length - 1;
+    const bNow = buyS.find((x) => x.j === nowJ), sNow = sellS.find((x) => x.j === nowJ);
+    if (!bNow || !sNow) throw new Error(tx('web.analysis.chua_du_lich_su_de_cham'));
+    const from = buyS[0].date;
+    // xác suất thắng hôm nay cho từng kỳ giữ: tỉ lệ thực tế của những lần trước có điều kiện gần giống
+    const hold = HZ.map((h, k) => {
+      const w = buyW[k], now = w.preds[w.preds.length - 1], past = w.preds.filter((x) => x.r != null);
+      let band = 0.03, near = [];
+      while (band <= 0.3) { near = past.filter((x) => Math.abs(x.e - now.e) <= band); if (near.length >= 25) break; band += 0.03; }
+      const st = winStat(near.map((x) => x.r), (r) => r > 0), base = winStat(past.map((x) => x.r), (r) => r > 0);
+      const act = asOf + h.days < S.price.length ? S.price[asOf + h.days] / S.price[asOf] - 1 : null;
+      return { ...h, ...st, eps: eps(near), base: base.win, q1: quant(near.map((x) => x.r), 0.25), q3: quant(near.map((x) => x.r), 0.75), thucTe: act };
+    });
+    const weights = buyW[2].model ? ids.map((id, k) => ({ id, w: buyW[2].model.w[k + 1] * IND.find((d) => d.id === id).dir })) : null;
+    const feats = ids.map((id) => ({ id, v: S.v[id][smp[nowJ]] }));
+    return {
+      date: S.dates[asOf], asOf, price: S.price[asOf], ids, from,
+      buy: { score: bNow.score, zone: zoneOf(BUY_Z, bNow.score), ev: buyEvidence(buyS, from), series: buyS, fit: fitOf(buyW) },
+      sell: { score: sNow.score, zone: zoneOf(SELL_Z, sNow.score), ev: sellEvidence(sellS, from), series: sellS, fit: fitOf(sellW) },
+      hold, weights, feats,
+    };
+  }
+
+  // ---- giá đề xuất mua, bán: giá BTC tại ngày phân tích để bot chuyển khung
+  // tỷ lệ nên mua, nên bán nếu giá ngày phân tích là X: tính lại chỉ số trên chuỗi cắt tại ngày đó (không thấy dữ liệu sau),
+  // giữ nguyên mô hình đã học và các yếu tố không phụ thuộc giá (Fear & Greed, khối lượng); vốn hóa, MVRV, Puell đổi theo giá
+  function scoreAtPrice(S, asOf, a, X) {
+    const n = asOf + 1, k = X / S.price[asOf], cut = (arr) => arr.slice(0, n);
+    const T = { dates: cut(S.dates), price: cut(S.price), mc: cut(S.mc), mv: cut(S.mv), iss: cut(S.iss), fng: cut(S.fng), qv: cut(S.qv), has: S.has };
+    T.price[asOf] = X;
+    for (const key of ['mc', 'mv', 'iss']) if (T[key][asOf] != null) T[key][asOf] *= k;
+    computeRaw(T);
+    if (S.iss[asOf] == null && T.v.puell[asOf] != null) T.v.puell[asOf] *= k; // Puell hôm nay mượn từ hôm trước: cho đổi theo giá
+    const f = a.ids.map((id) => featAt(T, id, asOf));
+    if (f.some((x) => x == null)) return null;
+    const sc = (fits) => fits.reduce((s, m) => s + rankIn(m.ref, predLogit(m.model, f) - m.p0), 0) / fits.length;
+    return { buy: sc(a.buy.fit), sell: sc(a.sell.fit) };
+  }
+  // các ngưỡng khung xếp theo giá từ cao xuống thấp: Nên bán, Cân nhắc bán, Cân nhắc mua, Phải mua
+  const LV = [...SELL_Z.filter((z) => z.min > 0).map((z) => ({ id: z.id, ten: z.ten, kind: 'sell', thr: z.min })),
+    ...BUY_Z.filter((z) => z.min > 0).reverse().map((z) => ({ id: z.id, ten: z.ten, kind: 'buy', thr: z.min }))];
+  const LV_STEP = 1.01, LV_LO = 0.25, LV_HI = 4, LV_LADDER = [0.7, 0.8, 0.9, 0.95, 1, 1.05, 1.1, 1.2, 1.3, 1.5];
+  // lời giải thích khi mốc giá ít ý nghĩa
+  function levelNotes(lv) {
+    const out = [];
+    if (lv.phang) out.push(tx('web.analysis.voi_bo_chi_so_nay_ty'));
+    if (lv.nguocMua) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so'));
+    if (lv.nguocBan) out.push(tx('web.analysis.mo_hinh_cua_bo_chi_so_2'));
+    return out;
+  }
+  // dò từ giá p mỗi bước 1% rồi chia đôi, tìm mốc mà tại đó điều kiện ok(X) đổi so với hôm nay;
+  // giá giảm làm tỷ lệ nên mua tăng, giá tăng làm tỷ lệ nên bán tăng; đang đạt thì dò ngược lại để tìm chỗ hết đạt
+  function findLevel(p, kind, ok) {
+    const dat = ok(p), go = (kind === 'buy' ? -1 : 1) * (dat ? -1 : 1);
+    let a0 = p, b0 = null;
+    for (let s = 1; ; s++) { const X = p * LV_STEP ** (go * s); if (X < p * LV_LO || X > p * LV_HI) break; if (ok(X) !== dat) { b0 = X; break; } a0 = X; }
+    if (b0 == null) return { dat, gia: null };
+    for (let it = 0; it < 12; it++) { const m = Math.sqrt(a0 * b0); if (ok(m) === dat) a0 = m; else b0 = m; }
+    return { dat, gia: dat ? a0 : b0 };
+  }
+  function priceLevels(S, asOf, a) {
+    const p = S.price[asOf], memo = new Map();
+    const at = (X) => { if (!memo.has(X)) memo.set(X, scoreAtPrice(S, asOf, a, X)); return memo.get(X); };
+    const levels = LV.map((L) => ({ ...L, ...findLevel(p, L.kind, (X) => { const s = at(X); return s != null && s[L.kind] >= L.thr; }) }));
+    // bảng "nếu giá là X": cho thấy tỷ lệ đổi theo giá thế nào, kể cả khi mô hình chạy ngược hoặc gần như không đổi
+    const ladder = LV_LADDER.map((f) => { const s = at(p * f); return { f, gia: p * f, buy: s ? s.buy : null, sell: s ? s.sell : null }; });
+    const now = ladder.find((r) => r.f === 1), dn = ladder.find((r) => r.f === 0.8), up = ladder.find((r) => r.f === 1.2);
+    const phang = ladder.every((r) => r.buy != null && Math.abs(r.buy - now.buy) < 3 && Math.abs(r.sell - now.sell) < 3);
+    return { date: S.dates[asOf], price: p, lo: p * LV_LO, hi: p * LV_HI, levels, ladder, phang,
+      nguocMua: !phang && dn.buy != null && dn.buy < now.buy - 1, nguocBan: !phang && up.sell != null && up.sell < now.sell - 1 };
+  }
+  const usdT = (x) => Math.round(x).toLocaleString('vi-VN') + ' $';
+  function levelText(lv, L) {
+    if (L.gia != null) return tx('web.analysis.khi_gia_0_1', L.kind === 'buy' ? '≤' : '≥', usdT(L.gia));
+    if (!L.dat) return L.kind === 'buy' ? tx('web.analysis.chua_dat_du_gia_giam_toi', usdT(lv.lo)) : tx('web.analysis.chua_dat_du_gia_tang_toi', usdT(lv.hi));
+    return L.kind === 'buy' ? tx('web.analysis.o_moi_muc_gia_den_0', usdT(lv.hi)) : tx('web.analysis.o_moi_muc_gia_tu_0', usdT(lv.lo));
+  }
+
+  const vnTime = typeof I18N !== 'undefined' ? I18N.vnTime : require('./i18n.js').vnTime;
+  // ⚠ for an indicator set with fewer than 10 independent episodes or two halves more than 20 points apart (6 months)
+  const warnMd = (eps, h1, h2) => (eps < 10 || (h1 && h2 && h1.n && h2.n && Math.abs(h1.win - h2.win) > 0.2) ? tx('web.kn.warn_mark') : '');
+  const P = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x * 100).toFixed(d).replace('.', ',') + '%');
+  const SP = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
+  const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
+  const nm = (id) => IND.find((d) => d.id === id).ten;
+  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn) {
+    const L = [], t = (x) => L.push(x);
+    t(tx('web.analysis.bao_cao_bot_btc_phan_tich', D(a.date))); t('');
+    t(tx('web.analysis.bot_thong_ke_khong_co_tri')); t('');
+    t(tx('web.analysis.boi_canh'));
+    t(tx('web.analysis.gia_btc_tai_ngay_phan_tich', Math.round(a.price).toLocaleString('vi-VN')) + (isToday ? tx('web.analysis.gia_truc_tiep') : tx('web.analysis.ngay_trong_qua_khu')));
+    t(tx('web.analysis.nguon_0', sources)); t(tx('web.analysis.bo_chi_so_0', a.ids.map(nm).join(', '))); t(tx('web.analysis.giai_doan_cham_diem_tu_0', D(a.from), D(a.date))); t('');
+    t(tx('web.analysis.ket_luan'));
+    t(tx('web.analysis.ty_le_nen_mua_0_khung', a.buy.score.toFixed(0), a.buy.zone.ten, a.buy.score.toFixed(0)));
+    t(tx('web.analysis.ty_le_nen_ban_0_khung', a.sell.score.toFixed(0), a.sell.zone.ten, a.sell.score.toFixed(0))); t('');
+    if (kn) {
+      const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days, m = stale ? 1 : kn.multiplier, ev = kn.evidence;
+      const d3 = (x) => (x == null ? '—' : x.toFixed(3).replace('.', ','));
+      t(tx('web.kn.md_title'));
+      t(tx('web.kn.md_m', m.toFixed(1).replace('.', ','), stale || kn.mode === 'safe' ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + kn.layer)),
+        usdT(kn.amount_example_usd * m), usdT(kn.amount_example_usd)));
+      if (stale || kn.reasons.includes('data_stale')) t(tx('web.kn.md_why', tx('web.kn.reason_data_stale')));
+      if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.reason_model_failed')));
+      if (ev) { const c = ev.candidate.holdout, b = ev.current_bot.holdout; t(tx('web.kn.md_cmp', d3(c.median), d3(c.p10), d3(b.median), d3(b.p10), P(b.cba, 1), P(b.mdd), P(b.mdd_dca))); }
+      t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
+      t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
+    }
+    if (lv) {
+      t(tx('web.analysis.gia_de_xuat_mua_va_ban', D(lv.date), usdT(lv.price)));
+      t(tx('web.analysis.gia_btc_de_bot_chuyen_khung'));
+      t(tx('web.analysis.khuyen_cao_dieu_kien_gia_cach')); t('|---|---|---|---|');
+      lv.levels.forEach((L) => t(`| ${L.ten} | ${levelText(lv, L)} | ${L.gia != null ? SP(L.gia / lv.price - 1) : '—'} | ${L.dat ? tx('web.analysis.dang_dat') : tx('web.analysis.chua_dat')} |`));
+      levelNotes(lv).forEach((s) => t(`- ${s}`));
+      t(tx('web.analysis.neu_gia_ngay_phan_tich_la') + lv.ladder.map((r) => tx('web.analysis.s_0_1_nen_mua_2_nen', usdT(r.gia), r.f === 1 ? tx('web.analysis.hien_tai') : SP(r.f - 1), r.buy == null ? '—' : r.buy.toFixed(0) + '%', r.sell == null ? '—' : r.sell.toFixed(0) + '%')).join('; ') + '.');
+      t('');
+    }
+    t(tx('web.analysis.xac_suat_thang_neu_mua_tai'));
+    t(tx('web.analysis.giu_xac_suat_thang_khoang_tin') + (isToday ? '' : tx('web.analysis.thuc_te_sau_do')));
+    t('|---|---|---|---|---|---|---|' + (isToday ? '' : '---|'));
+    a.hold.forEach((h) => t(tx('web.analysis.s_0_1_2_3_4_5', h.ten, P(h.win), P(h.lo), P(h.hi), P(h.base), SP(h.med), SP(h.q1), SP(h.q3), h.n, h.eps) + (isToday ? '' : ` ${h.thucTe == null ? tx('web.analysis.chua_du_thoi_gian') : SP(h.thucTe)} |`)));
+    t('');
+    t(tx('web.analysis.bo_tieu_chi_ty_le_thang') + D(a.from) + ')');
+    t(tx('web.analysis.khung_so_tuan') + HZ.map((h) => tx('web.analysis.thang_sau') + h.ten).join(' | ') + ' |'); t('|---|---|' + HZ.map(() => '---').join('|') + '|');
+    [{ ten: tx('web.analysis.mua_bat_ky_luc_nao_moc'), ...a.buy.ev.base }, ...a.buy.ev.zones].forEach((z) => t(tx('web.analysis.s_0_1_2_dot', z.ten, z.n, z.eps) + z.h.map((x) => `${P(x.win)} (${x.n})`).join(' | ') + ' |'));
+    t('');
+    t(tx('web.analysis.khung_ban_gia_co_giam_that'));
+    t(tx('web.analysis.khung_so_tuan') + SELL_HZ.map((h) => tx('web.analysis.gia_thap_hon_sau_0_giam', h.ten, h.ten)).join(' | ') + ' |'); t('|---|---|' + SELL_HZ.map(() => '---|---').join('|') + '|');
+    [{ ten: tx('web.analysis.bat_ky_luc_nao_moc'), ...a.sell.ev.base }, ...a.sell.ev.zones].forEach((z) => t(`| ${z.ten} | ${z.n} | ` + z.h.map((x) => `${P(x.giam.win)} | ${P(x.giamManh.win)}`).join(' | ') + ' |'));
+    t('');
+    if (cmp && cmp.ranked.length) {
+      const dt = cmp.dongThuan;
+      t(tx('web.analysis.so_sanh_cac_phuong_an_cham', D(cmp.from)));
+      t(tx('web.analysis.dong_thuan_hom_nay_0_trung', dt.mua.filter((z) => z.n).map((z) => `${z.n}/${dt.tong} ${z.ten.toLowerCase()}`).join(', '), dt.tbMua.toFixed(0), dt.tbBan.toFixed(0)));
+      t(tx('web.analysis.hang_phuong_an_chi_so_nen')); t('|---|---|---|---|---|---|---|---|');
+      cmp.ranked.forEach((x) => t(`| ${x.hang || '—'} | ${warnMd((x.xepTheo === 'rong' ? x.rong : x.evB.zones[0]).eps, x.nua1, x.nua2)}${x.ten} | ${x.ids.map(nm).join(', ')} | ${x.a.buy.score.toFixed(0)}% ${x.a.buy.zone.ten} | ${x.a.sell.score.toFixed(0)}% ${x.a.sell.zone.ten} | ${x.evB.zones[0].h.map((h) => P(h.win)).join(' / ')} | ${P(x.nua1.win)} / ${P(x.nua2.win)} | ${x.banDung ? P(x.banDung.win) + tx('web.analysis.moc') + P(x.banMoc) + ')' : tx('web.analysis.it_tin_hieu')} |`));
+      t('');
+    }
+    if (rec) {
+      t(tx('web.analysis.bo_chi_so_co_ty_le', D(rec.asOfDate), D(rec.from)));
+      t(tx('web.analysis.bo_thang_1_thang_thang_3')); t('|---|---|---|---|---|---|---|');
+      rec.ranking.slice(0, 8).forEach((r) => t(`| ${warnMd(r.phai.eps, r.nua1[2], r.nua2[2])}${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
+      t('');
+    }
+    if (sd) {
+      t(tx('web.analysis.ben_ban_nen_giu_hay_chot', D(sd.date)));
+      t(tx('web.analysis.ket_luan_0_1', sd.verdict.ten, sd.verdict.goiY));
+      t(tx('web.analysis.so_nhom_tieu_chi_dang_tin', sd.nFam, sd.famNow.length ? ' (' + sd.famNow.map((f) => NHOM_TP[f]).join(', ') + ')' : ''));
+      t(tx('web.analysis.moc_ban_vao_mot_tuan_bat', P(sd.baseDung6), P(sd.baseDung12)));
+      t('');
+      t(tx('web.analysis.tieu_chi_dang_tin_hom_nay')); t('|---|---|---|---|---|---|---|---|---|---|');
+      sd.ranked.forEach((c) => t(`| ${c.ten} | ${c.dangTin ? tx('web.analysis.co') : ''} | ${c.nowOn ? tx('web.analysis.dang_bat') : tx('web.analysis.chua')} | ${c.dot} | ${P(c.dung6)} (${c.n6}) | ${P(c.lo6)}–${P(c.hi6)} | ${P(c.dung12)} (${c.n12}) | ${SP(c.up)} | ${SP(c.dn)} | ${c.trigger && c.trigger.gia ? Math.round(c.trigger.gia).toLocaleString('vi-VN') + ' $' : '—'} |`));
+      t('');
+      if (sd.sims.length) { t(tx('web.analysis.mo_phong_giu_1_btc_va')); t(tx('web.analysis.bat_dau_giu_nguyen_theo_quy')); t('|---|---|---|---|---|---|');
+        sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3).replace('.', ',')} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
+    }
+    t(tx('web.analysis.gia_tri_chi_so_tai_ngay'));
+    a.feats.forEach((f) => { const d = IND.find((x) => x.id === f.id); t(`- ${d.ten}: ${f.v == null ? '—' : (+f.v).toFixed(d.dec).replace('.', ',') + (d.unit || '')}`); });
+    if (a.weights) t(tx('web.analysis.trong_so_trong_mo_hinh_6') + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
+    t('');
+    if (vol && vol.last) { t(tx('web.analysis.khoi_luong_giao_dich')); t(tx('web.analysis.tuan_gan_nhat_da_dong_0', D(vol.last.date), SP(vol.last.chg), vol.last.rv.toFixed(2).replace('.', ','), BOT.VCLS[vol.last.cls].ten)); t(''); }
+    t(tx('web.analysis.cau_hoi_goi_y_cho_claude'));
+    t(tx('web.analysis.ket_luan_cua_bot_co_dang'));
+    t(tx('web.analysis.boi_canh_vi_mo_va_tin'));
+    t(tx('web.analysis.nen_chia_tien_mua_the_nao'));
+    return L.join('\n');
+  }
+
+  // chạy tất cả phương án tại một ngày và xếp hạng trên cùng một giai đoạn
+  async function compareOptions(S, asOf, recIds, tick) {
+    const list = [];
+    for (const o of OPTIONS) {
+      const ids = (o.id === 'pa6' ? recIds || [] : o.ids).filter((id) => S.avail.includes(id));
+      const thieu = (o.id === 'pa6' ? [] : o.ids).filter((id) => !S.avail.includes(id));
+      const item = { ...o, ids, thieu, a: null, loi: null };
+      if (!ids.length) item.loi = o.id === 'pa6' ? tx('web.analysis.chua_tim_duoc_bo_khuyen_cao') : tx('web.analysis.thieu_du_lieu_cho_cac_chi');
+      else { try { item.a = analyze(S, asOf, ids); } catch (e) { item.loi = e.message; } }
+      list.push(item);
+      if (tick) await tick();
+    }
+    const okList = list.filter((x) => x.a);
+    if (!okList.length) return { list, from: null, ranked: [] };
+    let from = okList.map((x) => x.a.from).sort().pop(); if (from < '2021-01-01') from = '2021-01-01';
+    for (const x of okList) {
+      const bs = x.a.buy.series.filter((p) => p.date >= from), ss = x.a.sell.series.filter((p) => p.date >= from);
+      x.evB = buyEvidence(bs, from); x.evS = sellEvidence(ss, from);
+      x.obj = objective(bs, from).score;
+      // phương án ít tín hiệu Phải mua: xếp theo khung từ Cân nhắc mua trở lên
+      const wide = buyEvidence(bs.map((p) => ({ ...p, score: p.score >= 60 ? 100 : 0 })), from).zones[0];
+      const lbs = wide.n >= 20 && wide.eps >= 2 ? wide.h.map((h) => (h.n >= 10 ? h.lo : null)).filter((v) => v != null) : [];
+      x.obj2 = lbs.length ? lbs.reduce((a, b) => a + b, 0) / lbs.length : -Infinity;
+      x.rong = wide;
+      const mid = bs.length ? bs[Math.floor(bs.length / 2)].date : from;
+      x.nua1 = buyEvidence(bs.filter((p) => p.date < mid), from).zones[0].h[2];
+      x.nua2 = buyEvidence(bs.filter((p) => p.date >= mid), mid).zones[0].h[2];
+      const nb = x.evS.zones[0];
+      x.banDung = nb.n >= 10 ? nb.h[1].giam : null;
+      x.banMoc = x.evS.base.h[1].giam.win;
+      const same = list.find((y) => y !== x && y.id < x.id && y.a && [...y.ids].sort().join() === [...x.ids].sort().join());
+      x.trung = same ? same.ten : null;
+    }
+    const key = (x) => (isFinite(x.obj) ? [2, x.obj] : isFinite(x.obj2) ? [1, x.obj2] : [0, 0]);
+    const ranked = okList.filter((x) => !x.trung).sort((p, q) => { const a = key(p), b = key(q); return b[0] - a[0] || b[1] - a[1]; });
+    ranked.forEach((x, k) => { x.hang = key(x)[0] ? k + 1 : null; x.xepTheo = key(x)[0] === 2 ? 'phai' : key(x)[0] === 1 ? 'rong' : null; });
+    const cnt = (Z, key) => Z.map((z) => ({ ...z, n: okList.filter((x) => !x.trung && x.a[key].zone.id === z.id).length }));
+    const uniq = okList.filter((x) => !x.trung);
+    return { list, from, ranked, dongThuan: { mua: cnt(BUY_Z, 'buy'), ban: cnt(SELL_Z, 'sell'), tbMua: uniq.reduce((a, x) => a + x.a.buy.score, 0) / uniq.length, tbBan: uniq.reduce((a, x) => a + x.a.sell.score, 0) / uniq.length, tong: uniq.length } };
+  }
+
+  // ---- xuất dữ liệu cho Claude hoặc Excel (UTF-8 có BOM, dấu phẩy ngăn cột, dấu chấm thập phân)
+  const cell = (v) => (v == null ? '' : typeof v === 'number' ? (isFinite(v) ? String(Math.round(v * 1e6) / 1e6) : '') : /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v));
+  const csv = (head, rows) => '\ufeff' + [head, ...rows].map((r) => r.map(cell).join(',')).join('\n');
+  function csvWeekly(S, a) {
+    const sell = new Map(a.sell.series.map((x) => [x.j, x]));
+    const head = ['ngay', 'gia_usd', 'ty_le_nen_mua_pct', 'khung_mua', 'ty_le_nen_ban_pct', 'khung_ban', ...a.ids.map((id) => id + '_' + nm(id)),
+      'thuc_te_sau_1_thang', 'thuc_te_sau_3_thang', 'thuc_te_sau_6_thang', 'thuc_te_sau_1_nam'];
+    const rows = a.buy.series.map((x) => { const sv = sell.get(x.j);
+      return [x.date, S.price[x.i], x.score, zoneOf(BUY_Z, x.score).ten, sv ? sv.score : null, sv ? zoneOf(SELL_Z, sv.score).ten : null,
+        ...a.ids.map((id) => S.v[id][x.i]), ...HZ.map((h) => (x.i + h.days < S.price.length ? S.price[x.i + h.days] / S.price[x.i] - 1 : null))]; });
+    return csv(head, rows);
+  }
+  function csvOptions(cmp) {
+    const head = ['hang', 'phuong_an', 'chi_so', 'ghi_chu', 'nen_mua_hom_nay_pct', 'khung_mua', 'nen_ban_hom_nay_pct', 'khung_ban',
+      ...HZ.map((h) => 'phai_mua_thang_' + h.id), 'phai_mua_so_lan', 'phai_mua_so_dot', ...HZ.map((h) => 'moc_thang_' + h.id),
+      'nua_dau_thang_6m', 'nua_sau_thang_6m', 'nen_ban_gia_thap_hon_6m', 'moc_gia_thap_hon_6m', 'cham_tu'];
+    const rows = cmp.list.map((x) => { const z = x.evB && x.evB.zones[0];
+      return [x.hang, x.ten, x.ids.map(nm).join(' + '), x.loi || (x.trung ? tx('web.analysis.trung') + x.trung : x.xepTheo === 'rong' ? tx('web.analysis.it_tin_hieu_phai_mua_xep') : ''),
+        x.a && x.a.buy.score, x.a && x.a.buy.zone.ten, x.a && x.a.sell.score, x.a && x.a.sell.zone.ten,
+        ...HZ.map((h, k) => z && z.h[k].win), z && z.n, z && z.eps, ...HZ.map((h, k) => x.evB && x.evB.base.h[k].win),
+        x.nua1 && x.nua1.win, x.nua2 && x.nua2.win, x.banDung && x.banDung.win, x.banMoc, cmp.from]; });
+    return csv(head, rows);
+  }
+
+  // ================================================================ BÊN BÁN: chốt lời hay giữ
+  // nhom: để đếm số nhóm cùng báo, không đếm trùng hai chỉ số đo cùng một thứ
+  const TP = [
+    { id: 'pi_cat', ind: 'pi', nhom: 'xuhuong', ten: tx('web.analysis.pi_cycle_cat_len_ti_so'), loai: 'kinh_dien', thr: 1.0 },
+    { id: 'mvrvz_7', ind: 'mvrvz', nhom: 'onchain', ten: 'MVRV Z-Score ≥ 7', loai: 'kinh_dien', thr: 7 },
+    { id: 'mvrv_3', ind: 'mvrv', nhom: 'onchain', ten: 'MVRV ≥ 3', loai: 'kinh_dien', thr: 3 },
+    { id: 'mayer_24', ind: 'mayer', nhom: 'xuhuong', ten: 'Mayer Multiple ≥ 2,4', loai: 'kinh_dien', thr: 2.4 },
+    { id: 'rsiw_80', ind: 'rsiw', nhom: 'xuhuong', ten: tx('web.analysis.rsi_14_tuan_80'), loai: 'kinh_dien', thr: 80 },
+    { id: 'fng_90', ind: 'fng', nhom: 'tamly', ten: 'Fear & Greed ≥ 90', loai: 'kinh_dien', thr: 90 },
+    { id: 'puell_4', ind: 'puell', nhom: 'thodao', ten: 'Puell Multiple ≥ 4', loai: 'kinh_dien', thr: 4 },
+    { id: 'mvrvz_p', ind: 'mvrvz', nhom: 'onchain', ten: tx('web.analysis.mvrv_z_score_thuoc_5_cao'), loai: 'thich_nghi' },
+    { id: 'mvrv_p', ind: 'mvrv', nhom: 'onchain', ten: tx('web.analysis.mvrv_thuoc_5_cao_nhat_4'), loai: 'thich_nghi' },
+    { id: 'mayer_p', ind: 'mayer', nhom: 'xuhuong', ten: tx('web.analysis.mayer_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'wma_p', ind: 'wma', nhom: 'xuhuong', ten: tx('web.analysis.gia_ma_200_tuan_thuoc_5'), loai: 'thich_nghi' },
+    { id: 'puell_p', ind: 'puell', nhom: 'thodao', ten: tx('web.analysis.puell_multiple_thuoc_5_cao_nhat'), loai: 'thich_nghi' },
+    { id: 'bot_nb', ind: null, nhom: 'mohinh', ten: tx('web.analysis.bot_bao_nen_ban_ty_le'), loai: 'mo_hinh' },
+  ];
+  const NHOM_TP = { xuhuong: tx('web.analysis.xu_huong_gia'), onchain: tx('web.analysis.dinh_gia_on_chain'), tamly: tx('web.analysis.tam_ly'), thodao: tx('web.analysis.tho_dao'), mohinh: tx('web.analysis.mo_hinh_cua_bot') };
+  const SELL_VERDICT = [
+    { id: 'ban', ten: tx('web.analysis.ban_phan_lon'), min: 3, goiY: tx('web.analysis.chot_khoang_50_luong_dang_giu') },
+    { id: 'chot', ten: tx('web.analysis.chot_loi_mot_phan'), min: 1, goiY: tx('web.analysis.chot_khoang_10_30_de_khoa') },
+    { id: 'giu', ten: tx('web.analysis.giu'), min: 0, goiY: tx('web.analysis.chua_co_tieu_chi_chot_loi') },
+  ];
+  const tpOn = (S, c, i, sellScoreAt) => {
+    if (c.loai === 'mo_hinh') { const s = sellScoreAt(i); return s == null ? null : s >= 85; }
+    if (!S.avail.includes(c.ind)) return null;
+    if (c.loai === 'kinh_dien') { const v = S.v[c.ind][i]; return v == null ? null : v >= c.thr; }
+    const f = featAt(S, c.ind, i); return f == null ? null : f >= 0.95;
+  };
+  // giá BTC cần đạt để tiêu chí bật (với chỉ số tăng theo giá)
+  function triggerPrice(S, c, i) {
+    const p = S.price[i], v = c.ind ? S.v[c.ind][i] : null; if (v == null || (c.ind !== 'mvrvz' && !(v > 0))) return null;
+    let thr = c.thr;
+    if (c.loai === 'thich_nghi') { const w = []; for (let j = Math.max(0, i - 1460); j <= i; j++) { const x = S.v[c.ind][j]; if (x != null) w.push(x); } if (w.length < 365) return null; w.sort((a, b) => a - b); thr = w[Math.floor(0.95 * (w.length - 1))]; }
+    if (['mvrv', 'mayer', 'wma', 'puell'].includes(c.ind)) return { gia: p * thr / v, thr };
+    if (c.ind === 'mvrvz' && S.mc[i] && S.mv[i] && S.zsd && S.zsd[i]) { const mc = S.mc[i], rc = mc / S.mv[i]; return { gia: p * (rc + thr * S.zsd[i]) / mc, thr }; }
+    return { gia: null, thr };
+  }
+
+  function sellSide(S, asOf, a) {
+    const smp = weekly(S, asOf), sellMap = new Map(a.sell.series.map((x) => [x.i, x.score]));
+    const sellScoreAt = (i) => (sellMap.has(i) ? sellMap.get(i) : null);
+    const fwd = (i, days) => (i + days <= asOf ? S.price[i + days] / S.price[i] - 1 : null);
+    const maxUp = (i, days) => { if (i + days > asOf) return null; let m = S.price[i]; for (let k = i; k <= i + days; k++) m = Math.max(m, S.price[k]); return m / S.price[i] - 1; };
+    const maxDn = (i, days) => { if (i + days > asOf) return null; let m = S.price[i]; for (let k = i; k <= i + days; k++) m = Math.min(m, S.price[k]); return m / S.price[i] - 1; };
+    const on = TP.map((c) => smp.map((i) => tpOn(S, c, i, sellScoreAt)));
+    // đánh giá từng tiêu chí theo từng đợt bật (tuần đầu tiên của mỗi đợt, các tuần cách nhau tối đa 8 tuần gộp một đợt)
+    const evalSignal = (flags) => {
+      const starts = []; let last = -99, weeksOn = 0;
+      flags.forEach((f, j) => { if (f) { weeksOn++; if (j - last > 8) starts.push(j); last = j; } });
+      const ev = starts.map((j) => { const i = smp[j]; return { date: S.dates[i], i, r6: fwd(i, 182), r12: fwd(i, 365), up: maxUp(i, 182), dn: maxDn(i, 365) }; });
+      const done6 = ev.filter((e) => e.r6 != null), k6 = done6.filter((e) => e.r6 < 0).length, [lo6, hi6] = wilson(k6, done6.length);
+      const done12 = ev.filter((e) => e.r12 != null), k12 = done12.filter((e) => e.r12 < 0).length, [lo12, hi12] = wilson(k12, done12.length);
+      return { dot: ev.length, tuan: weeksOn, ev, n6: done6.length, dung6: done6.length ? k6 / done6.length : null, lo6, hi6, n12: done12.length, dung12: done12.length ? k12 / done12.length : null, lo12, hi12,
+        med6: median(done6.map((e) => e.r6)), up: median(ev.filter((e) => e.up != null).map((e) => e.up)), dn: median(ev.filter((e) => e.dn != null).map((e) => e.dn)) };
+    };
+    // mốc so sánh: giá thấp hơn sau 6 tháng nếu bán vào một tuần bất kỳ
+    const all6 = smp.map((i) => fwd(i, 182)).filter((x) => x != null), baseDung6 = all6.length ? all6.filter((x) => x < 0).length / all6.length : null;
+    const all12 = smp.map((i) => fwd(i, 365)).filter((x) => x != null), baseDung12 = all12.length ? all12.filter((x) => x < 0).length / all12.length : null;
+    const crit = TP.map((c, k) => {
+      const flags = on[k], st = evalSignal(flags), nowOn = flags[flags.length - 1];
+      const tg = c.ind ? triggerPrice(S, c, asOf) : null;
+      return { ...c, ...st, coDuLieu: flags.some((f) => f != null), nowOn, nowVal: c.ind ? S.v[c.ind][asOf] : sellScoreAt(asOf), trigger: tg,
+        dangTin: st.n6 >= 3 && st.lo6 != null && st.lo6 > baseDung6 };
+    });
+    // tiêu chí kết hợp: số nhóm cùng bật (chỉ tính tiêu chí đáng tin)
+    const trusted = crit.filter((c) => c.dangTin);
+    const famAt = (j) => { const f = new Set(); trusted.forEach((c) => { const k = TP.findIndex((t) => t.id === c.id); if (on[k][j]) f.add(c.nhom); }); return f; };
+    const famCount = smp.map((_, j) => famAt(j).size);
+    const combos = [1, 2, 3].map((m) => ({ id: 'combo' + m, ten: tx('web.analysis.tu_0_nhom_tieu_chi_dang', m), loai: 'ket_hop', nhom: null, m, ...evalSignal(famCount.map((n) => n >= m)), nowOn: famCount[famCount.length - 1] >= m, coDuLieu: trusted.length > 0 }));
+    const ranked = [...crit, ...combos].filter((c) => c.coDuLieu && c.n6 >= 3).sort((x, y) => (y.lo6 ?? -1) - (x.lo6 ?? -1));
+    const famNow = famAt(smp.length - 1), nFam = famNow.size;
+    const verdict = SELL_VERDICT.find((v) => nFam >= v.min);
+    // mô phỏng: giữ 1 BTC; khi các nhóm đáng tin bật thì bán bớt về tỷ trọng mục tiêu; mua lại khi bên mua báo từ Cân nhắc mua
+    const buyMap = new Map(a.buy.series.map((x) => [x.i, x.score]));
+    const simFrom = (startDate) => {
+      const js = smp.map((i, j) => j).filter((j) => S.dates[smp[j]] >= startDate && buyMap.has(smp[j]) && j < smp.length - 1);
+      if (js.length < 52) return null;
+      const p0 = S.price[smp[js[0]]]; let btc = 1, cash = 0, ban = 0, mua = 0, peak = p0, mdd = 0, peakH = p0, mddH = 0;
+      for (const j of js) {
+        const i = smp[j], px = S.price[i], target = famCount[j] >= 3 ? 0.5 : famCount[j] === 2 ? 0.7 : famCount[j] === 1 ? 0.9 : null;
+        const val = btc * px + cash, expo = (btc * px) / val;
+        if (target != null && expo > target + 0.01) { const sellBtc = (expo - target) * val / px; btc -= sellBtc; cash += sellBtc * px; ban++; }
+        else if (target == null && cash > 0 && (buyMap.get(i) ?? 0) >= 60) { btc += cash / px; cash = 0; mua++; }
+        const v2 = btc * px + cash; peak = Math.max(peak, v2); mdd = Math.min(mdd, v2 / peak - 1); peakH = Math.max(peakH, px); mddH = Math.min(mddH, px / peakH - 1);
+      }
+      const pe = S.price[smp[js[js.length - 1]]], val = btc * pe + cash;
+      return { tu: S.dates[smp[js[0]]], den: S.dates[smp[js[js.length - 1]]], giuGT: pe, giuBTC: 1, tcGT: val, tcBTC: val / pe, ban, mua, mdd, mddH, tienMat: cash };
+    };
+    const simStarts = ['2014-01-01', '2018-01-01', '2021-01-01'].map(simFrom).filter(Boolean);
+    const seen = new Set(), sims = simStarts.filter((x) => (seen.has(x.tu) ? false : seen.add(x.tu)));
+    return { date: S.dates[asOf], price: S.price[asOf], crit, combos, ranked, trusted: trusted.map((c) => c.id), baseDung6, baseDung12, famNow: [...famNow], nFam, verdict,
+      series: smp.map((i, j) => ({ i, date: S.dates[i], n: famCount[j], on: TP.map((c, k) => on[k][j]) })), sims };
+  }
+
+  function csvSell(sd) {
+    const head = ['tieu_chi', 'loai', 'nhom', 'dang_tin', 'hom_nay_bat', 'gia_tri_hom_nay', 'gia_kich_hoat_usd', 'so_dot', 'so_tuan_bat',
+      'gia_thap_hon_sau_6t', 'can_duoi_6t', 'so_dot_du_6t', 'gia_thap_hon_sau_1n', 'so_dot_du_1n', 'moc_gia_thap_hon_6t', 'lai_trung_vi_6t_sau_tin_hieu', 'con_tang_them_toi_da_trung_vi', 'giam_sau_nhat_1n_trung_vi', 'cac_dot'];
+    const rows = [...sd.crit, ...sd.combos].map((c) => [c.ten, c.loai, c.nhom ? NHOM_TP[c.nhom] : tx('web.analysis.ket_hop'), c.dangTin ? tx('web.analysis.co') : '', c.nowOn ? tx('web.analysis.co') : c.nowOn === false ? tx('web.analysis.khong') : '', c.nowVal, c.trigger && c.trigger.gia,
+      c.dot, c.tuan, c.dung6, c.lo6, c.n6, c.dung12, c.n12, sd.baseDung6, c.med6, c.up, c.dn, (c.ev || []).map((e) => e.date).join(' ')]);
+    return csv(head, rows);
+  }
+
+  return { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, TP, NHOM_TP, SELL_VERDICT, LV, zoneOf, analyze, search, report, compareOptions, csvWeekly, csvOptions, sellSide, csvSell, scoreAtPrice, findLevel, priceLevels, levelText, levelNotes };
+})();
+// ===== B3 END =====
+
+</script>
+<script>
+(() => {
+  const { tx, vnTime } = I18N;
+  const KN = {"generated_at": "2026-10-28T02:49:25Z", "multiplier": 1.0, "mode": "safe", "layer": null, "reasons": ["model_failed"], "amount_example_usd": 100, "stale_data_days": 3, "events": [{"type": "fomc", "time": "2026-10-28T18:00Z"}, {"type": "pce", "time": "2026-10-29T12:30Z"}, {"type": "opex", "time": "2026-10-30T08:00Z"}], "event_delay": false, "freshness": {"coinmetrics": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "fng": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_spot": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "binance_funding": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_oi": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "binance_basis": {"last": "2026-10-27", "ok": true, "age_days": 1, "error": ""}, "stablecoins": {"last": "2026-10-28", "ok": true, "age_days": 0, "error": ""}, "fred_DTWEXBGS": {"last": "2026-10-23", "ok": true, "age_days": 5, "error": ""}, "fred_DFII10": {"last": "2026-10-26", "ok": true, "age_days": 2, "error": ""}, "fred_NASDAQCOM": {"last": "2026-10-26", "ok": true, "age_days": 2, "error": ""}, "fred_M2SL": {"last": "2026-09-01", "ok": true, "age_days": 57, "error": ""}}, "evidence": {"candidate": {"validation": {"median": 1.0, "p10": 1.0, "cba": 0.0, "mdd": -0.759056, "mdd_dca": -0.759056}, "holdout": {"median": 1.0, "p10": 1.0, "cba": 0.0, "mdd": -0.518764, "mdd_dca": -0.518764}, "placebo_holdout": 0.5, "ci_holdout": [1.0, 1.0]}, "current_bot": {"validation": {"median": 0.973863, "p10": 0.966611, "cba": -0.016256, "mdd": -0.756225, "mdd_dca": -0.759056}, "holdout": {"median": 0.940077, "p10": 0.897765, "cba": -0.031354, "mdd": -0.50178, "mdd_dca": -0.518764}, "placebo_holdout": 0.874, "ci_holdout": [0.859424, 1.045209]}, "episodes": {"0.5": 3, "1.25": 19, "2.0": 9}, "trials": 135, "passed": false, "run_at": "2026-10-28T02:19:58Z"}}; // weekly recommendation from the daily job (data/recommendation.json), embedded by build.py
+  const { IND, FAMILIES } = BOT;
+  const { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, zoneOf } = B3;
+  const $ = (id) => document.getElementById(id);
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+  const nf = (d) => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const usd = (x) => (x == null || !isFinite(x) ? '—' : nf(0).format(x) + ' $');
+  const pc = (x, d = 0) => (x == null || !isFinite(x) ? '—' : nf(d).format(x * 100) + '%');
+  const spc = (x, d = 0) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '') + nf(d).format(Math.abs(x * 100)) + '%');
+  const fmtDate = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
+  const nameOf = (id) => IND.find((d) => d.id === id).ten;
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  const URLS = {
+    fng: 'https://api.alternative.me/fng/?limit=0&format=json',
+    cm: 'https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMrktCurUSD,CapMVRVCur,IssTotUSD&start_time=2010-07-18&page_size=10000&ignore_forbidden_errors=true&ignore_unsupported_errors=true',
+    live: ['https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', 'https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT'],
+    gecko: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+    kl: ['https://api.binance.com/api/v3/klines', 'https://data-api.binance.vision/api/v3/klines'],
+  };
+  const LOCAL = location.protocol.startsWith('http') && ['localhost', '127.0.0.1'].includes(location.hostname);
+  const cacheHits = [];
+  async function getJSON(url, timeout = 60000) {
+    const once = async (u) => { const c = new AbortController(), t = setTimeout(() => c.abort(), timeout);
+      try { const r = await fetch(u, { signal: c.signal, cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); const saved = r.headers.get('X-Ban-Luu'); if (saved) cacheHits.push(saved); return await r.json(); } finally { clearTimeout(t); } };
+    if (LOCAL) { try { return await once('/proxy?url=' + encodeURIComponent(url)); } catch (e) { /* thử trực tiếp */ } }
+    try { return await once(url); }
+    catch (e) { throw new Error(e.name === 'AbortError' ? tx('web.ui.het_thoi_gian_cho') : e.message === 'Failed to fetch' ? tx('web.ui.trinh_duyet_bi_chan_hoac_mat') : e.message); }
+  }
+
+  const st = { raw: { cm: null, kl: null, fng: null, live: null }, status: {}, S: null, vol: null,
+    set: 'best', ids: new Set(IND.map((d) => d.id)), rec: null, a: null, full: null, asOf: null };
+  try { const s = JSON.parse(localStorage.getItem('btc-bot3') || 'null'); if (s) { if (s.set) st.set = s.set; if (Array.isArray(s.ids)) st.ids = new Set(s.ids); } } catch (e) { /* bỏ qua */ }
+  const save = () => { try { localStorage.setItem('btc-bot3', JSON.stringify({ set: st.set, ids: [...st.ids] })); } catch (e) { /* bỏ qua */ } };
+  const setStatus = (k, ok, msg) => { st.status[k] = { ok, msg }; renderStatus(); };
+
+  async function loadAll() {
+    $('run').disabled = true; $('research').disabled = true; $('progress').textContent = tx('web.ui.dang_tai_du_lieu_that_tu');
+    try {
+      await Promise.all([
+        getJSON(URLS.fng).then((j) => { st.raw.fng = j.data; setStatus('fng', true, tx('web.ui.s_0_ngay', j.data.length)); }).catch((e) => setStatus('fng', false, e.message)),
+        (async () => {
+          try {
+            let url = URLS.cm, out = [];
+            for (let k = 0; k < 6 && url; k++) { const j = await getJSON(url, 90000); out = out.concat(j.data || []); url = j.next_page_url || null; }
+            if (!out.length) throw new Error(tx('web.ui.khong_co_du_lieu'));
+            st.raw.cm = out; setStatus('cm', true, tx('web.ui.den_0', String(out[out.length - 1].time).slice(0, 10)) + (out.some((r) => r.IssTotUSD != null) ? '' : tx('web.ui.thieu_du_lieu_tho_dao')));
+          } catch (e) {
+            st.raw.cm = null;
+            setStatus('cm', false, e.message + tx('web.ui.tam_dung_gia_binance_mvrv_mvrv'));
+          }
+        })(),
+        (async () => {
+          for (const base of URLS.kl) {
+            try {
+              let s = Date.parse('2017-08-17T00:00:00Z'), out = [];
+              for (let k = 0; k < 10; k++) { const j = await getJSON(`${base}?symbol=BTCUSDT&interval=1d&startTime=${s}&limit=1000`); if (!j.length) break; out = out.concat(j); s = j[j.length - 1][0] + 86400000; if (j.length < 1000) break; }
+              if (out.length) { st.raw.kl = out; setStatus('kl', true, tx('web.ui.gia_va_khoi_luong_ngay_tu', out.length)); return; }
+            } catch (e2) { setStatus('kl', false, e2.message + tx('web.ui.khong_co_du_lieu_khoi_luong')); }
+          }
+        })(),
+        loadLive(),
+      ]);
+      if (cacheHits.length) { const oldest = [...cacheHits].sort()[0]; setStatus('cache', false, tx('web.ui.mot_so_nguon_khong_truy_cap', oldest.slice(11, 16), oldest.slice(8, 10), oldest.slice(5, 7), oldest.slice(0, 4))); cacheHits.length = 0; }
+      else if (LOCAL) setStatus('cache', true, tx('web.ui.du_lieu_vua_tai_da_duoc'));
+      if (!st.raw.cm && !st.raw.kl) throw new Error(tx('web.ui.khong_tai_duoc_gia_lich_su'));
+      st.S = BOT.buildSeries(st.raw);
+      if (st.S.uocTinh && st.status.cm) { const u = st.S.uocTinh; setStatus('cm', true, tx('web.ui.s_0_coin_metrics_chua_cong_bo', st.status.cm.msg, u.ngay, fmtDate(u.den), fmtDate(u.tu))); }
+      st.vol = BOT.volumeStudy(st.S);
+      await afterLoad();
+    } catch (e) {
+      $('loading').hidden = false; $('loading').textContent = e.message + tx('web.ui.kiem_tra_mang_hoac_mo_bang');
+      $('progress').textContent = '';
+    } finally { /* xong */ }
+  }
+  async function loadLive() {
+    for (const u of URLS.live) { try { const j = await getJSON(u, 15000); if (Number(j.price) > 0) { st.raw.live = { price: Number(j.price) }; setStatus('live', true, 'Binance'); return; } } catch (e) { /* tiếp */ } }
+    try { const j = await getJSON(URLS.gecko, 15000); st.raw.live = { price: j.bitcoin.usd }; setStatus('live', true, 'CoinGecko'); } catch (e) { setStatus('live', false, e.message); }
+  }
+
+  // ---------- chạy ----------
+  const avail = () => IND.filter((d) => st.S.avail.includes(d.id)).map((d) => d.id);
+  const SHORT = { pi: 'Pi', mvrv: 'MVRV', mvrvz: 'MVRV Z', fng: 'F&G', puell: 'Puell', wma: tx('web.ui.ma200_tuan'), mayer: 'Mayer', rsiw: tx('web.ui.rsi_tuan'), dd: tx('web.ui.giam_tu_dinh'), vol: tx('web.ui.khoi_luong') };
+  const VALID = ['best', ...OPTIONS.map((o) => o.id), 'all', 'custom'];
+  if (st.set === 'rec') st.set = 'pa6'; else if (!VALID.includes(st.set)) st.set = 'best';
+  const optIds = (id) => { const o = OPTIONS.find((x) => x.id === id); return (id === 'pa6' ? (st.rec ? st.rec.ids : []) : o.ids).filter((x) => st.S.avail.includes(x)); };
+  const topOpt = () => (st.cmp ? st.cmp.ranked.find((x) => x.hang) : null);
+  function idsForSet() {
+    if (st.set === 'best') { const t = topOpt(); if (t) return t.ids; return st.rec && st.rec.ids.length ? st.rec.ids : avail(); }
+    if (st.set.startsWith('pa')) { const ids = optIds(st.set); return ids.length ? ids : avail(); }
+    if (st.set === 'all') return avail();
+    return [...st.ids].filter((id) => st.S.avail.includes(id));
+  }
+  const usesRec = () => st.set === 'pa6' || (st.set === 'best' && topOpt() && topOpt().id === 'pa6');
+  async function doCompare() {
+    busy(true, tx('web.ui.dang_chay_6_phuong_an')); let n = 0;
+    try { st.cmp = await B3.compareOptions(st.S, st.asOf, st.rec ? st.rec.ids : null, async () => { n++; $('progress').textContent = tx('web.ui.dang_chay_6_phuong_an_0', n); await tick(); }); st.cmpAsOf = st.asOf; }
+    catch (e) { st.cmp = null; $('progress').textContent = e.message; }
+    busy(false);
+  }
+  const cachedA = (ids, asOf) => { if (!st.cmp || st.cmpAsOf !== asOf) return null; const k = [...ids].sort().join(); const x = st.cmp.list.find((y) => y.a && [...y.ids].sort().join() === k); return x ? x.a : null; };
+  const busy = (on, msg) => { $('run').disabled = on; $('research').disabled = on; if (msg != null) $('progress').textContent = msg; };
+
+  async function afterLoad() {
+    const S = st.S, last = S.price.length - 1;
+    st.asOf = last;
+    $('date').max = S.dates[last]; $('date').min = '2016-01-01'; $('date').value = S.dates[last];
+    $('price').textContent = usd(S.price[last]);
+    $('when').textContent = st.raw.live ? tx('web.ui.gia_truc_tiep') : tx('web.ui.gia_dong_cua_0', fmtDate(S.dates[last]));
+    renderSets();
+    await doSearch();
+    await doCompare();
+    await analyzeNow(true);
+  }
+  async function doSearch() {
+    busy(true, tx('web.ui.dang_thu_cac_bo_chi_so'));
+    let n = 0;
+    try {
+      st.rec = await B3.search(st.S, st.asOf, avail(), async () => { n++; $('progress').textContent = tx('web.ui.dang_thu_cac_bo_chi_so_2', n); await tick(); });
+    } catch (e) { st.rec = null; $('progress').textContent = e.message; }
+    busy(false);
+  }
+  async function analyzeNow(refreshFull) {
+    const ids = idsForSet();
+    busy(true, tx('web.ui.dang_phan_tich')); await tick();
+    try {
+      const last = st.S.price.length - 1;
+      if (refreshFull || !st.full || st.full.ids.join() !== ids.join()) st.full = cachedA(ids, last) || B3.analyze(st.S, last, ids);
+      st.a = st.asOf === last ? st.full : cachedA(ids, st.asOf) || B3.analyze(st.S, st.asOf, ids);
+      st.lv = B3.priceLevels(st.S, st.asOf, st.a);
+      st.sdFull = B3.sellSide(st.S, last, st.full);
+      st.sd = st.asOf === last ? st.sdFull : B3.sellSide(st.S, st.asOf, st.a);
+      $('loading').hidden = true; $('app').hidden = false;
+      render();
+      $('progress').textContent = tx('web.ui.xong_phan_tich_ngay_0_voi', fmtDate(st.a.date), ids.length);
+    } catch (e) { $('progress').textContent = e.message; }
+    busy(false);
+  }
+
+  // ---------- chọn bộ chỉ số ----------
+  function renderSets() {
+    const t = topOpt();
+    const sets = [{ id: 'best', ten: tx('web.ui.tu_dong_phuong_an_tot_nhat') + (t ? ` (${t.ten.replace(tx('web.ui.phuong_an'), 'PA')})` : '') },
+      ...OPTIONS.map((o) => ({ id: o.id, ten: o.ten.replace(tx('web.ui.phuong_an_2'), 'PA') + ' ' + (o.id === 'pa6' ? tx('web.ui.bot_tu_tim') : o.ids.map((x) => SHORT[x]).join(' + ')) })),
+      { id: 'all', ten: tx('web.ui.tat_ca_chi_so') }, { id: 'custom', ten: tx('web.ui.tu_chon') }];
+    $('sets').replaceChildren(...sets.map((x) => {
+      const b = el('button', null, x.ten); b.type = 'button'; b.setAttribute('aria-pressed', String(st.set === x.id));
+      b.addEventListener('click', () => { if (x.id === 'custom') st.ids = new Set(idsForSet()); st.set = x.id; save(); renderSets(); if (x.id !== 'custom') analyzeNow(); });
+      return b;
+    }));
+    const cur = new Set(idsForSet());
+    $('inds').replaceChildren(...IND.map((d) => {
+      const ok = st.S.avail.includes(d.id), lab = el('label', ok ? '' : 'na'); lab.title = d.y + (ok ? '' : tx('web.ui.nguon_du_lieu_chua_tai_duoc'));
+      const cb = el('input'); cb.type = 'checkbox'; cb.checked = cur.has(d.id) && ok; cb.disabled = !ok;
+      cb.addEventListener('change', () => { if (st.set !== 'custom') { st.ids = new Set(idsForSet()); st.set = 'custom'; } cb.checked ? st.ids.add(d.id) : st.ids.delete(d.id); save(); renderSets(); });
+      lab.append(cb, d.ten); return lab;
+    }));
+    const u = $('using'); u.replaceChildren(el('span', 'muted', tx('web.ui.dang_dung')), idsForSet().map(nameOf).join(', ') || tx('web.ui.chua_chon_chi_so_nao'));
+    if (st.set === 'custom') u.append(el('span', 'muted', tx('web.ui.bam_chay_bot_de_tinh_lai')));
+  }
+  $('run').addEventListener('click', async () => {
+    if (st.asOf === st.S.price.length - 1) { await loadLive(); st.S = BOT.buildSeries(st.raw); st.vol = BOT.volumeStudy(st.S); st.asOf = st.S.price.length - 1; $('price').textContent = usd(st.S.price[st.asOf]); }
+    await doCompare(); analyzeNow(true);
+  });
+  $('research').addEventListener('click', async () => { await doSearch(); await doCompare(); renderSets(); analyzeNow(); });
+  $('date').addEventListener('change', () => setDate($('date').value));
+  $('today').addEventListener('click', () => setDate(st.S.dates[st.S.dates.length - 1]));
+  function setDate(d) {
+    if (!d || !st.S) return;
+    let i = st.S.dates.indexOf(d);
+    if (i < 0) i = d > st.S.dates[st.S.dates.length - 1] ? st.S.dates.length - 1 : st.S.dates.findIndex((x) => x >= d);
+    if (i < 0) return;
+    st.asOf = i; $('date').value = st.S.dates[i];
+    (async () => { await doCompare(); renderSets(); analyzeNow(); })();
+  }
+
+  // ---------- hiển thị ----------
+  const ZCOL = { buy: { phai: '--jade', cannhac: '--brass', khong: '--muted' }, sell: { nen: '--cinnabar', cannhac: '--brass', khong: '--muted' } };
+  function render() {
+    const a = st.a, last = st.S.price.length - 1, past = st.asOf !== last;
+    const w = $('lookahead');
+    if (usesRec() && st.rec && st.rec.asOfDate > a.date) {
+      w.hidden = false; w.textContent = tx('web.ui.luu_y_bo_khuyen_cao_duoc', fmtDate(st.rec.asOfDate), fmtDate(a.date));
+    } else w.hidden = true;
+    renderGauges(); renderKN(); renderLevels(); renderOptions(); renderTiles(past); renderCriteria(); renderRec(); drawChart(); renderFeat(); drawIndCharts(); renderSets(); renderSell(); applyMode();
+  }
+
+  function zoneBar(Z, kind, score) {
+    const box = el('div'), bar = el('div', 'zbar');
+    const parts = [...Z].sort((x, y) => x.min - y.min);
+    parts.forEach((z, k) => { const to = k + 1 < parts.length ? parts[k + 1].min : 100; const i = el('i'); i.style.width = (to - z.min) + '%'; i.style.background = `color-mix(in srgb, var(${ZCOL[kind][z.id]}) ${z.id === 'khong' ? 30 : 70}%, transparent)`; bar.append(i); });
+    const mk = el('div', 'zmark'), b = el('b'); b.style.left = Math.max(1, Math.min(99, score)) + '%'; mk.append(b);
+    const lab = el('div', 'zlab');
+    parts.forEach((z, k) => { const to = k + 1 < parts.length ? parts[k + 1].min : 100; const s = el('span'); s.append(el('b', null, z.ten), el('br'), `${z.min}–${to}%`); s.style.width = (to - z.min) + '%'; lab.append(s); });
+    box.append(bar, mk, lab); return box;
+  }
+  function renderGauges() {
+    const a = st.a, bz = a.buy.zone, sz = a.sell.zone;
+    const gb = $('g-buy'); gb.replaceChildren(el('h3', null, tx('web.ui.ty_le_nen_mua_ngay_0', fmtDate(a.date))));
+    const bb = el('div', 'big'); bb.append(el('b', 'num', nf(0).format(a.buy.score) + '%'), el('span', bz.id === 'phai' ? 'good' : bz.id === 'cannhac' ? 'mid' : 'muted', bz.ten)); gb.append(bb, zoneBar(BUY_Z, 'buy', a.buy.score));
+    gb.append(el('p', null, tx('web.ui.dieu_kien_ngay_nay_thuan_loi', nf(0).format(a.buy.score))));
+    const ez = a.buy.ev.zones.find((z) => z.id === bz.id), eb = a.buy.ev.base;
+    gb.append(el('p', 'muted', ez.n ? tx('web.ui.lich_su_o_khung_0_thang', bz.ten.toLowerCase(), pc(ez.h[2].win), pc(ez.h[3].win), ez.n, ez.eps, pc(eb.h[2].win), pc(eb.h[3].win)) : tx('web.ui.chua_co_tuan_nao_trong_lich')));
+    const gs = $('g-sell'); gs.replaceChildren(el('h3', null, tx('web.ui.ty_le_nen_ban_ngay_0', fmtDate(a.date))));
+    const sb = el('div', 'big'); sb.append(el('b', 'num', nf(0).format(a.sell.score) + '%'), el('span', sz.id === 'nen' ? 'bad' : sz.id === 'cannhac' ? 'mid' : 'muted', sz.ten)); gs.append(sb, zoneBar(SELL_Z, 'sell', a.sell.score));
+    gs.append(el('p', null, tx('web.ui.nguy_co_gia_giam_hon_10', nf(0).format(a.sell.score))));
+    const sz2 = a.sell.ev.zones.find((z) => z.id === sz.id), sbase = a.sell.ev.base;
+    gs.append(el('p', 'muted', sz2.n ? tx('web.ui.lich_su_o_khung_0_gia', sz.ten.toLowerCase(), pc(sz2.h[1].giam.win), pc(sz2.h[1].giamManh.win), sz2.n, pc(sbase.h[1].giam.win), pc(sbase.h[1].giamManh.win)) : tx('web.ui.chua_co_tuan_nao_trong_lich')));
+  }
+
+  // ---------- giá đề xuất mua, bán ----------
+  function renderLevels() {
+    const lv = st.lv, a = st.a, find = (kind, id) => lv.levels.find((L) => L.kind === kind && L.id === id);
+    $('lv-lead').textContent = tx('web.ui.gia_btc_de_bot_chuyen_sang', fmtDate(lv.date));
+    $('lv-sum').replaceChildren(el('b', null, tx('web.ui.gia_de_xuat_mua')), tx('web.ui.can_nhac_mua_0_phai_mua', B3.levelText(lv, find('buy', 'cannhac')), B3.levelText(lv, find('buy', 'phai'))),
+      el('b', null, tx('web.ui.gia_de_xuat_ban')), tx('web.ui.can_nhac_ban_0_nen_ban', B3.levelText(lv, find('sell', 'cannhac')), B3.levelText(lv, find('sell', 'nen'))));
+    // lịch sử của khung: tỷ lệ thực tế so với mốc mua, bán vào một tuần bất kỳ
+    const hist = (L) => {
+      const ev = a[L.kind].ev, z = ev.zones.find((x) => x.id === L.id), b = ev.base; if (!z.n) return [tx('web.ui.chua_co_tuan_nao_o_khung'), '', ''];
+      const yeu = z.eps < 3 ? tx('web.ui.it_dot_doc_lap_nen_chua') : '';
+      if (L.kind === 'buy') { const kem = z.h[2].win != null && z.h[2].win < b.h[2].win;
+        return [tx('web.ui.thang_sau_6_thang_0_sau', pc(z.h[2].win), pc(z.h[3].win), pc(b.h[2].win), pc(b.h[3].win)), tx('web.ui.s_0_tuan_1_dot_2_3', z.n, z.eps, yeu, kem ? tx('web.ui.thap_hon_moc') : ''), kem ? 'bad' : ''];
+      }
+      const kem = z.h[1].giam.win != null && z.h[1].giam.win <= b.h[1].giam.win;
+      return [tx('web.ui.gia_thap_hon_sau_6_thang', pc(z.h[1].giam.win), pc(z.h[1].giamManh.win), pc(b.h[1].giam.win), pc(b.h[1].giamManh.win)), tx('web.ui.s_0_tuan_1_dot_2_3', z.n, z.eps, yeu, kem ? tx('web.ui.khong_hon_moc') : ''), kem ? 'bad' : ''];
+    };
+    const h = el('tr'); [tx('web.ui.khuyen_cao'), tx('web.ui.gia_btc'), tx('web.ui.cach_gia_hien_tai'), tx('web.ui.hom_nay'), tx('web.ui.lich_su_o_khung_nay')].forEach((t, k) => h.append(el('th', k === 1 || k === 2 ? 'r' : '', t)));
+    const tb = el('tbody');
+    const row = (L) => {
+      const tr = el('tr'), zc = L.kind === 'buy' ? ZCOL.buy[L.id] : ZCOL.sell[L.id], n = el('td'), d = el('i', 'zdot'); d.style.background = `var(${zc})`; n.append(d, el('b', null, L.ten), el('span', 'sub', tx('web.ui.ty_le_nen_0_tu_1', L.kind === 'buy' ? 'mua' : tx('web.ui.ban'), L.thr)));
+      const g = el('td', 'r num nowrap'); if (L.gia != null) g.append(el('b', null, `${L.kind === 'buy' ? '≤' : '≥'} ${usd(L.gia)}`)); else g.append(el('span', 'muted', B3.levelText(lv, L)));
+      const [t1, t2, tone] = hist(L), hc = el('td', tone); hc.append(t1); if (t2) hc.append(el('span', 'sub', t2));
+      tr.append(n, g, el('td', 'r num', L.gia != null ? spc(L.gia / lv.price - 1, 1) : '—'), el('td', null, L.dat ? tx('web.ui.dang_dat') : tx('web.ui.chua_dat')), hc); return tr;
+    };
+    lv.levels.filter((L) => L.kind === 'sell').forEach((L) => tb.append(row(L)));
+    const cur = el('tr', 'here'); cur.append(el('td', null, tx('web.ui.gia_ngay_phan_tich')), el('td', 'r num nowrap', usd(lv.price)), el('td'), el('td', null, tx('web.ui.nen_mua_0_nen_ban_1', nf(0).format(a.buy.score), nf(0).format(a.sell.score))), el('td')); tb.append(cur);
+    lv.levels.filter((L) => L.kind === 'buy').forEach((L) => tb.append(row(L)));
+    const th = el('thead'); th.append(h); $('t-lv').replaceChildren(th, tb);
+    $('lv-notes').replaceChildren(...B3.levelNotes(lv).map((s) => el('p', 'warn', s)));
+    // bảng "nếu giá là …"; một chữ số thập phân để 69,6% không hiện thành 70% mà vẫn chưa tới khung 70%
+    const h2 = el('tr'); [tx('web.ui.gia_btc'), tx('web.ui.so_voi_hien_tai'), tx('web.ui.ty_le_nen_mua'), tx('web.ui.ty_le_nen_ban')].forEach((t, k) => h2.append(el('th', k ? 'r' : '', t)));
+    const tb2 = el('tbody');
+    lv.ladder.forEach((r) => {
+      const tr = el('tr', r.f === 1 ? 'here' : ''), cell = (v, Z, kind) => { const c = el('td', 'r num'); if (v == null) { c.append('—'); return c; } const z = zoneOf(Z, v); c.append(el('b', z.id === 'khong' ? 'muted' : kind === 'buy' ? (z.id === 'phai' ? 'good' : 'mid') : (z.id === 'nen' ? 'bad' : 'mid'), nf(1).format(v) + '%'), el('span', 'sub', z.ten)); return c; };
+      tr.append(el('td', 'num nowrap', usd(r.gia)), el('td', 'r num', r.f === 1 ? tx('web.ui.hien_tai') : spc(r.f - 1)), cell(r.buy, BUY_Z, 'buy'), cell(r.sell, SELL_Z, 'sell')); tb2.append(tr);
+    });
+    const th2 = el('thead'); th2.append(h2); $('t-lvl').replaceChildren(th2, tb2);
+  }
+
+  function rangeBar(x, base, tone) {
+    const b = el('div', 'rng ' + tone);
+    if (x.lo != null) { const i = el('i'); i.style.left = x.lo * 100 + '%'; i.style.width = Math.max(1, (x.hi - x.lo) * 100) + '%'; b.append(i); }
+    if (x.win != null) { const m = el('b'); m.style.left = `calc(${x.win * 100}% - 1.5px)`; b.append(m); }
+    if (base != null) { const s = el('s'); s.style.left = `calc(${base * 100}% - 1px)`; b.append(s); }
+    return b;
+  }
+  function renderTiles(past) {
+    const a = st.a;
+    $('hold-title').textContent = tx('web.ui.xac_suat_thang_neu_mua_ngay', fmtDate(a.date), usd(a.price));
+    $('tiles').replaceChildren(...a.hold.map((h) => {
+      const tone = h.win == null || h.base == null ? '' : h.win - h.base >= 0.05 ? 'good' : h.win - h.base <= -0.05 ? 'bad' : 'mid';
+      const d = el('div', 'tile'); d.append(el('div', 'h', tx('web.ui.giu') + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
+      d.append(el('div', 'c', h.n ? tx('web.ui.khoang_tin_cay_0_1_mua', pc(h.lo), pc(h.hi), pc(h.base)) : tx('web.ui.chua_du_du_lieu')));
+      if (h.n) d.append(el('div', 'c', tx('web.ui.lai_trung_vi_0_mot_nua', spc(h.med), spc(h.q1), spc(h.q3), h.n, h.eps)));
+      if (past) { const act = el('div', 'act'); if (h.thucTe == null) act.append(el('span', 'muted', tx('web.ui.thuc_te_chua_du_thoi_gian'))); else { act.append(tx('web.ui.thuc_te_sau_do'), el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? tx('web.ui.thang') : 'thua'}`)); } d.append(act); }
+      return d;
+    }));
+  }
+
+  function zRow(name, z, cells, here, dotVar) {
+    const tr = el('tr', here ? 'here' : name.startsWith(tx('web.ui.mua_bat_ky')) || name.startsWith(tx('web.ui.bat_ky')) ? 'base' : '');
+    const isBase = !dotVar;
+    const n = el('td'); if (dotVar) { const d = el('i', 'zdot'); d.style.background = `var(${dotVar})`; n.append(d); } n.append(name); if (here) n.append(el('span', 'tag', tx('web.ui.dang_o_day')));
+    tr.append(n, el('td', 'r num', isBase ? tx('web.ui.s_0_tuan', z.n) : z.n ? tx('web.ui.s_0_1_dot', z.n, z.eps) : '0'), ...cells); return tr;
+  }
+  const cellWin = (x, base, inv) => { const hiC = inv ? 'bad' : 'good', loC = inv ? 'good' : 'bad'; const c = el('td', 'r num ' + (base == null || x.win == null ? '' : x.win - base >= 0.05 ? hiC : x.win - base <= -0.05 ? loC : '')); c.append(x.n ? pc(x.win) : '—'); if (x.n) c.append(el('span', 'sub', tx('web.ui.s_0_1_2_lan', pc(x.lo), pc(x.hi), x.n))); return c; };
+  function renderCriteria() {
+    const a = st.a, B = a.buy.ev, Sv = a.sell.ev;
+    $('crit-lead').textContent = tx('web.ui.kiem_tra_moi_tuan_tu_0', fmtDate(a.from), fmtDate(a.date));
+    const hb = el('tr'); ['Khung mua', tx('web.ui.so_tuan'), ...HZ.map((h) => tx('web.ui.thang_sau') + h.ten)].forEach((t, k) => hb.append(el('th', k ? 'r' : '', t)));
+    const tb = el('tbody'); tb.append(zRow(tx('web.ui.mua_bat_ky_luc_nao_moc'), B.base, B.base.h.map((x) => cellWin(x, null)), false));
+    B.zones.forEach((z) => tb.append(zRow(z.ten, z, z.h.map((x, k) => cellWin(x, B.base.h[k].win)), z.id === a.buy.zone.id, ZCOL.buy[z.id])));
+    const th = el('thead'); th.append(hb); $('t-buy').replaceChildren(th, tb);
+    const hs = el('tr'); [tx('web.ui.khung_ban'), tx('web.ui.so_tuan'), ...SELL_HZ.flatMap((h) => [tx('web.ui.gia_thap_hon_sau_0', h.ten), tx('web.ui.giam_hon_10_sau_0', h.ten)])].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
+    const ts = el('tbody'); ts.append(zRow(tx('web.ui.bat_ky_luc_nao_moc'), Sv.base, Sv.base.h.flatMap((x) => [cellWin(x.giam, null), cellWin(x.giamManh, null)]), false));
+    Sv.zones.forEach((z) => ts.append(zRow(z.ten, z, z.h.flatMap((x, k) => [cellWin(x.giam, Sv.base.h[k].giam.win, true), cellWin(x.giamManh, Sv.base.h[k].giamManh.win, true)]), z.id === a.sell.zone.id, ZCOL.sell[z.id])));
+    const th2 = el('thead'); th2.append(hs); $('t-sell').replaceChildren(th2, ts);
+  }
+
+  function renderRec() {
+    const r = st.rec;
+    if (!r) { $('rec-lead').textContent = tx('web.ui.chua_tim_duoc_bo_khuyen_cao'); $('t-rec').replaceChildren(); return; }
+    $('rec-lead').textContent = tx('web.ui.bot_thu_them_dan_tung_chi', fmtDate(r.from), fmtDate(r.asOfDate)) + ' ' + tx('web.kn.warn_legend');
+    const h = el('tr'); [tx('web.ui.bo_chi_so'), ...HZ.map((x) => tx('web.ui.thang_2') + x.ten), tx('web.ui.nua_dau_6_thang'), tx('web.ui.nua_sau_6_thang'), ''].forEach((t, k) => h.append(el('th', k && k < 7 ? 'r' : '', t)));
+    const tb = el('tbody'), base = r.ranking[0] && r.ranking[0].base;
+    if (base) { const tr = el('tr', 'base'); tr.append(el('td', null, tx('web.ui.mua_bat_ky_luc_nao_moc')), ...base.h.map((x) => el('td', 'r num', pc(x.win))), el('td'), el('td'), el('td')); tb.append(tr); }
+    const curKey = idsForSet().slice().sort().join(',');
+    const ok = r.ranking.filter((x) => isFinite(x.score)), weak = r.ranking.filter((x) => !isFinite(x.score));
+    ok.slice(0, 10).forEach((x, k) => {
+      const tr = el('tr', [...x.ids].sort().join(',') === curKey ? 'here' : ''), n = el('td');
+      const wr = warnOf(x.phai.eps, x.nua1[2], x.nua2[2]); if (wr) n.append(el('span', 'mid', tx('web.kn.warn_mark')));
+      n.append(el('b', null, x.ten)); if (k === 0) n.append(el('span', 'tag', tx('web.ui.cao_nhat'))); n.append(el('span', 'sub', x.ids.map(nameOf).join(', ')));
+      if (wr) n.append(el('span', 'sub mid', wr));
+      tr.append(n, ...x.phai.h.map((y, i) => { const c = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); c.append(y.n ? pc(y.win) : '—'); if (y.n) c.append(el('span', 'sub', tx('web.ui.s_0_lan', y.n))); return c; }));
+      const n1 = x.nua1[2], n2 = x.nua2[2];
+      tr.append(el('td', 'r num', n1.n ? `${pc(n1.win)} (${n1.n})` : tx('web.ui.khong_co_tin_hieu')), el('td', 'r num ' + (n2.n && n2.win < 0.5 ? 'bad' : ''), n2.n ? `${pc(n2.win)} (${n2.n})` : tx('web.ui.khong_co_tin_hieu')));
+      const bt = el('button', 'btn nowrap', tx('web.ui.dung_bo_nay')); bt.type = 'button';
+      bt.addEventListener('click', () => { if (k === 0) st.set = 'pa6'; else { st.set = 'custom'; st.ids = new Set(x.ids); } save(); renderSets(); analyzeNow(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+      const c = el('td'); c.append(bt); tr.append(c); tb.append(tr);
+    });
+    const th = el('thead'); th.append(h); $('t-rec').replaceChildren(th, tb);
+    $('rec-weak').textContent = weak.length ? tx('web.ui.khong_du_tin_hieu_phai_mua', weak.map((x) => x.ten).join(', ')) : '';
+  }
+
+  // ---------- so sánh phương án ----------
+  const HCOL = ['0.35', '0.55', '0.78', '1'];
+  function renderOptions() {
+    const c = st.cmp;
+    if (!c || !c.ranked.length) { $('pa-lead').textContent = tx('web.ui.chua_chay_duoc_cac_phuong_an'); $('t-pa').replaceChildren(); $('pa-cons').textContent = ''; return; }
+    const dt = c.dongThuan, top = topOpt();
+    $('pa-lead').textContent = tx('web.ui.bot_chay_ca_6_phuong_an', fmtDate(st.S.dates[st.asOf]), fmtDate(c.from)) + ' ' + tx('web.kn.warn_legend');
+    const cons = $('pa-cons'); cons.replaceChildren();
+    cons.append(el('b', null, tx('web.ui.dong_thuan_cua_0_phuong_an', dt.tong)), dt.mua.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '; ' + dt.ban.filter((z) => z.n).map((z) => `${z.n} ${z.ten.toLowerCase()}`).join(', ') + '. ');
+    cons.append(tx('web.ui.trung_binh_ty_le_nen_mua', nf(0).format(dt.tbMua), nf(0).format(dt.tbBan)));
+    const split = dt.mua.find((z) => z.id === 'phai').n && dt.mua.find((z) => z.id === 'khong').n;
+    cons.append(split ? el('span', 'mid', tx('web.ui.cac_phuong_an_dang_bat_dong')) : el('span', 'good', tx('web.ui.cac_phuong_an_khong_mau_thuan')));
+    if (top) cons.append(tx('web.ui.hang_1_la_0_1_2', top.ten, top.a.buy.zone.ten.toLowerCase(), nf(0).format(top.a.buy.score)));
+    const h = el('tr'); [tx('web.ui.hang'), tx('web.ui.phuong_an'), tx('web.ui.nen_mua_hom_nay'), tx('web.ui.nen_ban_hom_nay'), ...HZ.map((x) => tx('web.ui.thang_2') + x.ten), tx('web.ui.nua_dau_nua_sau'), tx('web.ui.khi_nen_ban_gia_thap_hon'), ''].forEach((t, k) => h.append(el('th', k >= 2 && k <= 9 ? 'r' : '', t)));
+    const tb = el('tbody'), cur = [...idsForSet()].sort().join();
+    const rows = [...c.ranked, ...c.list.filter((x) => !c.ranked.includes(x))];
+    for (const x of rows) {
+      const tr = el('tr', x.a && [...x.ids].sort().join() === cur ? 'here' : '');
+      tr.append(el('td', 'num', x.hang ? String(x.hang) : '—'));
+      const n = el('td'), wp = x.a && !x.trung ? warnOf((x.xepTheo === 'rong' ? x.rong : x.evB.zones[0]).eps, x.nua1, x.nua2) : null;
+      if (wp) n.append(el('span', 'mid', tx('web.kn.warn_mark')));
+      n.append(el('b', null, x.ten)); if (x.hang === 1) n.append(el('span', 'tag', tx('web.ui.tot_nhat')));
+      if (wp) n.append(el('span', 'sub mid', wp));
+      n.append(el('span', 'sub', (x.ids.length ? x.ids.map(nameOf).join(' + ') : '—') + '. ' + x.lyDo + (x.thieu.length ? tx('web.ui.thieu_du_lieu_0', x.thieu.map(nameOf).join(', ')) : '')));
+      tr.append(n);
+      if (!x.a || x.trung) {
+        tr.append(Object.assign(el('td', 'muted', x.trung ? tx('web.ui.trung_0', x.trung) : x.loi), { colSpan: 8 }));
+        tr.append(el('td')); tb.append(tr); continue;
+      }
+      const bz = x.a.buy.zone, sz = x.a.sell.zone;
+      const b1 = el('td', 'r num'); b1.append(el('b', bz.id === 'phai' ? 'good' : bz.id === 'cannhac' ? 'mid' : 'muted', nf(0).format(x.a.buy.score) + '%'), el('span', 'sub', bz.ten));
+      const s1 = el('td', 'r num'); s1.append(el('b', sz.id === 'nen' ? 'bad' : sz.id === 'cannhac' ? 'mid' : 'muted', nf(0).format(x.a.sell.score) + '%'), el('span', 'sub', sz.ten));
+      tr.append(b1, s1);
+      const z = x.xepTheo === 'rong' ? x.rong : x.evB.zones[0], base = x.evB.base;
+      z.h.forEach((y, i) => { const cl = el('td', 'r num ' + (y.win == null ? '' : y.win - base.h[i].win >= 0.05 ? 'good' : y.win - base.h[i].win <= -0.05 ? 'bad' : '')); cl.append(y.n ? pc(y.win) : '—', el('span', 'sub', y.n ? tx('web.ui.s_0_lan_1', y.n, x.xepTheo === 'rong' ? tx('web.ui.khung_rong') : '') : tx('web.ui.it_tin_hieu'))); tr.append(cl); });
+      tr.append(el('td', 'r num ' + (x.nua2.n && x.nua2.win < base.h[2].win ? 'bad' : ''), `${x.nua1.n ? pc(x.nua1.win) : '—'} / ${x.nua2.n ? pc(x.nua2.win) : '—'}`));
+      const bd = el('td', 'r num'); if (x.banDung) { bd.append(el('span', x.banDung.win - x.banMoc >= 0.05 ? 'good' : x.banDung.win - x.banMoc <= -0.05 ? 'bad' : '', pc(x.banDung.win))); bd.append(el('span', 'sub', tx('web.ui.moc_0_1_lan', pc(x.banMoc), x.banDung.n))); } else bd.append(el('span', 'muted', tx('web.ui.it_tin_hieu'))); tr.append(bd);
+      const bt = el('button', 'btn nowrap', tx('web.ui.dung')); bt.type = 'button';
+      bt.addEventListener('click', () => { st.set = x.id; save(); renderSets(); analyzeNow(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+      const ct = el('td'); ct.append(bt); tr.append(ct); tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-pa').replaceChildren(th, tb);
+    drawOptCharts();
+  }
+
+  function canvasSetup(cv) {
+    const cs = getComputedStyle(document.documentElement), c = (n) => cs.getPropertyValue(n).trim();
+    const W = cv.clientWidth, H = baseH(cv), dpr = window.devicePixelRatio || 1;
+    cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); g.font = `12px ${c('--font')}`;
+    return { g, W, H, c };
+  }
+  function drawOptCharts() {
+    const cm = st.cmp; if (!cm || !cm.ranked.length) return;
+    const opts = cm.ranked.filter((x) => x.a);
+    // 1) tỷ lệ thắng theo kỳ giữ
+    { const cv = $('c-pa-win'); if (cv.clientWidth) {
+      const { g, W, H, c } = canvasSetup(cv), L = 40, R = 8, T = 10, B = 40, ph = H - T - B, gw = (W - L - R) / opts.length, bw = Math.min(22, (gw - 12) / 4);
+      const y = (v) => T + ph - v * ph;
+      g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+      [0, 0.25, 0.5, 0.75, 1].forEach((v) => { g.beginPath(); g.moveTo(L, Math.round(y(v)) + 0.5); g.lineTo(W - R, Math.round(y(v)) + 0.5); g.stroke(); g.fillText(nf(0).format(v * 100) + '%', L - 6, y(v)); });
+      opts.forEach((x, k) => {
+        const z = x.xepTheo === 'rong' ? x.rong : x.evB.zones[0], x0 = L + k * gw + (gw - 4 * bw - 6) / 2;
+        z.h.forEach((h, i) => {
+          const xx = x0 + i * (bw + 2);
+          if (h.n) { g.fillStyle = c('--blue'); g.globalAlpha = Number(HCOL[i]); g.fillRect(xx, y(h.win), bw, y(0) - y(h.win)); g.globalAlpha = 1; }
+          const bv = x.evB.base.h[i].win; if (bv != null) { g.fillStyle = c('--ink'); g.fillRect(xx - 1, y(bv) - 1, bw + 2, 2); }
+        });
+        g.fillStyle = c('--ink'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(x.ten.replace(tx('web.ui.phuong_an_2'), 'PA'), L + k * gw + gw / 2, T + ph + 6);
+        g.fillStyle = c('--muted'); g.fillText(x.xepTheo === 'rong' ? tx('web.ui.khung_rong_2') : x.hang ? tx('web.ui.hang_2') + x.hang : tx('web.ui.it_tin_hieu'), L + k * gw + gw / 2, T + ph + 21);
+      });
+      $('l-pa-win').replaceChildren(...HZ.map((h, i) => { const s = el('span'); const ic = el('i'); ic.style.background = 'var(--blue)'; ic.style.opacity = HCOL[i]; s.append(ic, h.ten); return s; }),
+        (() => { const s = el('span'); const ic = el('i'); ic.style.background = 'var(--ink)'; ic.style.height = '2px'; s.append(ic, tx('web.ui.mua_bat_ky_luc_nao')); return s; })());
+    } }
+    // 2) tỷ lệ nên mua, nên bán hôm nay của từng phương án
+    { const cv = $('c-pa-today'); if (cv.clientWidth) {
+      const { g, W, H, c } = canvasSetup(cv), L = 52, R = 40, T = 22, rowH = (H - T - 10) / opts.length, tw = W - L - R, x = (v) => L + (v / 100) * tw;
+      g.fillStyle = c('--muted'); g.textAlign = 'center'; g.textBaseline = 'bottom'; [0, 60, 70, 80, 85, 100].forEach((v) => g.fillText(String(v), x(v), T - 6));
+      opts.forEach((o, k) => {
+        const y0 = T + k * rowH + 4, bh = Math.min(12, (rowH - 14) / 2);
+        g.fillStyle = c('--ink'); g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(o.ten.replace(tx('web.ui.phuong_an_2'), 'PA'), L - 8, y0 + bh + 2);
+        const track = (yy, Z, kind, v) => {
+          [...Z].sort((a, b) => a.min - b.min).forEach((z, i, arr) => { const to = i + 1 < arr.length ? arr[i + 1].min : 100; g.fillStyle = c(ZCOL[kind][z.id]); g.globalAlpha = z.id === 'khong' ? 0.22 : 0.45; g.fillRect(x(z.min), yy, x(to) - x(z.min), bh); });
+          g.globalAlpha = 1; g.fillStyle = c('--ink'); g.fillRect(x(v) - 1.5, yy - 2, 3, bh + 4);
+          g.textAlign = 'left'; g.fillStyle = c('--muted'); g.fillText(nf(0).format(v) + '%', W - R + 4, yy + bh / 2);
+        };
+        track(y0, BUY_Z, 'buy', o.a.buy.score); track(y0 + bh + 4, SELL_Z, 'sell', o.a.sell.score);
+      });
+      $('l-pa-today').replaceChildren(...[['--jade', 0.45, tx('web.ui.mua_phai_mua')], ['--brass', 0.45, tx('web.ui.can_nhac')], ['--cinnabar', 0.45, tx('web.ui.ban_nen_ban')]].map(([v, op, t]) => { const s = el('span'); const ic = el('i'); ic.style.background = `var(${v})`; ic.style.opacity = op; s.append(ic, t); return s; }),
+        el('span', null, tx('web.ui.moi_phuong_an_dai_tren_la')));
+    } }
+  }
+
+  // ---------- biểu đồ, bấm để chọn ngày ----------
+  let geo = null;
+  function drawChart() {
+    const full = st.full, cv = $('chart'); if (!full || !cv.clientWidth) return;
+    const cs = getComputedStyle(document.documentElement), c = (n) => cs.getPropertyValue(n).trim();
+    const W = cv.clientWidth, H = baseH(cv), dpr = window.devicePixelRatio || 1;
+    cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.font = `12px ${c('--font')}`;
+    const bs = full.buy.series, ss = new Map(full.sell.series.map((x) => [x.j, x])), S = st.S; if (!bs.length) return;
+    let lo = Infinity, hi = 0; bs.forEach((x) => { lo = Math.min(lo, S.price[x.i]); hi = Math.max(hi, S.price[x.i]); }); lo *= 0.88; hi *= 1.1;
+    const ticks = [1e3, 2e3, 3e3, 5e3, 1e4, 2e4, 3e4, 5e4, 7e4, 1e5, 1.5e5, 2e5].filter((t) => t >= lo && t <= hi);
+    const L = 46, R = 10, T = 8, strip = 12, B = 26 + strip + 6, ph = H - T - B;
+    const t0 = Date.parse(bs[0].date), t1 = Date.parse(bs[bs.length - 1].date);
+    const x = (d) => L + ((Date.parse(d) - t0) / Math.max(1, t1 - t0)) * (W - L - R), y = (p) => T + ph - ((Math.log(p) - Math.log(lo)) / (Math.log(hi) - Math.log(lo))) * ph;
+    const bw = Math.max(1, (W - L - R) / bs.length + 0.6);
+    bs.forEach((b) => { const z = zoneOf(BUY_Z, b.score); if (z.id === 'khong') return; g.fillStyle = c(ZCOL.buy[z.id]); g.globalAlpha = z.id === 'phai' ? 0.22 : 0.12; g.fillRect(x(b.date) - bw / 2, T, bw, ph); });
+    g.globalAlpha = 1;
+    const sy = T + ph + 6;
+    bs.forEach((b) => { const s = ss.get(b.j); if (!s) return; const z = zoneOf(SELL_Z, s.score); g.fillStyle = z.id === 'khong' ? c('--line') : c(ZCOL.sell[z.id]); g.globalAlpha = z.id === 'khong' ? 0.6 : z.id === 'nen' ? 1 : 0.6; g.fillRect(x(b.date) - bw / 2, sy, bw, strip); });
+    g.globalAlpha = 1;
+    g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+    ticks.forEach((t) => { const yy = Math.round(y(t)) + 0.5; g.beginPath(); g.moveTo(L, yy); g.lineTo(W - R, yy); g.stroke(); g.fillText(nf(0).format(t / 1000) + 'k', L - 6, yy); });
+    g.fillText(tx('web.ui.ban_2'), L - 6, sy + strip / 2);
+    g.textAlign = 'center'; g.textBaseline = 'top'; let lx = -1e9;
+    for (let yr = Number(bs[0].date.slice(0, 4)) + 1; yr <= Number(bs[bs.length - 1].date.slice(0, 4)); yr++) { const xx = x(yr + '-01-01'); if (xx - lx > 36) { g.fillText(String(yr), xx, H - 18); lx = xx; } }
+    g.strokeStyle = c('--ink'); g.lineWidth = 1.6; g.beginPath(); bs.forEach((b, k) => (k ? g.lineTo(x(b.date), y(S.price[b.i])) : g.moveTo(x(b.date), y(S.price[b.i])))); g.stroke();
+    const ad = st.S.dates[st.asOf];
+    if (ad >= bs[0].date) { const xx = x(ad); g.strokeStyle = c('--blue'); g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(xx, T); g.lineTo(xx, T + ph); g.stroke(); g.setLineDash([]); g.fillStyle = c('--blue'); g.textAlign = xx > W - 120 ? 'right' : 'left'; g.textBaseline = 'top'; g.fillText(tx('web.ui.ngay_phan_tich'), xx + (xx > W - 120 ? -6 : 6), T + 2); }
+    geo = { bs, ss, x, y };
+    $('legend').replaceChildren(...[['--jade', 0.35, tx('web.ui.phai_mua')], ['--brass', 0.25, tx('web.ui.can_nhac_mua')], ['--cinnabar', 1, tx('web.ui.dai_duoi_nen_ban')], ['--brass', 0.6, tx('web.ui.dai_duoi_can_nhac_ban')]].map(([v, o, t]) => { const s = el('span'); const i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; s.append(i, t); return s; }));
+  }
+  function nearest(ev) { if (!geo) return null; const mx = ev.clientX - $('chart').getBoundingClientRect().left; let best = null, bd = 1e9; for (const b of geo.bs) { const d = Math.abs(geo.x(b.date) - mx); if (d < bd) { bd = d; best = b; } } return bd < 24 ? best : null; }
+  $('chart').addEventListener('mousemove', (ev) => {
+    const b = nearest(ev), tip = $('tip'); if (!b) { tip.style.display = 'none'; return; }
+    const s = geo.ss.get(b.j);
+    tip.replaceChildren(el('b', null, `${fmtDate(b.date)}, ${usd(st.S.price[b.i])}`), el('span', null, tx('web.ui.nen_mua_0_1', nf(0).format(b.score), zoneOf(BUY_Z, b.score).ten)), el('br'), el('span', null, s ? tx('web.ui.nen_ban_0_1', nf(0).format(s.score), zoneOf(SELL_Z, s.score).ten) : ''), el('br'), el('span', 'muted', tx('web.ui.bam_de_phan_tich_ngay_nay')));
+    tip.style.display = 'block'; const box = $('chart-box');
+    tip.style.left = Math.min(box.clientWidth - tip.offsetWidth - 8, Math.max(8, geo.x(b.date) + 14)) + 'px'; tip.style.top = Math.max(8, geo.y(st.S.price[b.i]) - 60) + 'px';
+  });
+  $('chart').addEventListener('mouseleave', () => { $('tip').style.display = 'none'; });
+  $('chart').addEventListener('click', (ev) => { const b = nearest(ev); if (b) { setDate(b.date); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+  new ResizeObserver(() => { if (st.full) drawChart(); if (st.cmp) drawOptCharts(); }).observe($('chart-box'));
+
+  function renderFeat() {
+    const a = st.a, h = el('tr'); [tx('web.ui.chi_so'), tx('web.ui.nhom'), tx('web.ui.gia_tri'), tx('web.ui.trong_so_6_thang'), tx('web.ui.y_nghia')].forEach((t, k) => h.append(el('th', k === 2 || k === 3 ? 'r' : '', t)));
+    const tb = el('tbody');
+    a.feats.forEach((f) => {
+      const d = IND.find((x) => x.id === f.id), w = a.weights && a.weights.find((x) => x.id === f.id), tr = el('tr');
+      const det = el('details'); det.append(el('summary', null, 'Xem'), el('p', null, d.y));
+      const mean = el('td'); mean.append(det);
+      tr.append(el('td', null, d.ten), el('td', 'muted', FAMILIES[d.nhom]), el('td', 'r num', f.v == null ? '—' : nf(d.dec).format(f.v) + (d.unit || '')), el('td', 'r num ' + (w ? (w.w > 0 ? 'good' : 'bad') : ''), w ? (w.w > 0 ? '+' : '−') + nf(2).format(Math.abs(w.w)) : '—'), mean);
+      tb.append(tr);
+    });
+    const th = el('thead'); th.append(h); $('t-feat').replaceChildren(th, tb);
+    const v = st.vol, wk = v ? v.weeks.filter((x) => x.cls && x.date <= a.date).pop() : null;
+    $('vol-line').textContent = wk ? tx('web.ui.khoi_luong_binance_tuan_ket_thuc', fmtDate(wk.date), spc(wk.chg), nf(2).format(wk.rv), BOT.VCLS[wk.cls].ten.toLowerCase()) : tx('web.ui.chua_co_du_lieu_khoi_luong');
+  }
+
+  // ---------- xuất file và Claude ----------
+  const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: tx('web.ui.gia_truc_tiep_binance_coingecko'), fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: tx('web.ui.binance_gia_khoi_luong_ngay'), cache: tx('web.ui.ban_luu_tren_may') }[k])).filter(Boolean).join(', ');
+  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN);
+  function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+  $('dl-md').addEventListener('click', () => download(`bao-cao-bot-btc-${st.a.date}.md`, report(), 'text/markdown;charset=utf-8'));
+  $('dl-csv').addEventListener('click', () => download(`du-lieu-tuan-bot-btc-${st.a.date}.csv`, B3.csvWeekly(st.S, st.a), 'text/csv;charset=utf-8'));
+  $('dl-pa').addEventListener('click', () => { if (!st.cmp) { $('copy-msg').textContent = tx('web.ui.chua_co_ket_qua_so_sanh'); return; } download(`so-sanh-phuong-an-bot-btc-${st.a.date}.csv`, B3.csvOptions(st.cmp), 'text/csv;charset=utf-8'); });
+
+
+  // ================================================================ BÊN BÁN
+  try { const md = localStorage.getItem('btc-bot3-mode'); if (md === 'sell' || md === 'buy') st.mode = md; } catch (e) { /* bỏ qua */ }
+  st.mode = st.mode || 'buy';
+  function applyMode() {
+    const sell = st.mode === 'sell';
+    $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
+    $('buy-view').hidden = sell; $('sell-view').hidden = !sell;
+    if (sell && st.sd) requestAnimationFrame(drawSellChart);
+    if (!sell && st.a) requestAnimationFrame(drawChart);
+  }
+  const setMode = (md) => { st.mode = md; try { localStorage.setItem('btc-bot3-mode', md); } catch (e) { /* bỏ qua */ } applyMode(); };
+  $('mode-buy').addEventListener('click', () => setMode('buy'));
+  $('mode-sell').addEventListener('click', () => setMode('sell'));
+  const pos = () => { try { return JSON.parse(localStorage.getItem('btc-bot3-pos') || '{}'); } catch (e) { return {}; } };
+  const savePos = (p) => { try { localStorage.setItem('btc-bot3-pos', JSON.stringify(p)); } catch (e) { /* bỏ qua */ } };
+  const VTONE = { giu: 'good', chot: 'mid', ban: 'bad' };
+  const FAMCOL = { xuhuong: '--blue', onchain: '--jade', tamly: '--brass', thodao: '--muted', mohinh: '--cinnabar' };
+
+  function renderSell() {
+    const sd = st.sd, a = st.a; if (!sd) return;
+    const v = sd.verdict, box = $('s-hero'); box.replaceChildren();
+    box.append(el('h2', null, tx('web.ui.nen_giu_hay_chot_loi_ngay', fmtDate(sd.date), usd(sd.price))));
+    box.append(el('div', 'verdict-big ' + VTONE[v.id], v.ten), el('p', null, v.goiY));
+    const trusted = sd.crit.filter((c) => c.dangTin), famAll = [...new Set(trusted.map((c) => c.nhom))];
+    if (!trusted.length) box.append(el('p', 'muted', tx('web.ui.trong_lich_su_chua_tieu_chi')));
+    else {
+      box.append(el('p', null, tx('web.ui.so_nhom_tieu_chi_dang_tin', sd.nFam, famAll.length)));
+      const chips = el('div', 'chips'); trusted.forEach((c) => chips.append(el('span', 'chip' + (c.nowOn ? ' on' : ''), `${c.nowOn ? tx('web.ui.dang_bat') : ''}${c.ten}`))); box.append(chips);
+    }
+    box.append(el('p', 'muted', tx('web.ui.ty_le_nen_ban_cua_bot', nf(0).format(a.sell.score), a.sell.zone.ten.toLowerCase())));
+    const pl = el('div', 'pl'), p0 = pos();
+    const mk = (id, lab, val, ph) => { const l = el('label'); l.append(lab); const i = el('input'); i.type = 'number'; i.min = '0'; i.step = 'any'; i.id = id; i.value = val ?? ''; i.placeholder = ph; l.append(i); return l; };
+    const out = el('div', 'num');
+    pl.append(mk('s-cost', tx('web.ui.gia_von_trung_binh'), p0.cost, tx('web.ui.vi_du_62000')), mk('s-qty', tx('web.ui.so_btc_dang_giu'), p0.qty, tx('web.ui.vi_du_0_5')), out);
+    box.append(pl);
+    const upd = () => {
+      const cost = Number($('s-cost').value), qty = Number(String($('s-qty').value).replace(',', '.'));
+      savePos({ cost: $('s-cost').value, qty: $('s-qty').value });
+      out.replaceChildren();
+      if (!(cost > 0)) { out.append(el('span', 'muted', tx('web.ui.nhap_gia_von_de_xem_lai'))); return; }
+      const r = sd.price / cost - 1; out.append(tx('web.ui.ban_dang'), el('b', r >= 0 ? 'good' : 'bad', `${r >= 0 ? tx('web.ui.lai') : tx('web.ui.lo')} ${spc(r, 1)}`));
+      if (qty > 0) { out.append(` (${usd(Math.abs(sd.price - cost) * qty)}).`); const f = v.id === 'ban' ? 0.5 : v.id === 'chot' ? (sd.nFam >= 2 ? 0.3 : 0.1) : 0;
+        if (f) out.append(tx('web.ui.theo_goi_y_chot_khoang_0', nf(2).format(qty * f), usd(qty * f * sd.price))); else out.append(tx('web.ui.theo_goi_y_chua_can_ban')); }
+      else out.append('.');
+    };
+    $('s-cost').addEventListener('input', upd); $('s-qty').addEventListener('input', upd); upd();
+
+    $('s-hold-title').textContent = tx('web.ui.giu_tiep_co_loi_khong_tinh', fmtDate(sd.date));
+    $('s-tiles').replaceChildren(...a.hold.map((h) => {
+      const tone = h.win == null || h.base == null ? '' : h.win - h.base >= 0.05 ? 'good' : h.win - h.base <= -0.05 ? 'bad' : 'mid';
+      const d = el('div', 'tile'); d.append(el('div', 'h', tx('web.ui.gia_cao_hon_sau') + h.ten), el('div', 'p num ' + tone, h.n ? pc(h.win) : '—'), rangeBar(h, h.base, tone));
+      d.append(el('div', 'c', h.n ? tx('web.ui.giu_tiep_lai_trung_vi_0', spc(h.med), spc(h.q1), spc(h.q3), pc(h.base)) : tx('web.ui.chua_du_du_lieu')));
+      if (h.thucTe != null && st.asOf !== st.S.price.length - 1) { const act = el('div', 'act'); act.append(tx('web.ui.thuc_te_sau_do'), el('b', h.thucTe > 0 ? 'good' : 'bad', `${spc(h.thucTe)}, ${h.thucTe > 0 ? tx('web.ui.giu_co_loi_hon') : tx('web.ui.ban_co_loi_hon')}`)); d.append(act); }
+      return d;
+    }));
+
+    $('s-tp-lead').textContent = tx('web.ui.moi_dot_la_lan_dau_tieu', pc(sd.baseDung6));
+    const H = [tx('web.ui.tieu_chi'), tx('web.ui.hom_nay'), tx('web.ui.so_dot'), tx('web.ui.gia_thap_hon_sau_6_thang_2'), tx('web.ui.sau_1_nam'), tx('web.ui.gia_6_thang_sau_tin_hieu'), tx('web.ui.con_tang_them_truoc_khi_giam'), tx('web.ui.giam_sau_nhat_trong_1_nam'), ''];
+    const hr = el('tr'); H.forEach((t, k) => hr.append(el('th', k >= 2 && k <= 7 ? 'r' : '', t)));
+    const tb = el('tbody');
+    const base = el('tr', 'base'); base.append(el('td', null, tx('web.ui.ban_vao_mot_tuan_bat_ky')), el('td'), el('td'), el('td', 'r num', pc(sd.baseDung6)), el('td', 'r num', pc(sd.baseDung12)), el('td'), el('td'), el('td'), el('td')); tb.append(base);
+    sd.ranked.forEach((c) => {
+      const tr = el('tr', c.nowOn ? 'here' : ''), n = el('td'); n.append(el('b', null, c.ten)); n.append(el('span', 'sub', c.loai === 'ket_hop' ? tx('web.ui.ket_hop_nhieu_nhom') : `${B3.NHOM_TP[c.nhom]}, ${c.loai === 'kinh_dien' ? tx('web.ui.nguong_kinh_dien') : c.loai === 'thich_nghi' ? tx('web.ui.nguong_thich_nghi') : tx('web.ui.mo_hinh_cua_bot')}`));
+      const now = el('td'); now.append(el('span', c.nowOn ? 'bad' : 'muted', c.nowOn ? tx('web.ui.dang_bat_2') : tx('web.ui.chua_bat'))); if (c.nowVal != null && c.loai !== 'ket_hop') { const d = c.ind ? IND.find((x) => x.id === c.ind) : null; now.append(el('span', 'sub', d ? nf(d.dec).format(c.nowVal) + (d.unit || '') : nf(0).format(c.nowVal) + '%')); }
+      const cw = (k, n2, lo, hi) => { const td = el('td', 'r num ' + (k == null ? '' : k - sd.baseDung6 >= 0.1 ? 'good' : k < sd.baseDung6 ? 'bad' : '')); td.append(n2 ? pc(k) : '—'); if (n2) td.append(el('span', 'sub', tx('web.ui.s_0_1_2_dot', pc(lo), pc(hi), n2))); return td; };
+      tr.append(n, now, el('td', 'r num', String(c.dot)), cw(c.dung6, c.n6, c.lo6, c.hi6), cw(c.dung12, c.n12, c.lo12, c.hi12), el('td', 'r num', spc(c.med6)), el('td', 'r num', spc(c.up)), el('td', 'r num', spc(c.dn)));
+      const ok = el('td'); if (c.dangTin) ok.append(el('span', 'tag', tx('web.ui.dang_tin'))); tr.append(ok); tb.append(tr);
+    });
+    const th = el('thead'); th.append(hr); $('t-tp').replaceChildren(th, tb);
+    const weak = [...sd.crit, ...sd.combos].filter((c) => !sd.ranked.includes(c));
+    if (weak.length) { let w = $('s-tp-weak'); if (!w) { w = el('p', 'lead'); w.id = 's-tp-weak'; w.style.margin = '10px 0 0'; $('t-tp').parentElement.after(w); } w.textContent = tx('web.ui.chua_du_3_dot_co_ket') + weak.map((c) => c.ten + (c.coDuLieu ? tx('web.ui.s_0_dot', c.dot) : tx('web.ui.thieu_du_lieu'))).join('; ') + '.'; }
+
+    const lv = sd.crit.filter((c) => c.trigger && c.trigger.gia).sort((x, y) => x.trigger.gia - y.trigger.gia);
+    const hl = el('tr'); [tx('web.ui.tieu_chi'), tx('web.ui.nguong'), tx('web.ui.hom_nay'), tx('web.ui.gia_btc_de_bat'), tx('web.ui.cach_gia_hien_tai'), ''].forEach((t, k) => hl.append(el('th', k >= 1 && k <= 4 ? 'r' : '', t)));
+    const tl = el('tbody');
+    lv.forEach((c) => { const d = IND.find((x) => x.id === c.ind), tr = el('tr', c.dangTin ? '' : 'base');
+      tr.append(el('td', null, c.ten), el('td', 'r num', nf(d.dec).format(c.trigger.thr) + (d.unit || '')), el('td', 'r num', c.nowVal == null ? '—' : nf(d.dec).format(c.nowVal) + (d.unit || '')), el('td', 'r num', usd(c.trigger.gia)), el('td', 'r num', spc(c.trigger.gia / sd.price - 1)));
+      const t2 = el('td'); if (c.dangTin) t2.append(el('span', 'tag', tx('web.ui.dang_tin'))); else t2.append(el('span', 'muted', tx('web.ui.chua_dang_tin'))); tr.append(t2); tl.append(tr); });
+    const thl = el('thead'); thl.append(hl); $('t-tplv').replaceChildren(thl, tl);
+
+    const hs = el('tr'); [tx('web.ui.bat_dau'), tx('web.ui.giu_nguyen_1_btc'), tx('web.ui.theo_quy_tac_chot_loi'), 'Quy ra BTC', tx('web.ui.lan_ban_mua_lai'), tx('web.ui.sut_giam_lon_nhat_giu_theo'), tx('web.ui.tien_mat_cuoi_ky')].forEach((t, k) => hs.append(el('th', k ? 'r' : '', t)));
+    const ts = el('tbody');
+    if (!sd.sims.length) { const tr = el('tr'); const td = el('td', 'muted', tx('web.ui.chua_du_du_lieu_de_mo')); td.colSpan = 7; tr.append(td); ts.append(tr); }
+    sd.sims.forEach((x) => { const tr = el('tr'), better = x.tcGT > x.giuGT * 1.001, worse = x.tcGT < x.giuGT * 0.999;
+      tr.append(el('td', 'num', `${fmtDate(x.tu)} → ${fmtDate(x.den)}`), el('td', 'r num', usd(x.giuGT)), el('td', 'r num ' + (better ? 'good' : worse ? 'bad' : ''), usd(x.tcGT)), el('td', 'r num', nf(3).format(x.tcBTC) + ' BTC'),
+        el('td', 'r num', `${x.ban} / ${x.mua}`), el('td', 'r num', `${spc(x.mddH)} / ${spc(x.mdd)}`), el('td', 'r num', usd(x.tienMat))); ts.append(tr); });
+    const ths = el('thead'); ths.append(hs); $('t-sim').replaceChildren(ths, ts);
+    if (st.mode === 'sell') requestAnimationFrame(drawSellChart);
+  }
+
+  let sgeo = null;
+  function drawSellChart() {
+    const sd = st.sdFull, cv = $('s-chart'); if (!sd || !cv.clientWidth) return;
+    const cs = getComputedStyle(document.documentElement), c = (n) => cs.getPropertyValue(n).trim(), S = st.S;
+    const W = cv.clientWidth, H = baseH(cv), dpr = window.devicePixelRatio || 1;
+    cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); g.font = `12px ${c('--font')}`;
+    const ser = sd.series.filter((x) => x.on.some((f) => f != null)); if (!ser.length) return;
+    const fams = Object.keys(B3.NHOM_TP), lane = 9, lanes = fams.length * (lane + 3), L = Math.ceil(Math.max(...fams.map((f) => g.measureText(B3.NHOM_TP[f]).width))) + 14, R = 10, T = 8, B = 24 + lanes + 6, ph = H - T - B;
+    let lo = Infinity, hi = 0; ser.forEach((x) => { lo = Math.min(lo, S.price[x.i]); hi = Math.max(hi, S.price[x.i]); }); lo *= 0.8; hi *= 1.15;
+    const t0 = Date.parse(ser[0].date), t1 = Date.parse(ser[ser.length - 1].date), x = (d) => L + ((Date.parse(d) - t0) / Math.max(1, t1 - t0)) * (W - L - R);
+    const y = (p) => T + ph - ((Math.log(p) - Math.log(lo)) / (Math.log(hi) - Math.log(lo))) * ph, bw = Math.max(1, (W - L - R) / ser.length + 0.6);
+    ser.forEach((s) => { if (!s.n) return; g.fillStyle = c('--cinnabar'); g.globalAlpha = Math.min(0.4, 0.12 * s.n); g.fillRect(x(s.date) - bw / 2, T, bw, ph); }); g.globalAlpha = 1;
+    const ticks = []; for (let e = -1; e <= 6; e++) for (const m2 of [1, 3]) { const t = m2 * 10 ** e; if (t >= lo && t <= hi) ticks.push(t); }
+    g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+    ticks.forEach((t) => { const yy = Math.round(y(t)) + 0.5; g.beginPath(); g.moveTo(L, yy); g.lineTo(W - R, yy); g.stroke(); g.fillText(t >= 1000 ? nf(0).format(t / 1000) + 'k' : nf(t < 1 ? 1 : 0).format(t), L - 6, yy); });
+    const trustedIdx = B3.TP.map((t, k) => (st.sdFull.crit[k].dangTin ? k : -1)).filter((k) => k >= 0);
+    fams.forEach((f, r) => {
+      const yy = T + ph + 8 + r * (lane + 3); g.fillStyle = c('--muted'); g.textAlign = 'right'; g.fillText(B3.NHOM_TP[f], L - 6, yy + lane / 2);
+      g.fillStyle = c('--line'); g.globalAlpha = 0.5; g.fillRect(L, yy, W - L - R, lane); g.globalAlpha = 1;
+      ser.forEach((s) => { const ks = B3.TP.map((t, k) => k).filter((k) => B3.TP[k].nhom === f && s.on[k]); if (!ks.length) return; const tr = ks.some((k) => trustedIdx.includes(k));
+        g.fillStyle = c(FAMCOL[f]); g.globalAlpha = tr ? 1 : 0.3; g.fillRect(x(s.date) - bw / 2, yy, bw, lane); });
+      g.globalAlpha = 1;
+    });
+    g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = c('--muted'); let lx = -1e9;
+    for (let yr = Number(ser[0].date.slice(0, 4)) + 1; yr <= Number(ser[ser.length - 1].date.slice(0, 4)); yr++) { const xx = x(yr + '-01-01'); if (xx - lx > 34) { g.fillText(String(yr), xx, H - 18); lx = xx; } }
+    g.strokeStyle = c('--ink'); g.lineWidth = 1.5; g.beginPath(); ser.forEach((s, k) => (k ? g.lineTo(x(s.date), y(S.price[s.i])) : g.moveTo(x(s.date), y(S.price[s.i])))); g.stroke();
+    const ad = S.dates[st.asOf]; if (ad >= ser[0].date) { const xx = x(ad); g.strokeStyle = c('--blue'); g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(xx, T); g.lineTo(xx, T + ph); g.stroke(); g.setLineDash([]); }
+    sgeo = { ser, x, y };
+    $('s-legend').replaceChildren(...fams.map((f) => { const s = el('span'); const i = el('i'); i.style.background = `var(${FAMCOL[f]})`; s.append(i, B3.NHOM_TP[f]); return s; }), el('span', null, tx('web.ui.mau_nhat_tieu_chi_chua_dang')));
+  }
+  const snear = (ev) => { if (!sgeo) return null; const mx = ev.clientX - $('s-chart').getBoundingClientRect().left; let b = null, bd = 1e9; for (const s of sgeo.ser) { const d = Math.abs(sgeo.x(s.date) - mx); if (d < bd) { bd = d; b = s; } } return bd < 24 ? b : null; };
+  $('s-chart').addEventListener('mousemove', (ev) => {
+    const s = snear(ev), tip = $('s-tip'); if (!s) { tip.style.display = 'none'; return; }
+    const names = B3.TP.filter((t, k) => s.on[k]).map((t) => t.ten);
+    tip.replaceChildren(el('b', null, `${fmtDate(s.date)}, ${usd(st.S.price[s.i])}`), el('span', null, tx('web.ui.s_0_nhom_dang_tin_dang_bat', s.n)), el('br'), el('span', 'muted', names.length ? names.slice(0, 4).join('; ') + (names.length > 4 ? '…' : '') : tx('web.ui.khong_tieu_chi_nao_bat')));
+    tip.style.display = 'block'; tip.style.left = Math.min($('s-chart-box').clientWidth - tip.offsetWidth - 8, Math.max(8, sgeo.x(s.date) + 14)) + 'px'; tip.style.top = Math.max(8, sgeo.y(st.S.price[s.i]) - 60) + 'px';
+  });
+  $('s-chart').addEventListener('mouseleave', () => { $('s-tip').style.display = 'none'; });
+  $('s-chart').addEventListener('click', (ev) => { const s = snear(ev); if (s) { setDate(s.date); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+  new ResizeObserver(() => { if (st.mode === 'sell' && st.sdFull) drawSellChart(); }).observe($('s-chart-box'));
+  $('dl-tp').addEventListener('click', () => download(`tieu-chi-chot-loi-bot-btc-${st.sd.date}.csv`, B3.csvSell(st.sd), 'text/csv;charset=utf-8'));
+
+  function baseH(cv) { if (!cv.dataset.h) cv.dataset.h = cv.getAttribute('height') || '300'; return Number(cv.dataset.h); }
+  // ---------- biểu đồ từng chỉ số ----------
+  function drawIndCharts() {
+    const a = st.a, S = st.S, box = $('ind-charts'); if (!a) return;
+    const cs = getComputedStyle(document.documentElement), c = (n) => cs.getPropertyValue(n).trim();
+    const start = S.dates.findIndex((d) => d >= '2014-01-01');
+    const weeks = []; for (let i = Math.max(0, start); i < S.price.length; i++) if (new Date(S.dates[i] + 'T00:00:00Z').getUTCDay() === 0 || i === S.price.length - 1) weeks.push(i);
+    box.replaceChildren(...a.ids.map((id) => {
+      const d = IND.find((x) => x.id === id), card = el('div', 'ind-card'), cv = el('canvas'); cv.setAttribute('height', '170');
+      const pts = weeks.map((i) => [i, S.v[id][i]]).filter((p) => p[1] != null);
+      const now = S.v[id][st.asOf], sc = d.vote ? (d.high ? (now >= d.vote[1] ? 2 : now >= d.vote[0] ? 1 : now < d.vote[2] ? -1 : 0) : (now <= d.vote[1] ? 2 : now <= d.vote[0] ? 1 : now >= d.vote[2] ? -1 : 0)) : null;
+      const hd = el('div', 'h'); hd.append(el('b', null, d.ten));
+      hd.append(el('span', sc == null ? 'muted' : sc > 0 ? 'good' : sc < 0 ? 'bad' : 'muted', `${fmtDate(S.dates[st.asOf])}: ${now == null ? '—' : nf(d.dec).format(now) + (d.unit || '')}${sc == null ? '' : sc > 0 ? tx('web.ui.vung_re') : sc < 0 ? tx('web.ui.vung_nong') : tx('web.ui.binh_thuong')}`));
+      card.append(hd, cv);
+      requestAnimationFrame(() => {
+        if (!pts.length || !cv.clientWidth) return;
+        const W = cv.clientWidth, H = 170, dpr = window.devicePixelRatio || 1; cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr;
+        const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = `11px ${c('--font')}`;
+        const vals = pts.map((p) => p[1]).sort((x, y) => x - y), q = (f) => vals[Math.min(vals.length - 1, Math.floor(f * (vals.length - 1)))];
+        let lo = q(0.005), hi = q(0.995); if (d.vote) { lo = Math.min(lo, d.vote[1], d.vote[0]); hi = Math.max(hi, d.vote[2] * 1.05); }
+        if (now != null) { lo = Math.min(lo, now); hi = Math.max(hi, now); }
+        const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+        const L = 44, R = 8, T = 6, B = 18, ph = H - T - B, t0 = Date.parse(S.dates[pts[0][0]]), t1 = Date.parse(S.dates[pts[pts.length - 1][0]]);
+        const x = (i) => L + ((Date.parse(S.dates[i]) - t0) / Math.max(1, t1 - t0)) * (W - L - R), y = (v) => T + ph - ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * ph;
+        if (d.vote) {
+          const [b1, , hot] = d.vote;
+          g.globalAlpha = 0.14; g.fillStyle = c('--jade');
+          if (d.high) g.fillRect(L, T, W - L - R, y(b1) - T); else g.fillRect(L, y(b1), W - L - R, T + ph - y(b1));
+          g.fillStyle = c('--cinnabar');
+          if (d.high) g.fillRect(L, y(hot), W - L - R, T + ph - y(hot)); else g.fillRect(L, T, W - L - R, y(hot) - T);
+          g.globalAlpha = 1;
+        }
+        g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+        [lo + pad, (lo + hi) / 2, hi - pad].forEach((v) => { const yy = Math.round(y(v)) + 0.5; g.beginPath(); g.moveTo(L, yy); g.lineTo(W - R, yy); g.stroke(); g.fillText(nf(Math.abs(v) >= 10 ? 0 : 2).format(v), L - 5, yy); });
+        g.textAlign = 'center'; g.textBaseline = 'top'; let lx = -1e9;
+        for (let yr = Number(S.dates[pts[0][0]].slice(0, 4)) + 1; yr <= Number(S.dates[pts[pts.length - 1][0]].slice(0, 4)); yr++) { const xx = L + ((Date.parse(yr + '-01-01') - t0) / (t1 - t0)) * (W - L - R); if (xx - lx > 34) { g.fillText(String(yr).slice(2), xx, H - 14); lx = xx; } }
+        g.strokeStyle = c('--ink'); g.lineWidth = 1.3; g.beginPath(); pts.forEach((p, k) => (k ? g.lineTo(x(p[0]), y(p[1])) : g.moveTo(x(p[0]), y(p[1])))); g.stroke();
+        const xa = x(st.asOf); g.strokeStyle = c('--blue'); g.lineWidth = 1.5; g.setLineDash([4, 3]); g.beginPath(); g.moveTo(xa, T); g.lineTo(xa, T + ph); g.stroke(); g.setLineDash([]);
+        if (now != null) { g.fillStyle = c('--blue'); g.beginPath(); g.arc(xa, y(now), 3.5, 0, Math.PI * 2); g.fill(); }
+      });
+      return card;
+    }));
+  }
+  let indW = 0;
+  new ResizeObserver(() => { const w = $('ind-charts').clientWidth; if (st.a && Math.abs(w - indW) > 2) { indW = w; drawIndCharts(); } }).observe($('ind-charts'));
+  $('copy-md').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(report()); } catch (e) { const ta = el('textarea'); ta.value = report(); document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    $('copy-msg').textContent = tx('web.ui.da_sao_chep_dan_vao_khung');
+  });
+  const KEY_STORE = 'btc-claude-key';
+  try { const k = localStorage.getItem(KEY_STORE); if (k) { $('ck').value = k; $('ck-remember').checked = true; } } catch (e) { /* bỏ qua */ }
+  $('ck-remember').addEventListener('change', () => { try { if ($('ck-remember').checked) localStorage.setItem(KEY_STORE, $('ck').value.trim()); else localStorage.removeItem(KEY_STORE); } catch (e) { /* bỏ qua */ } });
+  $('ck').addEventListener('change', () => { try { if ($('ck-remember').checked) localStorage.setItem(KEY_STORE, $('ck').value.trim()); } catch (e) { /* bỏ qua */ } });
+
+  const SYS = tx('web.ui.ban_la_chuyen_gia_phan_tich');
+  const chat = [];
+  function mdToNodes(text) {
+    const box = el('div'); const lines = text.split('\n'); let list = null, tbl = null;
+    const inline = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|\s)\*(\S.+?)\*(?=\s|$)/g, '$1<i>$2</i>');
+    for (const raw of lines) {
+      const t = raw.trim();
+      if (/^\|.*\|$/.test(t)) {
+        if (/^\|[\s:|-]+\|$/.test(t)) continue;
+        if (!tbl) { tbl = el('table'); const w = el('div', 'box md-tbl'); w.append(tbl); box.append(w); }
+        const tr = el('tr'); t.slice(1, -1).split('|').forEach((c) => { const td = el(tbl.rows.length ? 'td' : 'th'); td.innerHTML = inline(c.trim()); tr.append(td); }); tbl.append(tr); list = null; continue;
+      }
+      tbl = null;
+      const m = t.match(/^([-*•]|\d+\.)\s+(.*)$/);
+      if (m) { const ord = /\d/.test(m[1]); if (!list || list.tagName !== (ord ? 'OL' : 'UL')) { list = el(ord ? 'ol' : 'ul'); box.append(list); } const li = el('li'); li.innerHTML = inline(m[2]); list.append(li); continue; }
+      list = null; if (!t) continue;
+      const h = t.match(/^#{1,4}\s+(.*)$/); const p = el(h ? 'h4' : 'p'); p.innerHTML = inline(h ? h[1] : t); box.append(p);
+    }
+    return box;
+  }
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function addMsg(role, text, srcs) {
+    const m = el('div', 'msg ' + role);
+    if (role === 'assistant') { m.append(mdToNodes(text)); if (srcs && srcs.length) { const ol = el('ol', 'srcs'); srcs.forEach((x) => { const li = el('li'); const a = el('a', null, x.title); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; li.append(a); ol.append(li); }); m.append(el('div', 'sub', tx('web.ui.nguon_claude_da_doc')), ol); } }
+    else m.textContent = text;
+    $('chat').append(m); m.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+  async function callClaude() {
+    const key = $('ck').value.trim(); if (!key) throw new Error(tx('web.ui.hay_dan_khoa_api_cua_claude'));
+    const body = { model: $('cmodel').value, max_tokens: 4000, system: SYS, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
+    if ($('cweb').checked) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
+    let text = '', srcs = [];
+    for (let k = 0; k < 6; k++) {
+      let r;
+      try {
+        r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
+      } catch (e) { throw new Error(tx('web.ui.khong_ket_noi_duoc_claude_api')); }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(r.status === 401 ? tx('web.ui.khoa_api_khong_hop_le') : r.status === 429 ? tx('web.ui.claude_dang_gioi_han_so_luot') : tx('web.ui.claude_api_bao_loi_0_1', r.status, (j.error && j.error.message) || ''));
+      for (const b of j.content || []) {
+        if (b.type === 'text') { text += b.text; (b.citations || []).forEach((c) => c.url && srcs.push({ title: c.title || c.url, url: c.url })); }
+        if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach((x) => x.url && srcs.push({ title: x.title || x.url, url: x.url }));
+      }
+      if (j.stop_reason === 'pause_turn') { body.messages = [...body.messages, { role: 'assistant', content: j.content }]; continue; }
+      break;
+    }
+    const seen = new Set(); srcs = srcs.filter((x) => !seen.has(x.url) && seen.add(x.url)).slice(0, 12);
+    return { text: text.trim(), srcs };
+  }
+  async function sendToClaude(q, first) {
+    const btns = [$('ai-first'), $('ai-send')]; btns.forEach((b) => { b.disabled = true; }); $('ai-busy').hidden = false; $('ai-err').hidden = true;
+    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', report(), q) : q;
+    chat.push({ role: 'user', content }); addMsg('user', q);
+    try { const r = await callClaude(); chat.push({ role: 'assistant', content: r.text || tx('web.ui.claude_khong_tra_loi_noi_dung') }); addMsg('assistant', r.text, r.srcs); }
+    catch (e) { chat.pop(); $('ai-err').textContent = e.message; $('ai-err').hidden = false; }
+    finally { btns.forEach((b) => { b.disabled = false; }); $('ai-busy').hidden = true; }
+  }
+  $('ai-first').addEventListener('click', () => { chat.length = 0; $('chat').replaceChildren(); sendToClaude(tx('web.ui.hay_nhan_dinh_ve_ket_luan'), true); });
+  $('ai-send').addEventListener('click', () => { const q = $('ai-q').value.trim(); if (!q) return; $('ai-q').value = ''; sendToClaude(q, chat.length === 0); });
+  $('ai-q').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('ai-send').click(); });
+
+  // ---------- khuyến nghị giải ngân tuần này (chế độ an toàn: mua đều khi mô hình chưa đạt hoặc dữ liệu cũ) ----------
+  // ⚠ for an indicator set: fewer than 10 independent episodes, or 6-month results of the two halves more than 20 points apart
+  function warnOf(eps, h1, h2) {
+    if (eps < 10) return tx('web.kn.warn_eps', eps);
+    if (h1 && h2 && h1.n && h2.n && Math.abs(h1.win - h2.win) > 0.2) return tx('web.kn.warn_halves', nf(0).format(Math.abs(h1.win - h2.win) * 100));
+    return null;
+  }
+  const knStale = () => !!KN && (Date.now() - Date.parse(KN.generated_at)) / 86400000 > KN.stale_data_days;
+  function renderKN() {
+    const stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, ex = KN ? KN.amount_example_usd : 100;
+    const safe = !KN || stale || KN.mode === 'safe';
+    $('kn-sum').replaceChildren(el('b', null, `${tx('web.kn.m_label')}: ${nf(1).format(m)}`), ` — ${tx('web.kn.amount', usd(ex * m), usd(ex))}. `,
+      el('span', safe ? 'good' : 'mid', safe ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + KN.layer))));
+    const notes = [];
+    if (!KN) notes.push(el('p', 'warn', tx('web.kn.reason_missing')));
+    else {
+      if (stale || KN.reasons.includes('data_stale')) notes.push(el('p', 'warn', tx('web.kn.reason_data_stale')));
+      if (KN.reasons.includes('model_failed')) { const p = el('p', 'lead'); p.append(el('b', null, tx('web.kn.why')), tx('web.kn.reason_model_failed'), ' ', tx('web.kn.current_zone_note')); notes.push(p); }
+    }
+    $('kn-notes').replaceChildren(...notes);
+    const ev = KN && KN.evidence;
+    const h = el('tr');
+    [tx('web.kn.col_strategy'), tx('web.kn.col_median'), tx('web.kn.col_p10'), tx('web.kn.col_cba'), tx('web.kn.col_mdd'), tx('web.kn.col_placebo')]
+      .forEach((x, k) => h.append(el('th', k >= 1 ? 'r' : '', x)));
+    const tb = el('tbody'), tone = (v) => (v == null ? '' : v > 1.0005 ? 'good' : v < 0.9995 ? 'bad' : '');
+    if (ev) for (const [key, name] of [['current_bot', tx('web.kn.row_current')], ['candidate', tx('web.kn.row_candidate')]]) {
+      for (const [pk, pname] of [['validation', tx('web.kn.period_validation')], ['holdout', tx('web.kn.period_holdout')]]) {
+        const x = ev[key][pk], tr = el('tr'), n = el('td'); n.append(el('b', null, name), el('span', 'sub', pname));
+        tr.append(n, el('td', 'r num ' + tone(x.median), nf(3).format(x.median)), el('td', 'r num ' + tone(x.p10), nf(3).format(x.p10)),
+          el('td', 'r num', spc(x.cba, 1)), el('td', 'r num nowrap', `${spc(x.mdd)} / ${spc(x.mdd_dca)}`), el('td', 'r num', pk === 'holdout' ? pc(ev[key].placebo_holdout) : '—'));
+        tb.append(tr);
+      }
+    }
+    const th = el('thead'); th.append(h); $('t-kn').replaceChildren(th, tb);
+    const li = [];
+    if (ev) {
+      Object.entries(ev.episodes).sort((a, b) => Number(b[0]) - Number(a[0])).forEach(([k, n]) => {
+        const x = el('li'); x.append(tx('web.kn.evidence_line', tx('web.kn.bucket', nf(2).format(Number(k))), n));
+        if (n < 10) x.append(' — ', el('b', 'mid', tx('web.kn.low_evidence')));
+        li.push(x);
+      });
+      const ci = (k) => ev[k].ci_holdout.map((v) => nf(3).format(v));
+      li.push(el('li', null, tx('web.kn.ci_line', ...ci('candidate'), ...ci('current_bot'))), el('li', null, tx('web.kn.trials_line', ev.trials)));
+    }
+    $('kn-ev').replaceChildren(...li);
+    const evs = KN ? KN.events.map((e) => el('li', null, tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type)))) : [];
+    $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
+    $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
+      s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
+    if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
+    $('stale').hidden = !stale;
+    if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
+  }
+
+  function renderStatus() {
+    const names = { live: tx('web.ui.gia_truc_tiep_2'), fng: 'Fear & Greed (Alternative.me)', cm: tx('web.ui.gia_lich_su_mvrv_tho_dao'), kl: tx('web.ui.gia_va_khoi_luong_ngay_binance'), cache: tx('web.ui.du_lieu_luu_tren_may') };
+    $('status').replaceChildren(...Object.entries(st.status).map(([k, s]) => el('li', s.ok ? 'ok' : 'err', `${names[k]}: ${s.ok || k === 'cache' ? s.msg : tx('web.ui.loi') + s.msg}`)));
+  }
+
+
+  loadAll();
+  setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
+})();
+
+</script>
+</body>
+</html>

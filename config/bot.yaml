@@ -1,0 +1,62 @@
+# Cấu hình chung của bot (không chứa bí mật). Cài đặt cá nhân để ở config/personal.yaml (không lưu git).
+budget:
+  weekly_usd: 100
+  multiplier_min: 0.25
+  multiplier_max: 2.0
+  reserve_cap_weeks: 12
+  reserve_yield: 0.0          # lãi tiền mặt chờ mỗi năm
+costs:
+  fee: 0.001
+  slippage: 0.0005
+splits:
+  train: [2011-01-01, 2019-12-31]
+  validation: [2020-01-01, 2022-12-31]
+  holdout: [2023-01-01, null]   # locked, --final only
+validation:
+  refit_every_weeks: 13
+  embargo_weeks: 26
+  bootstrap_block_weeks: 26
+  bootstrap_n: 2000
+  placebo_n: 1000
+  min_episodes: 10
+  rolling_window_weeks: 104
+  rolling_step_weeks: 4
+  seed: 20261028
+backtest:
+  decision_weekday: 1         # 0 = thứ Hai; thứ Ba vì Coin Metrics công bố chậm 1 ngày
+ui:
+  language: vi
+  timezone: Asia/Ho_Chi_Minh
+  keep_theme: true      # never change existing styles
+risk:
+  advisory_only: true
+  stale_data_days: 3
+  event_delay: true
+site:
+  title: "Báo cáo bot BTC"
+  base_url: ""          # e.g. "/<repo>" for a project Pages site
+  show_personal_budget: false
+  amount_example_usd: 100
+# available_at = cuối kỳ của dòng số liệu + lag_days (dòng ngày d kết thúc lúc 00:00 UTC ngày d+1)
+sources:
+  coinmetrics: {lag_days: 1, required: true}
+  fng: {lag_days: 1}
+  binance_spot: {lag_days: 0}
+  binance_funding: {lag_days: 0}
+  binance_oi: {lag_days: 0}
+  binance_basis: {lag_days: 0}
+  stablecoins: {lag_days: 1}
+  fred: {lag_days: 1}
+  fred_monthly: {lag_days: 45}
+features:
+  disabled:
+    - etf_flow_5d        # nguồn tùy chọn (bảng Farside), lấy bằng đọc trang web nên dễ hỏng; chưa bật
+# Mô hình đang được đánh giá (chọn ở giai đoạn 4–6 chỉ bằng dữ liệu huấn luyện; xem docs/ABLATION_A.md)
+model:
+  layer_a:
+    model: composite
+    features: [pi_ratio, p_200wma, hash_ribbon_buy]
+    table: [[0.80, 2.0], [0.60, 1.25], [0.20, 1.0], [0.0, 0.5]]
+  layer_b: []
+  layer_c: []
+  sell: advisory        # giai đoạn 6: chưa đạt 3/4 chu kỳ, chỉ là lời khuyên dạng chữ (docs/SELL_SIDE.md)

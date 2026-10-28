@@ -1,0 +1,3 @@
+# Giữ nguyên từng byte, không đổi kiểu xuống dòng khi lưu hay khôi phục:
+# Mo-Bot-BTC.bat cần CRLF, Mo-Bot-BTC.command (Mac) cần LF, HUONG_DAN_WINDOWS.txt có BOM.
+* -text

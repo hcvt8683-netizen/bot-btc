@@ -1,0 +1,10 @@
+pandas>=2.2
+numpy>=1.26
+scipy>=1.11
+scikit-learn>=1.4
+pyarrow>=15
+ruamel.yaml>=0.18
+tzdata
+pytest>=8
+playwright>=1.45
+pillow>=10

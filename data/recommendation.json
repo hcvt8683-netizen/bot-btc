@@ -1,0 +1,146 @@
+{
+ "generated_at": "2026-10-28T02:49:25Z",
+ "multiplier": 1.0,
+ "mode": "safe",
+ "layer": null,
+ "reasons": [
+  "model_failed"
+ ],
+ "amount_example_usd": 100,
+ "stale_data_days": 3,
+ "events": [
+  {
+   "type": "fomc",
+   "time": "2026-10-28T18:00Z"
+  },
+  {
+   "type": "pce",
+   "time": "2026-10-29T12:30Z"
+  },
+  {
+   "type": "opex",
+   "time": "2026-10-30T08:00Z"
+  }
+ ],
+ "event_delay": false,
+ "freshness": {
+  "coinmetrics": {
+   "last": "2026-10-27",
+   "ok": true,
+   "age_days": 1,
+   "error": ""
+  },
+  "fng": {
+   "last": "2026-10-28",
+   "ok": true,
+   "age_days": 0,
+   "error": ""
+  },
+  "binance_spot": {
+   "last": "2026-10-27",
+   "ok": true,
+   "age_days": 1,
+   "error": ""
+  },
+  "binance_funding": {
+   "last": "2026-10-28",
+   "ok": true,
+   "age_days": 0,
+   "error": ""
+  },
+  "binance_oi": {
+   "last": "2026-10-28",
+   "ok": true,
+   "age_days": 0,
+   "error": ""
+  },
+  "binance_basis": {
+   "last": "2026-10-27",
+   "ok": true,
+   "age_days": 1,
+   "error": ""
+  },
+  "stablecoins": {
+   "last": "2026-10-28",
+   "ok": true,
+   "age_days": 0,
+   "error": ""
+  },
+  "fred_DTWEXBGS": {
+   "last": "2026-10-23",
+   "ok": true,
+   "age_days": 5,
+   "error": ""
+  },
+  "fred_DFII10": {
+   "last": "2026-10-26",
+   "ok": true,
+   "age_days": 2,
+   "error": ""
+  },
+  "fred_NASDAQCOM": {
+   "last": "2026-10-26",
+   "ok": true,
+   "age_days": 2,
+   "error": ""
+  },
+  "fred_M2SL": {
+   "last": "2026-09-01",
+   "ok": true,
+   "age_days": 57,
+   "error": ""
+  }
+ },
+ "evidence": {
+  "candidate": {
+   "validation": {
+    "median": 1.0,
+    "p10": 1.0,
+    "cba": 0.0,
+    "mdd": -0.759056,
+    "mdd_dca": -0.759056
+   },
+   "holdout": {
+    "median": 1.0,
+    "p10": 1.0,
+    "cba": 0.0,
+    "mdd": -0.518764,
+    "mdd_dca": -0.518764
+   },
+   "placebo_holdout": 0.5,
+   "ci_holdout": [
+    1.0,
+    1.0
+   ]
+  },
+  "current_bot": {
+   "validation": {
+    "median": 0.973863,
+    "p10": 0.966611,
+    "cba": -0.016256,
+    "mdd": -0.756225,
+    "mdd_dca": -0.759056
+   },
+   "holdout": {
+    "median": 0.940077,
+    "p10": 0.897765,
+    "cba": -0.031354,
+    "mdd": -0.50178,
+    "mdd_dca": -0.518764
+   },
+   "placebo_holdout": 0.874,
+   "ci_holdout": [
+    0.859424,
+    1.045209
+   ]
+  },
+  "episodes": {
+   "0.5": 3,
+   "1.25": 19,
+   "2.0": 9
+  },
+  "trials": 135,
+  "passed": false,
+  "run_at": "2026-10-28T02:19:58Z"
+ }
+}
