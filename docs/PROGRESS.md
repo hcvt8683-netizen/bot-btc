@@ -145,3 +145,28 @@ Số lần thử trong sổ đến hết giai đoạn này: 119.
 **Kết quả kiểm tra.** `python -m pytest`: 31/31 đạt.
 
 **Câu hỏi còn mở.** Lớp A không có lợi thế vững so với mua đều trên dữ liệu phát triển. Theo quy trình, vẫn làm tiếp lớp B/C, bên bán, rồi chạy một lần giai đoạn kiểm tra cuối để quyết định.
+
+## Giai đoạn 5: Lớp ngắn hạn (B) và lớp vĩ mô (C) (xong 28/10/2026)
+
+**Tóm tắt.** Thêm từng quy tắc một trên nền lớp A. Mọi chỉ số nhóm B dùng chung một mẫu cố định, không dò cho từng chỉ số: nhóm rẻ nhất 20% (phân vị 104 tuần) → × 1,25; nhóm đắt nhất 20% → × 0,75; sự kiện đầu hàng → × 1,25 trong 4 tuần. Dưới 10 đợt độc lập thì chỉ hiển thị. Dữ liệu nhóm B chỉ có từ 2018–2020, nên mỗi quy tắc được chấm trong khoảng có dữ liệu của nó với khung trượt 52 tuần (ghi rõ trong báo cáo). Lớp C: hoãn mua tới ngày sau sự kiện (FOMC, CPI, PCE, đáo hạn quyền chọn trong 48 giờ tới; mốc mua đều vẫn mua đúng giờ), và quy tắc trần 1,25 khi đô la và lợi suất thực cùng tăng nhanh mà Nasdaq dưới MA 200 ngày. Chi tiết: `docs/ABLATION_BC.md`.
+
+**Kết quả.** Không quy tắc nào đạt điều kiện giữ (kịch bản xấu tốt hơn, trung vị giảm không quá 1%).
+| Quy tắc | Số đợt | Trước → sau (trung vị / P10) | Kết luận |
+|---|---|---|---|
+| funding_7d | 25 | 1,000 / 1,000 → 1,003 / 0,993 | bỏ |
+| basis_ann | 12 | 1,000 / 1,000 → 1,000 / 1,000 | bỏ |
+| stable_supply_30d | 11 | 1,000 / 1,000 → 1,000 / 0,997 | bỏ |
+| Fear & Greed (ngược đám đông / theo đà) | — | chỉ có năm 2019 trong giai đoạn huấn luyện, không chứng minh được ổn định | bỏ (mục 4.1) |
+| rsi_14w / rsi_14d | 47 / 124 | → 0,995 / 0,944 và 0,997 / 0,960 | bỏ |
+| capitulation | 9 | — | chỉ hiển thị (< 10 đợt) |
+| oi_to_mcap, etf_flow_5d, vol_rel_20w | — | — | chỉ hiển thị (chưa đủ dữ liệu, chưa bật, hoặc chỉ là bối cảnh) |
+| Hoãn mua sát sự kiện | 150 lần | 1,000 / 1,000 → 1,000 / 0,994 | bỏ |
+| Trần vĩ mô 1,25 | 5 | 1,000 / 1,000 → 1,000 / 1,000 | bỏ (gần như không có tác dụng) |
+
+Mô hình cuối vẫn chỉ là lớp A, giữ `layer_b: []` và `layer_c: []` trong `config/bot.yaml`. Số lần thử trong sổ: 132.
+
+**File thay đổi.** `bot/models/overlays.py`, `bot/models/ablation_bc.py`, `bot/backtest/metrics.py` (so sánh khi bot mua ở giá khác mốc), `docs/ABLATION_BC.md`, `experiments/registry.csv`, `tests/test_overlays.py`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 35/35 đạt.
+
+**Câu hỏi còn mở.** Không có.

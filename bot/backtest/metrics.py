@@ -131,3 +131,22 @@ def active_returns(price: np.ndarray, mult: np.ndarray, cfg_: SimConfig | None =
 def sharpe(r: np.ndarray) -> float | None:
     r = r[np.isfinite(r)]
     return float(r.mean() / r.std(ddof=1)) if len(r) > 2 and r.std(ddof=1) > 0 else None
+
+
+def rolling_two_prices(dates: pd.DatetimeIndex, fill: np.ndarray, price: np.ndarray, mult: np.ndarray, start: pd.Timestamp,
+                       end: pd.Timestamp, window: int = 104, step: int = 4, cfg_: SimConfig | None = None) -> pd.DataFrame:
+    """Like rolling(), but the strategy buys at `fill` (e.g. delayed past an event) while DCA buys at `price`;
+    both are valued at `price` at the end of each window."""
+    c = cfg_ or SimConfig.from_config()
+    idx = np.where((dates >= start) & (dates <= end))[0]
+    starts = [k for k in idx[::step] if k + window - 1 <= idx[-1]] if len(idx) else []
+    if not starts:
+        return pd.DataFrame()
+    F = np.stack([fill[k:k + window] for k in starts])
+    P = np.stack([price[k:k + window] for k in starts])
+    M = np.stack([mult[k:k + window] for k in starts])
+    s, d = simulate(F, M, c), simulate(P, None, c)
+    es = s.btc[:, -1] * P[:, -1] + s.cash[:, -1]
+    er = es / d.equity[:, -1]
+    return pd.DataFrame({"start": [dates[k] for k in starts], "equity_ratio": er, "cba": (d.spent[:, -1] / d.btc[:, -1]) / (s.spent[:, -1] / s.btc[:, -1]) - 1,
+                         "idle_avg": np.mean(s.cash / s.contributed, axis=1)})
