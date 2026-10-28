@@ -92,3 +92,31 @@ Mỗi giai đoạn ghi: tóm tắt, file thay đổi, kết quả kiểm tra, b�
 **Kết quả kiểm tra.** `python -m pytest`: 21/21 đạt (8 bài mới cho mô phỏng, thước đo, ghép điểm theo thời điểm, khóa giai đoạn kiểm tra cuối).
 
 **Câu hỏi còn mở.** Không có.
+
+## Giai đoạn 3: Bộ công cụ kiểm định (xong 28/10/2026)
+
+**Tóm tắt.** Đủ các công cụ của mục 5:
+- Chia giai đoạn huấn luyện 2011–2019, kiểm định 2020–2022, kiểm tra cuối từ 2023. Giai đoạn kiểm tra cuối bị khóa: mã phát triển không đọc được giá sau 31/12/2022. Chỉ cờ `--final` mới mở, và mỗi lần mở được ghi vào `experiments/final_runs.log`.
+- Đi tới với cửa sổ mở rộng, học lại mỗi 13 tuần. Mẫu huấn luyện nào có nhãn chạm vào giai đoạn kiểm tra thì bị cắt bỏ (purge), cộng khoảng đệm (embargo) bằng kỳ nhãn.
+- Bootstrap khối 26 tuần, 2.000 lần, cho khoảng tin cậy 95% của tỷ số tài sản và lợi thế giá vốn.
+- Kiểm tra với tín hiệu ngẫu nhiên: xáo hệ số theo khối 26 tuần, 1.000 lần.
+- Sổ ghi mọi lần thử `experiments/registry.csv` (thời gian, mã git, mã cấu hình, chỉ số, tham số, kết quả).
+- Deflated Sharpe Ratio (Bailey & López de Prado) tính trên lợi suất vượt mua đều hằng tuần.
+- Chu kỳ halving: chu kỳ bị cắt bởi khóa kiểm tra cuối được đánh dấu "chưa trọn".
+
+**Áp dụng cho bot hiện tại (chế độ Tự động), giai đoạn kiểm định 2020–2022.**
+| Thước đo | Kết quả | Ngưỡng chấp nhận |
+|---|---|---|
+| Tỷ số tài sản so với mua đều | 0,988 (khoảng tin cậy 95%: 0,819–1,051) | trung vị khung > 1,00 và P10 ≥ 0,97 |
+| Lợi thế giá vốn | -1,6% (khoảng tin cậy 95%: -15,4% đến +4,8%) | — |
+| Kiểm tra với tín hiệu ngẫu nhiên | hơn 62% số lần xáo | ≥ 95% |
+| Sharpe của phần vượt mua đều (năm hóa) | -0,72 | — |
+| Deflated Sharpe Ratio | 0,08 | — |
+
+Bot hiện tại không đạt các tiêu chí mới. Lợi thế của nó không phân biệt được với may rủi.
+
+**File thay đổi.** `bot/validation/` (walkforward, bootstrap, placebo, registry, dsr, evaluate), `bot/backtest/metrics.py` (lợi suất vượt mua đều, Sharpe), `bot/backtest/benchmark.py` (ghi sổ), `experiments/registry.csv` (7 lần thử: các phương án của bot hiện tại), `tests/test_validation.py`.
+
+**Kết quả kiểm tra.** `python -m pytest`: 26/26 đạt.
+
+**Câu hỏi còn mở.** Không có.

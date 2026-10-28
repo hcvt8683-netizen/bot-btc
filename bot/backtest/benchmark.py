@@ -64,8 +64,10 @@ def run(final: bool = False) -> dict:
         splits.log_final_run({"command": "benchmark"})
     dates, price = grid(final)
     out = {"dates": (dates[0], dates[-1]), "strategies": {}}
+    from bot.validation import evaluate as ev
     for k, (m, score) in current_bot_strategies(dates).items():
-        r = evaluate(dates, price, m, final)
+        r = ev.evaluate(f"bot_hien_tai:{k}", dates, price, m, final=final, features=k, params={"map": baselines.CURRENT_MAP},
+                        stage="benchmark", heavy=k == "auto")
         r["active_from"] = dates[np.isfinite(score)][0] if np.isfinite(score).any() else None
         r["mult_share"] = {x: float(np.mean(m == x)) for x in (2.0, 1.25, 1.0, 0.25)}
         out["strategies"][k] = r

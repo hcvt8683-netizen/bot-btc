@@ -121,3 +121,13 @@ def win_rate(price: np.ndarray, mask: np.ndarray, h: int) -> dict:
     m = np.zeros(n_all, dtype=bool)
     m[sel] = True
     return {"n": len(sel), "episodes": episodes(m), "win": k / len(sel) if sel else None, "lo": lo, "hi": hi}
+
+
+def active_returns(price: np.ndarray, mult: np.ndarray, cfg_: SimConfig | None = None) -> np.ndarray:
+    """Weekly time-weighted return of the strategy minus that of DCA (the series used for Sharpe and DSR)."""
+    return twr(simulate(price, mult, cfg_))[0] - twr(simulate(price, None, cfg_))[0]
+
+
+def sharpe(r: np.ndarray) -> float | None:
+    r = r[np.isfinite(r)]
+    return float(r.mean() / r.std(ddof=1)) if len(r) > 2 and r.std(ddof=1) > 0 else None
