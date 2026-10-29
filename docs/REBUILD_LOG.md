@@ -122,3 +122,29 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Lần ước lượng cuối: khoảng tin cậy lợi thế của **mọi khung đều chứa 0**. Ví dụ "Phải mua" theo MVRV: 162 tuần, 7 đợt, chênh +0,3 điểm %, khoảng tin cậy −23% đến +28%. Hệ số 1,0 là đúng quy tắc, không phải lỗi.
 - Khung vẫn không đơn điệu ở mọi kỳ hạn.
 - Hệ số dùng thực tế: **1,0** (cổng Phần I chưa mở).
+
+## Phần E: Bên bán (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước** (`config/candidates.yaml` mục `sell`, commit `d7a47ce`, trước khi chạy):
+- tiêu chí bật khi chỉ số thuộc 5% đắt nhất 4 năm trước (phân vị trượt, bỏ ngưỡng tuyệt đối như MVRV Z ≥ 7, Pi ≥ 1);
+- đếm theo 4 nhóm (định giá on-chain, xu hướng giá, thợ đào, tâm lý);
+- **một hệ thống**: 0 nhóm → Giữ, 1–2 → Chốt lời một phần, ≥ 3 → Bán phần lớn;
+- quy tắc thực thi: bán X% (10/20/30%) một lần khi đợt tín hiệu bắt đầu, kích hoạt ≥ 1 nhóm hoặc ≥ 3 nhóm;
+- mua lại khi giá ≤ 80% giá bán bình quân hoặc sau 52 tuần; nền vẫn mua đều.
+
+**Test rò rỉ.** Giá sau tuần t sụp mạnh (để điều kiện mua lại sẽ bật nếu nhìn thấy được), tài sản và giao dịch đến t không đổi, quét 80 mốc t. Đã thử cài cho điều kiện mua lại nhìn giá tuần sau: bị bắt.
+
+**Lỗi đã sửa trong lúc làm.** Mô phỏng theo chu kỳ lúc đầu trừ vị trí tuần bán hai lần, nên chu kỳ 2016–2020 và 2020–2023 không có lần bán nào. Đã sửa trước khi đọc kết quả để kết luận.
+
+**Kết quả (2012 → 31/12/2023)**
+| Cấu hình | Chu kỳ có lợi so với giữ nguyên | Cả giai đoạn | Số lần bán (mua lại rẻ hơn / đã mua lại) |
+|---|---|---|---|
+| Bán 10/20/30% khi ≥ 1 nhóm | 0/3 | −37,8% / −62,1% / −77,4% | 9 (1/8) |
+| Bán 10/20/30% khi ≥ 3 nhóm | 2/3 (2012–2016, 2016–2020; lỗ 2020–2023) | +4,7% / +9,0% / +12,8% | 4 (2/4) |
+
+- Phần lợi của "≥ 3 nhóm" gần như đến từ **một** lần bán đúng ở chu kỳ 2012–2016. Chỉ 4 lần bán trong 11 năm: quá ít để tin.
+- Từng tiêu chí: không tiêu chí nào đúng nhiều hơn mốc ở cả 2 chu kỳ gần nhất có dữ liệu, nên **không có tiêu chí "đáng tin"**. Muốn xét "đáng tin" phải có chu kỳ 2021–2025, tức dữ liệu holdout, nên chấm ở Phần I.
+- Một số tiêu chí (Mayer, Puell, độ lệch MA 20 tuần) có bootstrap theo tuần "tốt hơn mốc", nhưng chỉ 3–6 đợt, Wilson theo đợt rất rộng (ví dụ Mayer 2/4 đợt đúng, 15–85%). Bootstrap theo tuần đánh giá quá cao khi các tuần dính chùm trong một đợt.
+- Tuần cuối trước holdout (24/12/2023): 0 nhóm bật → Giữ.
+
+**Kết luận:** bên bán **chưa có lợi thế đáng tin**. Chỉ hiển thị mức Giữ / Chốt lời một phần / Bán phần lớn để tham khảo, kèm số đợt, không khuyên tỷ lệ bán.

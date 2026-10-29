@@ -1,0 +1,755 @@
+{
+ "eval_end": "2023-12-31",
+ "criteria": {
+  "mvrv": {
+   "episodes": 4,
+   "weeks_on": 20,
+   "done": 4,
+   "right": 0,
+   "right_share": 0.0,
+   "wilson": [
+    0.0,
+    0.48990002040399916
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.14833333333333332,
+   "boot_ci_lower": [
+    -0.33033333333333303,
+    0.5151794871794872
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 3,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "mvrv_z": {
+   "episodes": 7,
+   "weeks_on": 30,
+   "done": 7,
+   "right": 3,
+   "right_share": 0.42857142857142855,
+   "wilson": [
+    0.1582169222626268,
+    0.7495457695909742
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.08166666666666667,
+   "boot_ci_lower": [
+    -0.21999999999999997,
+    0.5705416666666667
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 2,
+     "right": 2,
+     "base_lower": 0.3617021276595745,
+     "works": true
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 3,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 2,
+     "right": 1,
+     "base_lower": 0.4233128834355828,
+     "works": true
+    }
+   ],
+   "trusted": "khong"
+  },
+  "pi_ratio": {
+   "episodes": 1,
+   "weeks_on": 6,
+   "done": 1,
+   "right": 1,
+   "right_share": 1.0,
+   "wilson": [
+    0.20654329147389294,
+    1.0
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.4816666666666667,
+   "boot_ci_lower": [
+    0.23508333333333326,
+    0.7181666666666667
+   ],
+   "verdict": "it_dot",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 1,
+     "right": 1,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "mayer": {
+   "episodes": 4,
+   "weeks_on": 15,
+   "done": 4,
+   "right": 2,
+   "right_share": 0.5,
+   "wilson": [
+    0.15003570882017145,
+    0.8499642911798285
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.515,
+   "boot_ci_lower": [
+    0.14095833333333344,
+    0.7132857142857142
+   ],
+   "verdict": "kem_moc",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 1,
+     "right": 1,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 2,
+     "right": 1,
+     "base_lower": 0.3681592039800995,
+     "works": true
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "p_200wma": {
+   "episodes": 2,
+   "weeks_on": 24,
+   "done": 2,
+   "right": 0,
+   "right_share": 0.0,
+   "wilson": [
+    0.0,
+    0.6576280471103807
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": -0.018333333333333313,
+   "boot_ci_lower": [
+    -0.42833333333333334,
+    0.5796726190476191
+   ],
+   "verdict": "it_dot",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 2,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "rsi_14w": {
+   "episodes": 6,
+   "weeks_on": 27,
+   "done": 5,
+   "right": 1,
+   "right_share": 0.2,
+   "wilson": [
+    0.036223160969787456,
+    0.6244717358814612
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": -0.10166666666666668,
+   "boot_ci_lower": [
+    -0.33076190476190465,
+    0.2021764705882353
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 3,
+     "right": 1,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "puell": {
+   "episodes": 3,
+   "weeks_on": 13,
+   "done": 3,
+   "right": 2,
+   "right_share": 0.6666666666666666,
+   "wilson": [
+    0.20765495512648788,
+    0.9385096847238393
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.41756410256410254,
+   "boot_ci_lower": [
+    0.13166666666666668,
+    0.7612083333333334
+   ],
+   "verdict": "kem_moc",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 1,
+     "right": 1,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 1,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "fng": {
+   "episodes": 3,
+   "weeks_on": 17,
+   "done": 3,
+   "right": 1,
+   "right_share": 0.3333333333333333,
+   "wilson": [
+    0.061490315276160515,
+    0.7923450448735121
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": -0.17519607843137253,
+   "boot_ci_lower": [
+    -0.4450833333333332,
+    0.5933333333333334
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 0,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 3,
+     "right": 1,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "dev_ma20w": {
+   "episodes": 6,
+   "weeks_on": 20,
+   "done": 6,
+   "right": 3,
+   "right_share": 0.5,
+   "wilson": [
+    0.1876128068994087,
+    0.8123871931005913
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.4483333333333333,
+   "boot_ci_lower": [
+    0.17662500000000025,
+    0.6700416666666668
+   ],
+   "verdict": "kem_moc",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 2,
+     "right": 2,
+     "base_lower": 0.3617021276595745,
+     "works": true
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 3,
+     "right": 1,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  }
+ },
+ "triggers": {
+  "≥1 nhóm": {
+   "episodes": 9,
+   "weeks_on": 78,
+   "done": 8,
+   "right": 1,
+   "right_share": 0.125,
+   "wilson": [
+    0.02241690886329618,
+    0.4708948057698615
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": -0.04500000000000004,
+   "boot_ci_lower": [
+    -0.2293589221014493,
+    0.14644379844961233
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 2,
+     "right": 1,
+     "base_lower": 0.3617021276595745,
+     "works": true
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 4,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 2,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  },
+  "≥3 nhóm": {
+   "episodes": 4,
+   "weeks_on": 19,
+   "done": 4,
+   "right": 1,
+   "right_share": 0.25,
+   "wilson": [
+    0.045586062644636216,
+    0.6993639475573634
+   ],
+   "base_lower": 0.3516666666666667,
+   "boot_diff_lower": 0.3325438596491228,
+   "boot_ci_lower": [
+    -0.06618055555555523,
+    0.6507440476190476
+   ],
+   "verdict": "chua_co_loi_the",
+   "cycles": [
+    {
+     "cycle": "2012–2016",
+     "episodes": 1,
+     "right": 1,
+     "base_lower": 0.3617021276595745,
+     "works": false
+    },
+    {
+     "cycle": "2016–2020",
+     "episodes": 2,
+     "right": 0,
+     "base_lower": 0.3681592039800995,
+     "works": false
+    },
+    {
+     "cycle": "2020–2023",
+     "episodes": 1,
+     "right": 0,
+     "base_lower": 0.4233128834355828,
+     "works": false
+    }
+   ],
+   "trusted": "khong"
+  }
+ },
+ "sims": [
+  {
+   "trigger": 1,
+   "frac": 0.1,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 0.6222097418467074,
+     "mdd": -0.8176148294439954,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 9,
+     "closed": 8,
+     "right": 1,
+     "open_end": 1
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 0.9571941680837729,
+     "mdd": -0.7916531362578572,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 0.8381531345742886,
+     "mdd": -0.8180676262710928,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 4,
+     "closed": 4,
+     "right": 0,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.9562809439536946,
+     "mdd": -0.7665475223667617,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 3,
+     "closed": 2,
+     "right": 0,
+     "open_end": 1
+    }
+   ]
+  },
+  {
+   "trigger": 1,
+   "frac": 0.2,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 0.3787663020346966,
+     "mdd": -0.8140995478359627,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 9,
+     "closed": 8,
+     "right": 1,
+     "open_end": 1
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 0.9143132867230014,
+     "mdd": -0.7866814549014887,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 0.7048473373685381,
+     "mdd": -0.815302710008412,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 4,
+     "closed": 4,
+     "right": 0,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.9154666740401709,
+     "mdd": -0.7665554398013312,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 3,
+     "closed": 2,
+     "right": 0,
+     "open_end": 1
+    }
+   ]
+  },
+  {
+   "trigger": 1,
+   "frac": 0.3,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 0.22634169470125998,
+     "mdd": -0.8093881622005736,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 9,
+     "closed": 8,
+     "right": 1,
+     "open_end": 1
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 0.8713573559176849,
+     "mdd": -0.7814860932575085,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 0.5965856174125239,
+     "mdd": -0.811909535156587,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 4,
+     "closed": 4,
+     "right": 0,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.8774643510544262,
+     "mdd": -0.7665635410137119,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 3,
+     "closed": 2,
+     "right": 0,
+     "open_end": 1
+    }
+   ]
+  },
+  {
+   "trigger": 3,
+   "frac": 0.1,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 1.0470178959667336,
+     "mdd": -0.8089414686189802,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 4,
+     "closed": 4,
+     "right": 2,
+     "open_end": 0
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 1.0753148886928383,
+     "mdd": -0.7964088815173507,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 1,
+     "closed": 1,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 1.0059470211645727,
+     "mdd": -0.8093644106311698,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.9886969316437748,
+     "mdd": -0.7627659327877404,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 1,
+     "closed": 1,
+     "right": 0,
+     "open_end": 0
+    }
+   ]
+  },
+  {
+   "trigger": 3,
+   "frac": 0.2,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 1.0896887043581922,
+     "mdd": -0.7964047261904947,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 4,
+     "closed": 4,
+     "right": 2,
+     "open_end": 0
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 1.1506297773856764,
+     "mdd": -0.7964047261904947,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 1,
+     "closed": 1,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 1.0115786487063276,
+     "mdd": -0.7966696019607256,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.9773938632875496,
+     "mdd": -0.7586738523470015,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 1,
+     "closed": 1,
+     "right": 0,
+     "open_end": 0
+    }
+   ]
+  },
+  {
+   "trigger": 3,
+   "frac": 0.3,
+   "cycles": [
+    {
+     "period": "2012–2023",
+     "ratio": 1.1278421157455536,
+     "mdd": -0.7964011618628088,
+     "mdd_dca": -0.8202848112114467,
+     "sales": 4,
+     "closed": 4,
+     "right": 2,
+     "open_end": 0
+    },
+    {
+     "period": "2012–2016",
+     "ratio": 1.2259446660785138,
+     "mdd": -0.7964011618628088,
+     "mdd_dca": -0.7964137886148471,
+     "sales": 1,
+     "closed": 1,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2016–2020",
+     "ratio": 1.0168948826252646,
+     "mdd": -0.7817853981125901,
+     "mdd_dca": -0.8203198615889308,
+     "sales": 2,
+     "closed": 2,
+     "right": 1,
+     "open_end": 0
+    },
+    {
+     "period": "2020–2023",
+     "ratio": 0.9660907949313242,
+     "mdd": -0.754221521230539,
+     "mdd_dca": -0.7665398471782887,
+     "sales": 1,
+     "closed": 1,
+     "right": 0,
+     "open_end": 0
+    }
+   ]
+  }
+ ],
+ "last": {
+  "date": "2023-12-24",
+  "groups_on": 0,
+  "level": "giu",
+  "criteria_on": []
+ },
+ "weeks": 626,
+ "from": "2012-01-01"
+}
