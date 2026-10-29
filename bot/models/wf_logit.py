@@ -92,6 +92,49 @@ def nested_oos(table: pd.DataFrame, sets: dict[str, list[str]], lambdas: list[fl
     return _walk(table, configs, h, refit, min_train, inner_valid, end)
 
 
+def _fit_at(X_all, cols, y, configs, T, h, min_train, inner_valid):
+    """Model used from Sunday T on: inner choice of configuration (if `inner_valid`), then the fit on every label known
+    by T (i + h ≤ T − 1). Returns (configuration or None, Fit or None, base rate)."""
+    last_lab = T - 1 - h
+    chosen, best_ll = None, None
+    if inner_valid:
+        v_end, v_start = last_lab, last_lab - inner_valid + 1
+        for c in configs:
+            names = list(c[0])
+            Xc = X_all[:, [cols[f] for f in names]]
+            tr = train_rows(Xc, y, v_start - 1 - h)
+            va = np.arange(max(0, v_start), v_end + 1)
+            va = va[np.isfinite(Xc[va]).all(axis=1) & np.isfinite(y[va])]
+            if len(tr) < min_train or len(va) < inner_valid // 2:
+                continue
+            f = fit_signed(Xc[tr], y[tr], names, c[1])
+            if f is None:
+                continue
+            ll = log_loss(predict(f, Xc[va], names), y[va])
+            ll0 = log_loss(np.full(len(va), y[tr].mean()), y[va])
+            if ll < ll0 and (best_ll is None or ll < best_ll - 1e-12):
+                chosen, best_ll = c, ll
+    else:
+        chosen = configs[0]
+    if chosen is None:
+        return None, None, np.nan
+    names = list(chosen[0])
+    Xc = X_all[:, [cols[f] for f in names]]
+    tr = train_rows(Xc, y, last_lab)
+    f = fit_signed(Xc[tr], y[tr], names, chosen[1]) if len(tr) >= min_train else None
+    return chosen, f, (float(y[tr].mean()) if len(tr) else np.nan)
+
+
+def freeze_fit(table: pd.DataFrame, sets: dict[str, list[str]], lambdas: list[float], h: int = 26, min_train: int = 104,
+               inner_valid: int = 52) -> tuple[str | None, Fit | None, float]:
+    """The nested model as it would be refitted at the LAST Sunday of `table` (Part H freeze): (set name, Fit, base rate)."""
+    configs = [(tuple(f), lam, name) for name, f in sets.items() for lam in lambdas]
+    allf = sorted({f for c in configs for f in c[0]})
+    chosen, f, p0 = _fit_at(_xy(table, allf), {f: k for k, f in enumerate(allf)}, labels(table, h), configs, len(table) - 1, h,
+                            min_train, inner_valid)
+    return (chosen[2] if chosen else None), f, p0
+
+
 def _walk(table, configs, h, refit, min_train, inner_valid, end) -> pd.DataFrame:
     t = table if end is None else table[table.index <= end]
     y = labels(t, h)
@@ -112,45 +155,19 @@ def _walk(table, configs, h, refit, min_train, inner_valid, end) -> pd.DataFrame
     if first is None:
         return pd.DataFrame(columns=["p", "p0", "config", "lam", "kept", "dropped"])
     for T in range(first, n, refit):
-        last_lab = T - 1 - h
-        chosen, best_ll = None, None
-        if inner_valid:
-            v_end, v_start = last_lab, last_lab - inner_valid + 1
-            base_rows = None
-            for c in configs:
-                names = list(c[0])
-                Xc = X_all[:, [cols[f] for f in names]]
-                tr = train_rows(Xc, y, v_start - 1 - h)
-                va = np.arange(max(0, v_start), v_end + 1)
-                va = va[np.isfinite(Xc[va]).all(axis=1) & np.isfinite(y[va])]
-                if len(tr) < min_train or len(va) < inner_valid // 2:
-                    continue
-                f = fit_signed(Xc[tr], y[tr], names, c[1])
-                if f is None:
-                    continue
-                ll = log_loss(predict(f, Xc[va], names), y[va])
-                ll0 = log_loss(np.full(len(va), y[tr].mean()), y[va])
-                if ll < ll0 and (best_ll is None or ll < best_ll - 1e-12):
-                    chosen, best_ll = c, ll
-                base_rows = base_rows or (tr, va)
-        else:
-            chosen = configs[0]
+        chosen, f, p0 = _fit_at(X_all, cols, y, configs, T, h, min_train, inner_valid)
         test = np.arange(T, min(T + refit, n))
-        for c in ([chosen] if chosen else [None]):
-            if c is None:
-                for i in test:
-                    rows.append((t.index[i], np.nan, np.nan, None, None, None, None))
-                continue
-            names = list(c[0])
-            Xc = X_all[:, [cols[f] for f in names]]
-            tr = train_rows(Xc, y, last_lab)
-            f = fit_signed(Xc[tr], y[tr], names, c[1]) if len(tr) >= min_train else None
-            p0 = float(y[tr].mean()) if len(tr) else np.nan
+        if chosen is None:
             for i in test:
-                ok = np.isfinite(Xc[i]).all()
-                p = float(predict(f, Xc[i:i + 1], names)[0]) if (f is not None and ok) else np.nan
-                rows.append((t.index[i], p, p0, c[2] if len(c) > 2 else "+".join(names), c[1],
-                             "+".join(f.features) if f else None, "+".join(f.dropped) if f and f.dropped else ""))
+                rows.append((t.index[i], np.nan, np.nan, None, None, None, None))
+            continue
+        names = list(chosen[0])
+        Xc = X_all[:, [cols[f_] for f_ in names]]
+        for i in test:
+            ok = np.isfinite(Xc[i]).all()
+            p = float(predict(f, Xc[i:i + 1], names)[0]) if (f is not None and ok) else np.nan
+            rows.append((t.index[i], p, p0, chosen[2] if len(chosen) > 2 else "+".join(names), chosen[1],
+                         "+".join(f.features) if f else None, "+".join(f.dropped) if f and f.dropped else ""))
     out = pd.DataFrame(rows, columns=["date", "p", "p0", "config", "lam", "kept", "dropped"]).set_index("date")
     return out
 

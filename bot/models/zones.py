@@ -28,23 +28,24 @@ def plain_zones(rank: pd.Series, th: dict) -> pd.Series:
     return pd.Series(z, index=rank.index, dtype=object)
 
 
+def step(cur: str | None, r: float, th: dict, band: float) -> str | None:
+    """One week of hysteresis: up-moves happen at the threshold, down-moves only below threshold − band."""
+    if np.isnan(r):
+        return None
+    if cur is None or cur == "khong":
+        return "phai" if r >= th["phai"] else "cannhac" if r >= th["cannhac"] else "khong"
+    if cur == "cannhac":
+        return "phai" if r >= th["phai"] else "khong" if r < th["cannhac"] - band else "cannhac"
+    if r < th["phai"] - band:  # phai
+        return "cannhac" if r >= th["cannhac"] - band else "khong"
+    return "phai"
+
+
 def hysteresis_zones(rank: pd.Series, th: dict, band: float) -> pd.Series:
     """rank in 0–100. Up-moves happen at the threshold, down-moves only below threshold − band."""
     out, cur = [], None
     for r in rank.to_numpy(dtype=float):
-        if np.isnan(r):
-            out.append(None)
-            cur = None
-            continue
-        if cur is None:
-            cur = "phai" if r >= th["phai"] else "cannhac" if r >= th["cannhac"] else "khong"
-        elif cur == "khong":
-            cur = "phai" if r >= th["phai"] else "cannhac" if r >= th["cannhac"] else "khong"
-        elif cur == "cannhac":
-            cur = "phai" if r >= th["phai"] else "khong" if r < th["cannhac"] - band else "cannhac"
-        else:  # phai
-            if r < th["phai"] - band:
-                cur = "cannhac" if r >= th["cannhac"] - band else "khong"
+        cur = step(cur, r, th, band)
         out.append(cur)
     return pd.Series(out, index=rank.index, dtype=object)
 
@@ -67,6 +68,14 @@ def zone_multiplier(zone: str | None, edge: dict | None, scale: float, bounds: t
     return float(np.clip(m, bounds[0], bounds[1]))
 
 
+def edges(z: pd.Series, known_price: np.ndarray, h: int, n_boot: int, seed: int, gap: int = 4) -> dict:
+    """Edge of every zone (weeks, episodes, difference vs baseline, 95% interval) from the weeks whose outcome is known."""
+    tab = measure.zone_table(z, known_price, [h], ORDER, n_boot=n_boot, seed=seed, gap=gap)
+    e = {zn: tab["zones"].get(zn, {}).get(h) for zn in ORDER}
+    return {zn: (None if not v or not v.get("weeks") else {"weeks": v["weeks"], "episodes": v["episodes"], "diff": v["diff"], "ci": v["ci"]})
+            for zn, v in e.items()}
+
+
 def walk_multipliers(z: pd.Series, price: np.ndarray, h: int, refit: int, scale: float, bounds: tuple[float, float],
                      min_eps: int, n_boot: int, seed: int, gap: int = 4) -> tuple[np.ndarray, list[dict]]:
     """Multiplier per week. Every `refit` weeks the zone edges are re-estimated with the uniform zone table on the weeks
@@ -79,12 +88,8 @@ def walk_multipliers(z: pd.Series, price: np.ndarray, h: int, refit: int, scale:
     if first is None:
         return m, history
     for T in range(first + h + 52, n, refit):
-        known = price[:T].copy()  # execution prices up to the Monday after Sunday T−1: labels end before week T
-        zz = pd.Series(zones[:T], dtype=object)
-        tab = measure.zone_table(zz, known, [h], ORDER, n_boot=n_boot, seed=seed, gap=gap)
-        edges = {zn: tab["zones"].get(zn, {}).get(h) for zn in ORDER}
-        rec = {"refit": T, "edges": {zn: (None if not e or not e.get("weeks") else {"weeks": e["weeks"], "episodes": e["episodes"],
-                                                                                    "diff": e["diff"], "ci": e["ci"]}) for zn, e in edges.items()}}
+        # execution prices up to the Monday after Sunday T−1: labels end before week T
+        rec = {"refit": T, "edges": edges(pd.Series(zones[:T], dtype=object), price[:T].copy(), h, n_boot, seed, gap)}
         history.append(rec)
         for i in range(T, min(T + refit, n)):
             m[i] = zone_multiplier(zones[i], rec["edges"].get(zones[i]) if zones[i] else None, scale, bounds, min_eps)

@@ -8,6 +8,7 @@ data-report     part A data-quality report + data/manifest.json
 features        weekly feature table → data/features.parquet
 report          weekly recommendation → data/recommendation.json (fail-safe: DCA)
 final --final   phase 7: the single logged run on the locked holdout + acceptance criteria
+forward freeze|log|score   part H forward log in data/forward/ (freeze only after the Part I holdout run)
 """
 from __future__ import annotations
 
@@ -24,6 +25,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("command")
     ap.add_argument("--final", action="store_true", help="evaluate the locked holdout (logged)")
     ap.add_argument("--sources", nargs="*")
+    ap.add_argument("action", nargs="?", help="forward: freeze | log | score")
+    ap.add_argument("--asof", help="forward: Sunday (YYYY-MM-DD), default the last weekly close in the data")
     args = ap.parse_args(argv)
     if args.command == "fetch":
         from bot.config import cfg
@@ -70,7 +73,46 @@ def main(argv: list[str] | None = None) -> int:
         from bot.data import check_sources
         check_sources.run()
         return 0
+    if args.command == "forward":
+        return forward_cmd(ap, args)
     ap.error(f"unknown command {args.command}")
+    return 2
+
+
+def forward_cmd(ap: argparse.ArgumentParser, args) -> int:
+    import json
+
+    import pandas as pd
+
+    from bot.config import CONFIG, DATA, load_yaml
+    from bot.data import pit_store as ps
+    from bot.features import weekly_close as wc
+    from bot.models import forward as fw, part_c
+    root = DATA / "forward"
+    last = pd.Timestamp(ps.load_history("coinmetrics")["date"].max())
+    sunday = pd.Timestamp(args.asof) if args.asof else last - pd.Timedelta(days=(last.weekday() + 1) % 7)
+    if args.action == "freeze":
+        if not (DATA / "results" / "acceptance.json").exists():
+            ap.error("chưa có kết quả Phần I (data/results/acceptance.json): đóng băng thật chỉ làm sau lần chạy holdout duy nhất")
+        vid, created = fw.freeze(root, sunday, part_c.table)
+        print(("đã đóng băng " if created else "phiên bản đã có: ") + vid)
+        return 0
+    if args.action == "log":
+        vdir = fw.current(root)
+        log = fw.read_log(vdir)
+        start = pd.Timestamp(log["date"].iloc[-1]) + pd.Timedelta(weeks=1) if len(log) else pd.Timestamp(json.loads((vdir / "model.json").read_text(encoding="utf-8"))["state"]["asof"])
+        for d in pd.date_range(start, sunday, freq="W-SUN"):
+            row = fw.log_week(root, d, part_c.table)
+            print(row and f"{row['date']} {row['zone'] or '—'} hệ số {row['mult_used']} late={row['late']}")
+        return 0
+    if args.action == "score":
+        rb = load_yaml(CONFIG / "bot.yaml")["rebuild"]
+        vdir = fw.current(root)
+        res = fw.score(vdir, wc.load(None), part_c.spec()["forward"]["score_horizons"], rb["bootstrap_n"], rb["seed"], rb["episode_gap_weeks"])
+        (vdir / "score.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+        print(vdir.name, {k: res.get(k) for k in ("rows", "late", "matured")})
+        return 0
+    ap.error("forward: freeze | log | score")
     return 2
 
 

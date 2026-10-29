@@ -191,3 +191,35 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Sự kiện lúc chạy: FOMC 28/10/2026 (sau mốc chốt 25/10) được gắn cờ, đề nghị chạy lại sau Chủ nhật 01/11/2026. Lịch CPI chỉ tới 14/10/2026: cảnh báo cần cập nhật.
 
 **Kết luận:** chưa có khung nào có lợi thế trong một chế độ Fed riêng. Chế độ Fed chỉ để chia nhóm báo cáo.
+
+## Phần H: Kiểm định đi tới (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước** (`config/candidates.yaml` mục `forward`, commit `13daebf`, trước khi chạy):
+- đóng băng mô hình lồng nhau một lần, không học lại khi theo dõi;
+- mỗi tuần một dòng `forward_log.csv` (ngày, giá đóng tuần, điểm, thứ hạng, khung, hệ số, phiên bản), kèm hai quy tắc đơn giản và bên bán;
+- mã phiên bản sha256 của mã, cấu hình và trạng thái đóng băng; đổi bất kỳ thứ gì → phiên bản mới, nhật ký mới;
+- chấm sau 26 và 52 tuần bằng giá thứ Hai;
+- đóng băng thật làm ngay sau lần chạy holdout của Phần I.
+
+**Vì sao chưa đóng băng thật.** Đóng băng tại hôm nay cần học mô hình trên dữ liệu 2024–2026, tức nhìn vào holdout trước lần chạy duy nhất của Phần I. Vì vậy Phần H chỉ dựng và kiểm tra quy trình, rồi chạy thử trên 2023. Lệnh `python -m bot.cli forward freeze` từ chối chạy khi chưa có `data/results/acceptance.json`.
+
+**Tách mã, kết quả cũ không đổi.**
+- `wf_logit._fit_at`: chọn cấu hình và học tại một tuần, dùng chung cho đi tới và đóng băng. Đầu ra mô hình lồng nhau và từng cấu hình cố định giống hệt trước khi tách. Đóng băng tại tuần học lại đầu tiên cho đúng mô hình của đi tới.
+- `zones.step` (vùng trễ từng tuần) và `zones.edges` (lợi thế từng khung). Phần D chạy lại giống hệt từng byte.
+
+**Test** (`tests/test_forward.py`, 6 bài):
+- chỉ thêm dòng; ghi lại cùng tuần không làm gì;
+- đổi cấu hình thì dừng ghi, đóng băng lại tạo `v2-…` với nhật ký mới, nhật ký cũ giữ nguyên;
+- sửa tay `model.json` bị phát hiện; mã băm không phụ thuộc kiểu xuống dòng;
+- dòng không đổi khi dữ liệu sau Chủ nhật của nó đổi;
+- dùng đúng trọng số đóng băng, khi ghi gọi hàm học lại sẽ báo lỗi;
+- chấm chỉ đếm dòng đã đủ kỳ hạn.
+
+Đã cài thử 3 lỗi (sửa dòng cũ, nhìn trước 4 tuần, học lại mỗi tuần): test bắt được cả 3.
+
+**Chạy thử 2023** (đóng băng 25/12/2022, dữ liệu đã dùng ở Phần B–E, không phải kiểm định):
+- Mô hình đóng băng: bộ S3; MVRV bị bỏ do sai dấu, còn Puell với trọng số 0,07. Điểm gần như không đổi (0,56–0,61), thứ hạng 1–24.
+- Kết quả: cả 54 tuần ở Không nên mua, đúng năm giá tăng mạnh. Hệ số dùng thực tế 1,0.
+- Chấm: 27 dòng đủ kỳ 26 tuần, 1 dòng đủ kỳ 52 tuần; mỗi khung chỉ 1 đợt → "ít đợt".
+
+**Kết luận:** quy trình đi tới đã sẵn sàng và có test. Phiên bản thật bắt đầu sau Phần I; nhật ký đi tới là phép thử ngoài mẫu thật duy nhất.
