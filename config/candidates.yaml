@@ -157,3 +157,17 @@ plan:
   rule: "đề xuất = trong phương án ROI cao nhất và các phương án không kém nó đáng kể (khoảng tin cậy 95% của trung vị chênh lệch theo từng tuần bắt đầu, bootstrap khối 52 tuần, chứa 0), chọn phương án có phân vị 10% cao nhất (ít thiệt nhất khi gặp lúc xấu)"
   signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
   episodes: "số đợt độc lập = số tuần bắt đầu chia 52 (các cửa sổ 1 năm chồng lấn); Wilson tính theo số đợt"
+
+# Dự báo dải giá BTC theo ngày (tính năng web, để người dùng tự kiểm chứng). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
+forecast:
+  price: "giá đóng ngày Coin Metrics (00:00 UTC); ngày gốc = ngày cuối có giá. Ngoại lệ có chủ đích với nguyên tắc giá đóng tuần, vì người dùng cần mốc từng ngày"
+  horizons_days: [1, 2, 3, 4, 5, 6, 7, 30]
+  quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]   # khoảng 80% = 10–90%, khoảng 50% = 25–75%, giữa = trung vị
+  method: "mô phỏng lịch sử theo biến động: lợi suất log k ngày chia cho (độ lệch chuẩn lợi suất ngày của 30 ngày trước đó × √k), lấy phân vị trong 4 năm trước ngày gốc (chỉ các cửa sổ đã biết kết quả), nhân lại với biến động hiện tại"
+  vol_days: 30
+  window_days: 1461
+  min_obs: 365
+  baseline: "phân vị lợi suất k ngày không chỉnh biến động, cùng cửa sổ (chỉ để so sánh khi kiểm chứng, không hiển thị)"
+  check_from: 2018-01-01   # kiểm chứng lịch sử: mỗi ngày từ đây, dự báo bằng dữ liệu đến ngày đó, đếm số lần giá thật rơi vào khoảng 50% và 80%
+  log: "mỗi ngày ghi một lần dự báo của ngày gốc mới nhất vào data/forecast/forecast_log.csv (chỉ thêm dòng, không ghi bù, chỉ ghi ngày đích chưa tới); chấm khi có giá ngày đích; đổi phương pháp = phiên bản mới, thống kê tách theo phiên bản"
+  no_direction: "không phải dự báo hướng giá: kiểm định 6 tiêu chí (Phần I) cho thấy tín hiệu chưa có lợi thế"
