@@ -97,3 +97,28 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 **Ghi chú thiết kế**
 - Lợi thế giá vốn với hệ số 0,5 + thứ hạng có giới hạn cấu trúc: tuần nào cũng "rẻ" (như 2022–2023 với Giá/MA 200 tuần) thì không có tuần mua ít để dành tiền, nên kết quả trùng mua đều (0,0%). Đây là đặc điểm của thước đo cùng tổng vốn, không phải lỗi.
 - S1 và S6 cho kết quả giống hệt: cả hai rút về chỉ còn Giá/MA 200 tuần sau ràng buộc dấu.
+
+## Phần D: Khung mua và hệ số giải ngân (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước** (`config/candidates.yaml`, mục `zones` và `multiplier`, commit `c7eeb48`, trước khi chạy):
+- ngưỡng 80/60 theo thứ hạng, vùng trễ 5 điểm;
+- hệ số 0,5–1,5, m = 1 + 2 × cận khoảng tin cậy của lợi thế khung (tỷ lệ thắng 26 tuần trừ mốc);
+- dưới 3 đợt → 1,0; ước lượng lại mỗi 13 tuần chỉ bằng các tuần đã biết kết quả;
+- cổng Phần I.
+
+**Test rò rỉ.** Bài kiểm tra kiểu hộp đen (đổi giá sau tuần t, hệ số đến t không đổi) đạt. Nhưng khi thử cài rò rỉ thì nó **không bắt được**, vì hệ số hoặc là 1,0, hoặc chạm trần/sàn, nên thay đổi nhỏ không lộ. Đã thêm bài kiểm tra trực tiếp: mỗi lần ước lượng lại ở tuần T chỉ nhận đúng dữ liệu của các tuần 0..T−1. Bài này bắt được cả rò rỉ 1 tuần.
+
+**Đã làm** (`bot/models/zones.py`, `bot/models/part_d.py`, báo cáo `docs/ZONES_D.md`, số liệu `data/results/part_d.json`)
+- "Tỷ lệ nên mua" định nghĩa lại là **thứ hạng** của điểm tuần này trong các điểm ngoài mẫu trước đó, không phải xác suất có lãi. Câu này sẽ ghi trên báo cáo.
+- Khung có vùng trễ; hệ số tính đi tới theo cận khoảng tin cậy; cổng Phần I (chưa có kết quả Phần I → 1,0, lý do "chưa chạy kiểm định Phần I").
+
+**Kết quả (đến 31/12/2023)**
+| Cách | Số tuần | Đổi khung: không vùng trễ → có vùng trễ | Tuần hệ số theo quy tắc khác 1,0 | Lợi thế giá vốn nếu dùng | Tuần cuối trước holdout |
+|---|---|---|---|---|---|
+| Mô hình lồng nhau | 59 (từ 02/2022) | 3 → 1 | 0% | 0,0% | thứ hạng 4, Không nên mua, hệ số 1,0 |
+| Quy tắc MVRV | 547 (từ 07/2013) | 51 → 41 | 0% | 0,0% | thứ hạng 19, Không nên mua, hệ số 1,0 |
+| Quy tắc Giá/MA 200 tuần | 347 (từ 05/2017) | 30 → 24 | 0% | 0,0% | thứ hạng 55, Không nên mua, hệ số 1,0 |
+
+- Lần ước lượng cuối: khoảng tin cậy lợi thế của **mọi khung đều chứa 0**. Ví dụ "Phải mua" theo MVRV: 162 tuần, 7 đợt, chênh +0,3 điểm %, khoảng tin cậy −23% đến +28%. Hệ số 1,0 là đúng quy tắc, không phải lỗi.
+- Khung vẫn không đơn điệu ở mọi kỳ hạn.
+- Hệ số dùng thực tế: **1,0** (cổng Phần I chưa mở).
