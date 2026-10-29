@@ -1,10 +1,10 @@
 {
- "checked_at": "2026-10-29T07:39:40Z",
+ "checked_at": "2026-10-29T08:15:41Z",
  "results": [
   {
    "source": "Coin Metrics",
    "result": "200 OK",
-   "seconds": 0.3
+   "seconds": 0.4
   },
   {
    "source": "Alternative.me",
@@ -29,7 +29,7 @@
   {
    "source": "Binance dapi (quarterly futures)",
    "result": "HTTP 451",
-   "seconds": 0.4
+   "seconds": 0.5
   },
   {
    "source": "CoinGecko",
@@ -39,7 +39,7 @@
   {
    "source": "DefiLlama",
    "result": "200 OK",
-   "seconds": 0.2
+   "seconds": 0.1
   },
   {
    "source": "FRED (CSV)",
