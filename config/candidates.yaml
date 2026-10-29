@@ -125,3 +125,23 @@ forward:
   score_rule: "chấm mọi dòng đã đủ kỳ hạn bằng giá đóng thứ Hai (như Phần B), cùng thước đo thống nhất; mốc = mọi tuần của nhật ký đã đủ kỳ hạn"
   real_freeze: "ngay sau lần chạy holdout duy nhất ở Phần I (đóng băng cần dữ liệu 2024–2026, làm sau để giữ khóa holdout)"
   dry_run: {freeze: 2022-12-25, log_until: 2023-12-31}   # chạy thử quy trình trên dữ liệu đã dùng ở Phần B–E; không phải kiểm định
+
+# Phần I: tiêu chí chấp nhận và lần chạy holdout duy nhất. Đăng ký trước khi chạy (29/10/2026), trước khi đọc bất kỳ số nào của holdout.
+acceptance:
+  holdout_start: 2024-01-01          # đến tuần cuối có giá đóng thứ Hai trong dữ liệu lúc chạy
+  model: "mô hình lồng nhau (Phần C) đi tới tiếp vào holdout: học lại mỗi 13 tuần, cửa sổ mở rộng, purge 26 tuần; thứ hạng ngoài mẫu, khung có vùng trễ và hệ số theo cận khoảng tin cậy (Phần D), chưa qua cổng"
+  weeks: "chuỗi tuần liên tục từ tuần đầu có thứ hạng; tuần không có mô hình hoặc không có khung → hệ số 1,0 (mua đều)"
+  multiplier: "quyết định bằng hệ số Phần D (thứ sẽ dùng thật nếu đạt). Chỉ để tham khảo, không quyết định: hệ số so sánh 0,5 + thứ hạng (Phần C)"
+  criteria:
+    c1: "lợi thế giá vốn (tiền thừa tính theo giá cuối) > 0 ở ≥ 75% số năm dương lịch ngoài mẫu trước holdout có ≥ 26 tuần, VÀ > 0 trên holdout"
+    c2: "cận dưới khoảng tin cậy 95% (bootstrap khối dừng, khối 26 tuần, 2000 lần) của lợi thế giá vốn trên holdout > 0"
+    c3: "trên holdout, p hoán vị đã hiệu chỉnh max-statistic trên mọi cấu hình đã thử (lồng nhau, 24 cấu hình cố định, 2 quy tắc) < 0,05 cho CẢ IC 26 tuần và lợi thế giá vốn theo hệ số so sánh (thống kê của Phần C); dịch vòng ≥ 52 tuần, 1000 lần, cùng hạt giống"
+    c4: "khung đơn điệu (Phải mua ≥ Cân nhắc mua ≥ mốc ≥ Không nên mua) ở mọi kỳ hạn 4/13/26/52 tuần trên toàn bộ giai đoạn ngoài mẫu đến hết holdout, VÀ mọi trọng số ≥ 0 ở mọi lần học lại"
+    c5: "Brier của xác suất mô hình < Brier của tỷ lệ gốc, trên các tuần holdout có mô hình và đã biết nhãn 26 tuần"
+    c6: "lợi thế giá vốn trên holdout của mô hình > của TỪNG quy tắc đơn giản (MVRV, Giá/MA 200 tuần) với cùng cách tạo thứ hạng, khung và hệ số"
+  pass: "đạt cả 6 → passed: true trong data/results/acceptance.json; thiếu dữ liệu để tính một tiêu chí → tiêu chí đó không đạt"
+  sell:
+    cycles: [[2016-07-09, 2020-05-10], [2020-05-11, 2024-04-19], [2024-04-20, null]]   # theo kỳ giảm một nửa; chu kỳ cuối đến hết dữ liệu
+    trusted: "tiêu chí đúng nhiều hơn mốc (≥ 2 đợt, giá 26 tuần sau thấp hơn) ở CẢ hai chu kỳ gần nhất: 2020–2024 (đỉnh 2021) và 2024–nay (đỉnh 10/2025); cách đếm như Phần E"
+  once: "chạy bằng `python -m bot.cli acceptance --final`, ghi vào experiments/final_runs.log; đã có một lần chạy thì lệnh từ chối; không sửa gì theo kết quả"
+  rehearsal: {holdout_start: 2022-01-01, data_end: 2023-12-31}   # diễn tập cùng mã trên dữ liệu đã xem, để bắt lỗi trước lần chạy thật
