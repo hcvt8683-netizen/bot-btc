@@ -69,3 +69,31 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 
 **Thay đổi thiết kế sau khi xem kết quả (ghi theo yêu cầu)**
 - Thêm quy tắc **dưới 3 đợt → "ít đợt, chưa kết luận"**. Lý do: với PA3, ô "Phải mua, 1 năm" có bootstrap 0,15 đến 0,77 (sẽ ghi "hơn mốc"), nhưng cả 31 tuần là một đợt duy nhất. Bootstrap theo tuần không đo được bất định của một sự kiện chỉ xảy ra một lần. Quy tắc này chỉ làm kết luận **khắt khe hơn**, không làm kết quả đẹp hơn.
+
+**Quyết định của bạn (29/10/2026):** giữ quy tắc "dưới 3 đợt → ít đợt, chưa kết luận".
+
+## Phần C: Mô hình và chống khớp quá mức (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước.** `config/candidates.yaml` (8 bộ chỉ số, mỗi bộ có lý do kinh tế; λ ∈ {0,3; 1; 3}; nhãn 26 tuần; vòng trong 52 tuần; mốc; kiểm định) đã lưu git ở commit `da803d6`, **trước** khi có dòng mã mô hình nào chạy trên dữ liệu thật.
+
+**Test rò rỉ trước tiên.** `tests/test_leak_model.py`: thay mọi thứ sau tuần t (chỉ số xáo trộn; giá đi ngược nhãn gần nhất, để nhãn thật sự đổi) thì điểm ngoài mẫu đến t không đổi, ở 14 mốc t liên tiếp. Đã thử cài rò rỉ 1, 5 và 26 tuần (học cả nhãn chưa biết): cả ba đều bị bắt. Bản đầu của bài kiểm tra **không** bắt được, vì cách xáo trộn không làm đổi nhãn; đã sửa trước khi chạy dữ liệu thật.
+
+**Đã làm** (`bot/models/wf_logit.py`, `bot/models/part_c.py`, báo cáo `docs/MODEL_C.md`, số liệu `data/results/part_c.json`, danh sách cấu hình `experiments/rebuild_configs.csv`)
+- Đi tới lồng nhau: vòng ngoài học lại mỗi 13 tuần, cửa sổ mở rộng, cắt bỏ nhãn chồng (mẫu chỉ được học khi nhãn đã biết trước lần học). Vòng trong chọn bộ và λ theo log-loss trên 52 tuần gần nhất; không cấu hình nào hơn tỷ lệ nền thì không dùng mô hình.
+- Hồi quy logistic L2 với ràng buộc dấu (trọng số của "độ rẻ" ≥ 0, sai dấu thì loại và ghi lại).
+- 24 cấu hình cố định (8 bộ × 3 λ) cùng mô hình lồng nhau và 2 quy tắc 1 chỉ số; kiểm định hoán vị dịch vòng (≥ 52 tuần, 1.000 lần), hiệu chỉnh max-statistic và Holm; bỏ từng chu kỳ; kiểm tra đơn điệu và gộp khung.
+
+**Kết quả (đến 31/12/2023)**
+| Mục | Kết quả |
+|---|---|
+| Mô hình lồng nhau | 260/372 tuần **tự chọn không dùng mô hình**. Khi có chọn: tương quan với lợi suất 26 tuần −0,11; lợi thế giá vốn −8,6% (−16,3% đến +3,4%); Brier kém mốc → chỉ thứ hạng |
+| Cấu hình cố định | tương quan âm ở mọi bộ (−0,04 đến −0,44); lợi thế giá vốn −0,7% đến −6,2%; không cấu hình nào có ý nghĩa (p hiệu chỉnh = 1,000) |
+| Quy tắc đơn giản | MVRV: tương quan −0,05, lợi thế −6,1% (từ 2013). Giá/MA 200 tuần: tương quan +0,28 (p thô 0,195, hiệu chỉnh 0,943), lợi thế −3,7% (từ 2017) |
+| Ràng buộc dấu | MVRV học ra dấu ngược ở phần lớn các lần học; **Fear & Greed bị loại ở mọi lần học**, nên bộ có và không có Fear & Greed như nhau. Chỉ báo thay thế (MA 20 tuần) cũng bị loại |
+| Bỏ từng chu kỳ | chu kỳ 2016–2020: mọi bộ thua mua đều 16–24%; chu kỳ 2020–2023: chỉ Giá/MA 200 tuần (+0,3%) và Pi (+1,4%) dương nhẹ |
+| Đơn điệu | không ở bất kỳ cách nào, kể cả sau khi gộp → bỏ khung |
+| Kết luận | **chưa có lợi thế → mua đều (hệ số 1,0)** |
+
+**Ghi chú thiết kế**
+- Lợi thế giá vốn với hệ số 0,5 + thứ hạng có giới hạn cấu trúc: tuần nào cũng "rẻ" (như 2022–2023 với Giá/MA 200 tuần) thì không có tuần mua ít để dành tiền, nên kết quả trùng mua đều (0,0%). Đây là đặc điểm của thước đo cùng tổng vốn, không phải lỗi.
+- S1 và S6 cho kết quả giống hệt: cả hai rút về chỉ còn Giá/MA 200 tuần sau ràng buộc dấu.
