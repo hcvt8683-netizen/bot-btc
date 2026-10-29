@@ -189,6 +189,62 @@
     <p class="warn" id="lookahead" hidden></p>
     <p class="warn" id="stale" hidden></p>
 
+    <section class="panel" id="kn-sec" style="margin:16px 0">
+      <h2>{{web.kn.title}}</h2>
+      <p class="lead">{{web.kn.lead}}</p>
+      <p class="cons" id="kn-sum"></p>
+      <div id="kn-notes"></div>
+      <p class="sm" style="margin-top:16px" id="kn-cmp-title">{{web.kn.cmp_title}}</p>
+      <div class="scroll"><table id="t-kn"></table></div>
+      <ul class="crit" id="kn-ev"></ul>
+      <div class="two" style="margin-top:16px">
+        <div><p class="sm">{{web.kn.events_title}}</p><ul class="status" id="kn-events"></ul></div>
+        <div><p class="sm">{{web.kn.fresh_title}}</p><ul class="status" id="kn-fresh"></ul></div>
+      </div>
+    </section>
+
+    <section class="panel" id="rb-sec" style="margin:16px 0">
+      <h2>{{web.rb.title}}</h2>
+      <p class="lead">{{web.rb.lead}}</p>
+      <div class="cons" id="rb-sum"></div>
+      <p class="sm" style="margin-top:16px">{{web.rb.zones_title}}</p>
+      <div class="scroll"><table id="t-rb-zones"></table></div>
+      <p class="sm" style="margin-top:16px" id="rb-scn-title"></p>
+      <div class="scroll"><table id="t-rb-scn"></table></div>
+      <ul class="crit" id="rb-notes"></ul>
+    </section>
+
+    <section class="panel" id="fc-sec" style="margin:16px 0">
+      <h2>{{web.fc.title}}</h2>
+      <p class="lead">{{web.fc.lead}}</p>
+      <div class="cons" id="fc-sum"></div>
+      <div class="scroll"><table id="t-fc"></table></div>
+      <ul class="crit" id="fc-notes"></ul>
+      <p class="sm" style="margin-top:16px">{{web.fc.verify_title}}</p>
+      <p class="lead" id="fc-verify-sum"></p>
+      <div class="scroll" id="fc-verify-box"><table id="t-fc-verify"></table></div>
+    </section>
+
+    <section class="panel" id="plan-sec" style="margin:16px 0">
+      <h2>{{web.plan.title}}</h2>
+      <p class="lead">{{web.plan.lead}}</p>
+      <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
+        <label>{{web.plan.amount}}<input type="text" inputmode="decimal" id="plan-amount" placeholder="{{web.plan.amount_ph}}" autocomplete="off"></label>
+        <label>{{web.plan.unit}}<span class="seg" id="plan-unit"></span></label>
+        <label>{{web.plan.start}}<input type="date" id="plan-start"></label>
+      </div>
+      <div class="cons" id="plan-sum" style="margin-top:12px"></div>
+      <p class="sm" style="margin-top:16px">{{web.plan.cmp_title}}</p>
+      <div class="scroll"><table id="t-plan"></table></div>
+      <ul class="crit" id="plan-notes"></ul>
+      <p class="sm" style="margin-top:16px">{{web.plan.sched_title}}</p>
+      <div class="seg" id="plan-opts" style="margin-bottom:8px"></div>
+      <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
+      <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
+    </section>
+
+    <p class="warn" id="legacy-note" style="margin:16px 0">{{web.rb.legacy}}</p>
+
     <div id="sell-view" hidden>
       <section class="panel" id="s-hero"></section>
 
@@ -230,31 +286,6 @@
       <div class="panel gauge" id="g-sell"></div>
     </div>
 
-    <section class="panel" id="kn-sec" style="margin:16px 0">
-      <h2>{{web.kn.title}}</h2>
-      <p class="lead">{{web.kn.lead}}</p>
-      <p class="cons" id="kn-sum"></p>
-      <div id="kn-notes"></div>
-      <p class="sm" style="margin-top:16px">{{web.kn.cmp_title}}</p>
-      <div class="scroll"><table id="t-kn"></table></div>
-      <ul class="crit" id="kn-ev"></ul>
-      <div class="two" style="margin-top:16px">
-        <div><p class="sm">{{web.kn.events_title}}</p><ul class="status" id="kn-events"></ul></div>
-        <div><p class="sm">{{web.kn.fresh_title}}</p><ul class="status" id="kn-fresh"></ul></div>
-      </div>
-    </section>
-
-    <section class="panel" id="fc-sec" style="margin:16px 0">
-      <h2>{{web.fc.title}}</h2>
-      <p class="lead">{{web.fc.lead}}</p>
-      <div class="cons" id="fc-sum"></div>
-      <div class="scroll"><table id="t-fc"></table></div>
-      <ul class="crit" id="fc-notes"></ul>
-      <p class="sm" style="margin-top:16px">{{web.fc.verify_title}}</p>
-      <p class="lead" id="fc-verify-sum"></p>
-      <div class="scroll" id="fc-verify-box"><table id="t-fc-verify"></table></div>
-    </section>
-
     <section class="panel" id="lv-sec" style="margin:16px 0">
       <h2>{{web.page.gia_de_xuat_mua_va_ban}}</h2>
       <p class="lead" id="lv-lead"></p>
@@ -266,24 +297,6 @@
     </section>
 
     <div id="buy-view">
-    <section class="panel" id="plan-sec" style="margin:16px 0">
-      <h2>{{web.plan.title}}</h2>
-      <p class="lead">{{web.plan.lead}}</p>
-      <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
-        <label>{{web.plan.amount}}<input type="text" inputmode="decimal" id="plan-amount" placeholder="{{web.plan.amount_ph}}" autocomplete="off"></label>
-        <label>{{web.plan.unit}}<span class="seg" id="plan-unit"></span></label>
-        <label>{{web.plan.start}}<input type="date" id="plan-start"></label>
-      </div>
-      <div class="cons" id="plan-sum" style="margin-top:12px"></div>
-      <p class="sm" style="margin-top:16px">{{web.plan.cmp_title}}</p>
-      <div class="scroll"><table id="t-plan"></table></div>
-      <ul class="crit" id="plan-notes"></ul>
-      <p class="sm" style="margin-top:16px">{{web.plan.sched_title}}</p>
-      <div class="seg" id="plan-opts" style="margin-bottom:8px"></div>
-      <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
-      <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
-    </section>
-
     <section class="panel" id="pa-sec">
       <h2>{{web.page.so_sanh_cac_phuong_an}}</h2>
       <p class="lead" id="pa-lead"></p>

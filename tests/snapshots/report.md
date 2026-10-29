@@ -14,9 +14,9 @@ Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu
 
 ## Khuyến nghị giải ngân tuần này
 - Hệ số mua: **1,0** (Chế độ an toàn: mua đều). Số tiền: 100 $ trên mỗi 100 $ ngân sách tuần.
-- Vì sao: mô hình mới chưa đạt tiêu chí kiểm định trên giai đoạn kiểm tra cuối (từ 01/01/2023), nên bot không khuyên mua nhiều hay ít hơn mua đều.
-- So với mua đều, giai đoạn kiểm tra cuối: mô hình mới trung vị 1,000, kịch bản xấu 1,000; mua theo khung của bot hiện tại trung vị 0,940, kịch bản xấu 0,898, lợi thế giá vốn -3,1%, sụt giảm lớn nhất -50% (mua đều -52%).
-- Sự kiện vĩ mô trong 7 ngày tới: 01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC; 19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE; 15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng. Lệnh không bị hoãn.
+- Vì sao: mô hình đạt 0/6 tiêu chí chấp nhận định trước (cần đạt cả 6) trên giai đoạn kiểm tra cuối 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần ngày 29/10/2026. Không có cơ sở mua nhiều hay ít hơn mua đều.
+- Tuần 25/10/2026 (bản xây lại, đã kiểm định): thứ hạng mô hình 76 → Cân nhắc mua; quy tắc MVRV 65 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 70 → Cân nhắc mua. Thứ hạng không phải xác suất; các khung chưa có lợi thế.
+- Sự kiện vĩ mô sau mốc chốt dữ liệu và 7 ngày tới (⚑ = đã xảy ra, tín hiệu chưa tính): ⚑ 19:30 27/10/2026 (giờ Việt Nam): Chỉ số giá tiêu dùng Mỹ (CPI); 01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC; 19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE; 15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng. Lệnh không bị hoãn.
 - Dữ liệu cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam).
 
 ## Giá đề xuất mua và bán (ngày 27/10/2026, giá 1.102 $)

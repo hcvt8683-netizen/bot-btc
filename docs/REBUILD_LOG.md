@@ -316,3 +316,13 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - dòng đầu ghi lúc 29/10/2026 06:48 UTC, ngày gốc 28/10/2026 (giá đóng 81.237 $);
 - Daily trên GitHub ghi tiếp mỗi ngày (`python -m bot.cli forecast`);
 - trang web hiện bảng kiểm chứng khi dự báo đến hạn.
+
+## Trang web: đưa kết luận bản xây lại lên (29/10/2026)
+
+- **Khuyến nghị giải ngân tuần này:** lý do lấy từ 6 tiêu chí của Phần I; bảng 6 tiêu chí kèm kết quả thay cho bảng giai đoạn 7 cũ.
+- **Sự kiện:** chỉ liệt kê sau mốc chốt dữ liệu (giá đóng Chủ nhật cuối, lấy từ `data/status.json`). Sự kiện đã xảy ra trước lúc cập nhật được gắn ⚑, kèm đề nghị xem lại sau giá đóng tuần kế tiếp; lịch thiếu được cảnh báo. Sửa lỗi 9 trên trang.
+- **Mục mới "Tuần này theo bản xây lại (đã kiểm định)":** thứ hạng của mô hình đóng băng và hai quy tắc (ghi rõ không phải xác suất), khung tuần này trong lịch sử tính theo đợt kèm khoảng tin cậy và kết luận, bên bán, chế độ Fed kèm cảnh báo, kịch bản giá sau 4 tuần (Fear & Greed đổi theo giá). Sửa lỗi 1, 2, 7, 8 trên trang.
+- **Thứ tự trang:** phần đã kiểm định lên đầu (khuyến nghị, tuần này, dự báo dải giá, kế hoạch giải ngân). Phần phân tích cũ tính trong trình duyệt xuống dưới một cảnh báo rõ ràng; dưới mỗi đồng hồ "Tỷ lệ nên mua / nên bán" có dòng "phân tích cũ, không phải xác suất, chưa có lợi thế".
+- **Báo cáo tải về:** dòng lý do và dòng thứ hạng tuần này theo bản xây lại; sự kiện có ⚑.
+- **Kiểm tra:** test sự kiện theo mốc chốt (gắn cờ, không liệt kê sự kiện trước mốc chốt); ảnh chụp giao diện và báo cáo đã duyệt khác biệt.
+- **Chưa làm:** phần phân tích cũ trong trình duyệt chưa được tính lại theo thước đo thống nhất; nó chỉ còn để tham khảo.

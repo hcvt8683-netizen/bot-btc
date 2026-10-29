@@ -42,11 +42,22 @@ def test_stale_data_falls_back_and_says_why(tmp_path, monkeypatch):
 def test_events_in_next_7_days_and_personal_budget_only_local(tmp_path, monkeypatch):
     _setup(tmp_path, monkeypatch, passed=False, cm_last="2026-10-27")
     rec = vi_report.build(NOW, write=False)
-    assert {"type": "fomc", "time": "2026-10-28T18:00Z"} in rec["events"]
+    assert {"type": "fomc", "time": "2026-10-28T18:00Z", "flag": False} in rec["events"]
     assert all(e["time"] <= "2026-11-04T01:00Z" for e in rec["events"])
+    assert rec["events_meta"]["cutoff"] == "2026-10-25" and rec["events_meta"]["rerun_after"] is None
     monkeypatch.setattr(vi_report, "personal", lambda: {"budget": {"weekly_usd": 250}})
     out = vi_report.console(rec)
     assert "250 $/tuần" in out and "01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC" in out
+
+
+def test_events_after_the_data_cutoff_are_flagged_and_earlier_ones_never_listed(tmp_path, monkeypatch):
+    """Data cut at Sunday 25/10 close; the report runs on 29/10: the FOMC of 28/10 happened in between and is flagged."""
+    _setup(tmp_path, monkeypatch, passed=False, cm_last="2026-10-27")
+    rec = vi_report.build(dt.datetime(2026, 10, 29, 5, 0), write=False)
+    fomc = next(e for e in rec["events"] if e["type"] == "fomc")
+    assert fomc["flag"] and fomc["time"] == "2026-10-28T18:00Z" and rec["events_meta"]["rerun_after"] == "2026-11-01"
+    assert all(e["time"] > "2026-10-25T23:59Z" for e in rec["events"])  # nothing from before the cut-off
+    assert "⚑" in vi_report.console(rec)
 
 
 def test_every_text_key_exists_and_vi_json_is_in_sync():

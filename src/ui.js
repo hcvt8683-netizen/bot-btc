@@ -207,6 +207,7 @@
     gs.append(el('p', null, tx('web.ui.nguy_co_gia_giam_hon_10', nf(0).format(a.sell.score))));
     const sz2 = a.sell.ev.zones.find((z) => z.id === sz.id), sbase = a.sell.ev.base;
     gs.append(el('p', 'muted', sz2.n ? tx('web.ui.lich_su_o_khung_0_gia', sz.ten.toLowerCase(), pc(sz2.h[1].giam.win), pc(sz2.h[1].giamManh.win), sz2.n, pc(sbase.h[1].giam.win), pc(sbase.h[1].giamManh.win)) : tx('web.ui.chua_co_tuan_nao_trong_lich')));
+    for (const g of [gb, gs]) g.append(el('p', 'warn', tx('web.rb.gauge_note')));
   }
 
   // ---------- giá đề xuất mua, bán ----------
@@ -478,7 +479,7 @@
   function applyMode() {
     const sell = st.mode === 'sell';
     $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
-    $('buy-view').hidden = sell; $('sell-view').hidden = !sell;
+    $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell;
     if (sell && st.sd) requestAnimationFrame(drawSellChart);
     if (!sell && st.a) requestAnimationFrame(drawChart);
   }
@@ -736,9 +737,100 @@
     if (!KN) notes.push(el('p', 'warn', tx('web.kn.reason_missing')));
     else {
       if (stale || KN.reasons.includes('data_stale')) notes.push(el('p', 'warn', tx('web.kn.reason_data_stale')));
-      if (KN.reasons.includes('model_failed')) { const p = el('p', 'lead'); p.append(el('b', null, tx('web.kn.why')), tx('web.kn.reason_model_failed'), ' ', tx('web.kn.current_zone_note')); notes.push(p); }
+      if (KN.reasons.includes('model_failed') && RB) { const p = el('p', 'lead'); p.append(el('b', null, tx('web.kn.why')), whyRb()); notes.push(p); }
+      else if (KN.reasons.includes('model_failed')) { const p = el('p', 'lead'); p.append(el('b', null, tx('web.kn.why')), tx('web.kn.reason_model_failed'), ' ', tx('web.kn.current_zone_note')); notes.push(p); }
     }
     $('kn-notes').replaceChildren(...notes);
+    if (RB) renderCriteriaRb();
+    else renderEvidenceOld();
+    const evs = KN ? KN.events.map((e) => el('li', e.flag ? 'err' : null, e.flag ? tx('web.kn.ev_flag', vnTime(e.time), tx('web.kn.ev_' + e.type)) : tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type)))) : [];
+    const meta = (KN && KN.events_meta) || {};
+    if (meta.rerun_after) evs.push(el('li', 'err', tx('web.kn.rerun', fmtDate(meta.rerun_after))));
+    for (const [k, d] of Object.entries(meta.stale || {})) evs.push(el('li', null, tx('web.kn.stale_cal', tx('web.kn.ev_' + k), d ? fmtDate(d) : '—')));
+    $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
+    $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
+      s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
+    if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
+    $('stale').hidden = !stale;
+    if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
+  }
+  // ----- bản xây lại: 6 tiêu chí chấp nhận (Phần I), đọc tuần này từ mô hình đóng băng (KN.rebuild) -----
+  const RB = KN && KN.rebuild && KN.rebuild.acceptance ? KN.rebuild : null;
+  const ZN = (z) => (z ? tx('web.rb.zone_' + z) : '—');
+  const rk = (x) => (x == null ? '—' : nf(0).format(x));
+  function whyRb() {
+    const A = RB.acceptance, n = Object.values(A.criteria).filter((c) => c.pass).length;
+    return tx('web.kn.why_rb', n, fmtDate(A.holdout_start), fmtDate(A.last_week), A.holdout_weeks, fmtDate(A.run_at.slice(0, 10)));
+  }
+  function renderCriteriaRb() {
+    const C = RB.acceptance.criteria, dec = (x, d) => (x == null || !isFinite(x) ? '—' : nf(d).format(x));
+    const yrs = Object.values(C.c1.years || {}), mono = Object.values(C.c4.monotone || {}), h6 = C.c6.holdout || {};
+    const val = {
+      c1: tx('web.kn.c1_v', yrs.filter((v) => v > 0).length, yrs.length, spc(C.c1.holdout, 1)),
+      c2: tx('web.kn.c2_v', spc(C.c2.holdout, 1), spc(C.c2.ci && C.c2.ci[0], 1), spc(C.c2.ci && C.c2.ci[1], 1)),
+      c3: tx('web.kn.c3_v', dec(C.c3.p_ic, 3), dec(C.c3.p_cost, 3)),
+      c4: tx('web.kn.c4_v', mono.filter(Boolean).length, mono.length, C.c4.drops ?? '—', C.c4.model_weeks ?? '—'),
+      c5: C.c5.weeks ? tx('web.kn.c5_v', dec(C.c5.brier, 3), dec(C.c5.brier_base, 3), C.c5.weeks) : tx('web.kn.c5_none'),
+      c6: tx('web.kn.c6_v', spc(h6['Lồng nhau'], 1), spc(h6['Quy tắc MVRV'], 1), spc(h6['Quy tắc Giá/MA 200 tuần'], 1)),
+    };
+    $('kn-cmp-title').textContent = tx('web.kn.crit_title');
+    const h = el('tr');
+    ['#', tx('web.kn.col_crit'), tx('web.kn.col_result'), tx('web.kn.col_pass')].forEach((x, i) => h.append(el('th', i === 3 ? 'r' : '', x)));
+    const tb = el('tbody');
+    Object.keys(val).forEach((k, i) => { const tr = el('tr'); tr.append(el('td', 'num', String(i + 1)), el('td', null, tx('web.kn.' + k)), el('td', 'num', val[k]),
+      el('td', 'r ' + (C[k].pass ? 'good' : 'bad'), tx(C[k].pass ? 'web.kn.pass_yes' : 'web.kn.pass_no'))); tb.append(tr); });
+    const th = el('thead'); th.append(h); $('t-kn').replaceChildren(th, tb);
+    $('kn-ev').replaceChildren(el('li', null, tx('web.rb.report_link')));
+  }
+  function renderRebuild() {
+    if (!RB) {
+      $('rb-sum').replaceChildren(el('span', 'warn', tx('web.rb.none')));
+      for (const id of ['t-rb-zones', 't-rb-scn', 'rb-notes']) $(id).replaceChildren();
+      $('rb-scn-title').textContent = '';
+      return;
+    }
+    const W = RB.week, M = RB.model, F = RB.fed;
+    const sum = [el('p', null, tx('web.rb.week', fmtDate(W.date), usd(W.close), rk(W.rank), ZN(W.zone), rk(W.rank_mvrv), ZN(W.zone_mvrv), rk(W.rank_200w), ZN(W.zone_200w))),
+      el('p', null, tx('web.rb.rank_note')), el('p', null, tx('web.rb.sell', W.sell_groups, tx('web.rb.level_' + W.sell_level), RB.sell_trusted))];
+    const fp = el('p', null, tx('web.rb.fed', tx('web.rb.reg_' + F.regime), fmtDate(F.since)));
+    if (F.warn && F.warn.length) fp.append(' ', el('b', 'mid', tx('web.rb.fed_warn', F.warn.join(', '))));
+    sum.push(fp);
+    $('rb-sum').replaceChildren(...sum);
+    const h = el('tr');
+    ['col_strategy', 'col_zone', 'col_h', 'col_weeks', 'col_eps', 'col_win', 'col_base', 'col_diff', 'col_verdict'].forEach((k, i) => h.append(el('th', i > 2 && i < 8 ? 'r' : '', tx('web.rb.' + k))));
+    const tb = el('tbody');
+    for (const z of RB.zones) {
+      const tr = el('tr'), v = z.verdict || 'it_dot';
+      tr.append(el('td', null, z.strategy === 'Lồng nhau' ? tx('web.rb.strat_nested') : z.strategy), el('td', 'nowrap', ZN(z.zone)), el('td', 'nowrap', tx('web.rb.h_' + z.h)),
+        el('td', 'r num', String(z.weeks)), el('td', 'r num', String(z.episodes)), el('td', 'r num', pc(z.win)), el('td', 'r num', pc(z.base)),
+        el('td', 'r num nowrap', tx('web.rb.diff_cell', spc(z.diff, 1), spc(z.ci && z.ci[0], 1), spc(z.ci && z.ci[1], 1))),
+        el('td', v === 'hon_moc' ? 'good' : v === 'kem_moc' ? 'bad' : 'muted', tx('web.rb.v_' + v)));
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-rb-zones').replaceChildren(th, tb);
+    const S = RB.scenarios, rng = (r) => (r == null ? '—' : Math.round(r[0]) === Math.round(r[1]) ? rk(r[0]) : `${rk(r[0])}–${rk(r[1])}`);
+    $('rb-scn-title').textContent = S ? tx('web.rb.scn_title', S.k) : '';
+    if (S) {
+      const sh = el('tr');
+      ['col_price', 'col_change', 'col_fng', 'col_200w', 'col_mvrv', 'col_sell'].forEach((k, i) => sh.append(el('th', i < 3 ? 'r' : '', tx('web.rb.' + k))));
+      const sb = el('tbody');
+      for (const r of S.rows) {
+        const tr = el('tr', r.delta === 0 ? 'here' : '');
+        tr.append(el('td', 'r num', usd(r.price)), el('td', 'r num', r.delta ? spc(r.delta) : tx('web.rb.now')), el('td', 'r num nowrap', `${rk(r.fng[1])} (${rk(r.fng[0])}–${rk(r.fng[2])})`),
+          el('td', null, `${rng(r.range_200w)} → ${r.zones_200w.map(ZN).join(' / ')}`), el('td', null, `${rk(r.rank_mvrv)} (${rng(r.range_mvrv)}) → ${r.zones_mvrv.map(ZN).join(' / ')}`),
+          el('td', null, `${rng(r.groups)} → ${r.levels.map((x) => tx('web.rb.level_' + x)).join(' / ')}`));
+        sb.append(tr);
+      }
+      const sth = el('thead'); sth.append(sh); $('t-rb-scn').replaceChildren(sth, sb);
+    } else $('t-rb-scn').replaceChildren();
+    const notes = [tx('web.rb.model', M.version, fmtDate(M.asof), M.set, M.features.map(nameOfFeat).join(', ') || '—', M.dropped.length ? tx('web.rb.model_dropped', M.dropped.map(nameOfFeat).join(', ')) : '', M.weeks_logged)];
+    if (S) notes.push(tx('web.rb.scn_note'));
+    notes.push(tx('web.rb.report_link'));
+    $('rb-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+  }
+  const nameOfFeat = (f) => { const d = IND.find((x) => x.id === f || x.id === FEAT_ID[f]); return d ? d.ten : f; };
+  const FEAT_ID = { p_200wma: 'wma', mvrv: 'mvrv', fng: 'fng', pi_ratio: 'pi', puell: 'puell', mayer: 'mayer', rsi_14w: 'rsiw', dd_ath: 'dd', mvrv_z: 'mvrvz', vol_rel: 'vol' };
+  function renderEvidenceOld() {
     const ev = KN && KN.evidence;
     const h = el('tr');
     [tx('web.kn.col_strategy'), tx('web.kn.col_median'), tx('web.kn.col_p10'), tx('web.kn.col_cba'), tx('web.kn.col_mdd'), tx('web.kn.col_placebo')]
@@ -764,15 +856,7 @@
       li.push(el('li', null, tx('web.kn.ci_line', ...ci('candidate'), ...ci('current_bot'))), el('li', null, tx('web.kn.trials_line', ev.trials)));
     }
     $('kn-ev').replaceChildren(...li);
-    const evs = KN ? KN.events.map((e) => el('li', null, tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type)))) : [];
-    $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
-    $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
-      s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
-    if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
-    $('stale').hidden = !stale;
-    if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
   }
-
   // ----- Kế hoạch giải ngân một khoản tiền: số liệu lịch sử từ báo cáo tuần (KN.plan), lịch tính trên máy người dùng, không lưu số tiền -----
   const PLAN = KN && KN.plan && KN.plan.options && KN.plan.options.length ? KN.plan : null;
   const pl = { unit: 'vnd', pick: PLAN ? PLAN.recommended : null };
@@ -934,6 +1018,7 @@
 
   initPlan();
   if ($('fc-sec')) renderForecast();
+  if ($('rb-sec')) renderRebuild();
   loadAll();
   setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
 })();

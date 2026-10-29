@@ -248,9 +248,16 @@ const B3 = (() => {
       t(tx('web.kn.md_m', m.toFixed(1).replace('.', ','), stale || kn.mode === 'safe' ? tx('web.kn.mode_safe') : tx('web.kn.mode_model', tx('web.kn.layer_' + kn.layer)),
         usdT(kn.amount_example_usd * m), usdT(kn.amount_example_usd)));
       if (stale || kn.reasons.includes('data_stale')) t(tx('web.kn.md_why', tx('web.kn.reason_data_stale')));
-      if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.reason_model_failed')));
-      if (ev) { const c = ev.candidate.holdout, b = ev.current_bot.holdout; t(tx('web.kn.md_cmp', d3(c.median), d3(c.p10), d3(b.median), d3(b.p10), P(b.cba, 1), P(b.mdd), P(b.mdd_dca))); }
-      t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
+      const rb = kn.rebuild && kn.rebuild.acceptance ? kn.rebuild : null;
+      if (rb) {
+        const A = rb.acceptance, W = rb.week, zn = (z) => (z ? tx('web.rb.zone_' + z) : '—'), r0 = (x) => (x == null ? '—' : Math.round(x).toString());
+        if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.why_rb', Object.values(A.criteria).filter((c) => c.pass).length, D(A.holdout_start), D(A.last_week), A.holdout_weeks, D(A.run_at.slice(0, 10)))));
+        t(tx('web.kn.md_rb_week', D(W.date), r0(W.rank), zn(W.zone), r0(W.rank_mvrv), zn(W.zone_mvrv), r0(W.rank_200w), zn(W.zone_200w)));
+      } else {
+        if (kn.reasons.includes('model_failed')) t(tx('web.kn.md_why', tx('web.kn.reason_model_failed')));
+        if (ev) { const c = ev.candidate.holdout, b = ev.current_bot.holdout; t(tx('web.kn.md_cmp', d3(c.median), d3(c.p10), d3(b.median), d3(b.p10), P(b.cba, 1), P(b.mdd), P(b.mdd_dca))); }
+      }
+      t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => (e.flag ? '⚑ ' : '') + tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
       t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
     }
     if (lv) {

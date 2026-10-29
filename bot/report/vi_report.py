@@ -1,6 +1,6 @@
 """Weekly recommendation ("Khuyến nghị giải ngân tuần này"), written to data/recommendation.json for the web page.
 
-Fail-safe: the multiplier is 1.0 (plain DCA) whenever the model did not pass the acceptance criteria (phase 7) or a
+Fail-safe: the multiplier is 1.0 (plain DCA) whenever the model did not pass the acceptance criteria or a
 required data source is missing or stale; the reasons are listed. Only public numbers go into the JSON (amount per
 100 $ of budget); a personal budget from config/personal.yaml is used only for local console output.
 """
@@ -17,18 +17,97 @@ OUT = DATA / "recommendation.json"
 SUMMARY = DATA / "results" / "final_summary.json"
 
 
-def _events(now: dt.datetime, days: int = 7) -> list[dict]:
-    from bot.config import CONFIG, load_yaml
-    y = load_yaml(CONFIG / "events.yaml")
-    out = []
-    for k in ("fomc", "cpi", "pce"):
-        for s in y.get(k) or []:
-            out.append({"type": k, "time": s})
-    from bot.data.fetchers import events as ev
-    out += [{"type": "opex", "time": s} for s in ev.options_expiry(now.date(), (now + dt.timedelta(days=days)).date())]
-    lo, hi = now, now + dt.timedelta(days=days)
-    keep = [e for e in out if lo <= dt.datetime.fromisoformat(e["time"].replace("Z", "+00:00")).replace(tzinfo=None) <= hi]
-    return sorted(keep, key=lambda e: e["time"])
+def _last_sunday(status: dict) -> dt.date | None:
+    """Data cut-off of the signal: the last Sunday up to the last Coin Metrics day in data/status.json."""
+    last = ((status.get("sources") or {}).get("coinmetrics") or {}).get("last")
+    if not last:
+        return None
+    d = dt.date.fromisoformat(last)
+    return d - dt.timedelta(days=(d.weekday() + 1) % 7)
+
+
+def _events(now: dt.datetime, status: dict, days: int = 7) -> tuple[list[dict], dict]:
+    """Events after the data cut-off (last Sunday close) up to now + days. Those already past at `now` are flagged:
+    the signal does not contain the market's reaction to them (bot/report/events.py)."""
+    import pandas as pd
+    from bot.report import events as ev
+    sunday = _last_sunday(status)
+    cutoff = ev.cutoff_of(pd.Timestamp(sunday)) if sunday else pd.Timestamp(now)
+    lst = ev.listing(cutoff, pd.Timestamp(now), days)
+    iso = lambda x: x.strftime("%Y-%m-%dT%H:%MZ")  # noqa: E731
+    events = [{"type": e["type"], "time": iso(e["time"]), "flag": e["flag"]} for e in lst["after_cutoff"] + lst["upcoming"]]
+    meta = {"cutoff": sunday.isoformat() if sunday else None, "rerun_after": lst["rerun_after"].strftime("%Y-%m-%d") if lst["rerun_after"] is not None else None,
+            "stale": {k: (v.strftime("%Y-%m-%d") if v is not None else None) for k, v in lst["stale"].items()}}
+    return events, meta
+
+
+_SCN: dict = {}
+
+
+def _scenarios(asof: str) -> dict | None:
+    """Price scenarios at the analysis Sunday (Part F method, Fear & Greed moving with price); computed once per process."""
+    if asof not in _SCN:
+        try:
+            import pandas as pd
+            from bot.report import final_report as fr
+            sc = fr.scenarios_now(pd.Timestamp(asof))
+            _SCN[asof] = {"k": sc["k"], "rows": [{"delta": r["delta"], "price": r["mid"]["price"], "fng": r["fng"], "range_200w": r["range_200w"],
+                                                  "zones_200w": r["zones_200w"], "rank_mvrv": r["mid"]["rank_mvrv"], "range_mvrv": r["range_mvrv"],
+                                                  "zones_mvrv": r["zones_mvrv"], "groups": r["groups_range"], "levels": r["levels"]} for r in sc["rows"]]}
+        except Exception:  # noqa: BLE001
+            _SCN[asof] = None
+    return _SCN[asof]
+
+
+def _rebuild() -> dict | None:
+    """The rebuild's verdict for the page: the six acceptance criteria (Part I, single holdout run), this week's reading
+    from the frozen forward model, how this week's zones did in the past (by episodes), the sell side, the Fed regime and
+    the price scenarios. None when a result file is missing."""
+    try:
+        from bot.models import forward as fw
+        R = DATA / "results"
+        I = json.loads((R / "part_i.json").read_text(encoding="utf-8"))
+        G = json.loads((R / "part_g.json").read_text(encoding="utf-8"))
+        vdir = fw.current(DATA / "forward")
+        log = fw.read_log(vdir)
+        model = json.loads((vdir / "model.json").read_text(encoding="utf-8"))
+        last = log.iloc[-1]
+        num = lambda x: float(x) if str(x) not in ("", "nan") else None  # noqa: E731
+        c = I["criteria"]
+        crit = {"c1": {"years": c["c1"].get("years", {}), "holdout": c["c1"].get("holdout")},
+                "c2": {"holdout": c["c2"].get("holdout"), "ci": c["c2"].get("ci")},
+                "c3": {"p_ic": (c["c3"].get("ic26") or {}).get("p_maxstat"), "p_cost": (c["c3"].get("cost_basis") or {}).get("p_maxstat"),
+                       "weeks": c["c3"].get("weeks"), "need": c["c3"].get("need_weeks")},
+                "c4": {"monotone": c["c4"].get("monotone") or {}, "drops": c["c4"].get("weeks_with_drop"), "model_weeks": c["c4"].get("weeks_with_model")},
+                "c5": {"brier": c["c5"].get("brier"), "brier_base": c["c5"].get("brier_base"), "weeks": c["c5"].get("weeks", 0)},
+                "c6": {"holdout": c["c6"].get("holdout", {})}}
+        for k in crit:
+            crit[k]["pass"] = bool(c[k]["pass"])
+        zones = []
+        for name, key in (("Lồng nhau", "zone"), ("Quy tắc MVRV", "zone_mvrv"), ("Quy tắc Giá/MA 200 tuần", "zone_200w")):
+            sz, z = I["strategies"].get(name), last[key] or None
+            if not sz or not z:
+                continue
+            for h in (4, 13, 26, 52):
+                row, base = sz["zones"]["zones"].get(z, {}).get(str(h), {}), sz["zones"]["baseline"].get(str(h), {})
+                if row.get("weeks"):
+                    zones.append({"strategy": name, "zone": z, "h": h, "weeks": row["weeks"], "episodes": row["episodes"], "win": row["win"],
+                                  "base": base.get("win"), "diff": row["diff"], "ci": row.get("ci"), "verdict": row.get("verdict")})
+        fit = model["state"]["fit"]
+        lv = G["live"]
+        return {"acceptance": {"passed": bool(I["passed"]), "run_at": I["run_at"], "holdout_start": I["holdout_start"], "last_week": I["last_week"],
+                               "holdout_weeks": I["holdout_weeks"], "criteria": crit},
+                "week": {"date": str(last["date"]), "close": num(last["close"]), "rank": num(last["rank"]), "zone": last["zone"] or None,
+                         "rank_mvrv": num(last["rank_mvrv"]), "zone_mvrv": last["zone_mvrv"] or None, "rank_200w": num(last["rank_200w"]),
+                         "zone_200w": last["zone_200w"] or None, "mult_rule": num(last["mult_rule"]), "sell_groups": int(last["sell_groups"]),
+                         "sell_level": last["sell_level"]},
+                "model": {"version": model["version"], "asof": model["state"]["asof"], "set": model["state"]["set"],
+                          "features": fit["features"] if fit else [], "dropped": fit["dropped"] if fit else [], "weeks_logged": int(len(log))},
+                "zones": zones, "sell_trusted": sum(x["trusted"] == "dang_tin" for x in I["sell"]["criteria"].values()),
+                "fed": {"regime": lv["regime"], "since": str(lv["since"])[:10], "warn": [n for n, x in G["strategies"].items() if x["warn"]]},
+                "scenarios": _scenarios(str(last["date"]))}
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
 
 
 def _friendly(err: str) -> str:
@@ -91,6 +170,8 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
     now = now or dt.datetime.now(dt.timezone.utc).replace(tzinfo=None, microsecond=0)
     summary = json.loads(SUMMARY.read_text(encoding="utf-8")) if SUMMARY.exists() else None
     fresh, data_bad = _freshness(now)
+    status_path = DATA / "status.json"
+    events, events_meta = _events(now, json.loads(status_path.read_text(encoding="utf-8")) if status_path.exists() else {})
     reasons = []
     if not summary or not summary.get("passed"):
         reasons.append("model_failed")
@@ -106,8 +187,8 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
     rec = {"generated_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "multiplier": m, "mode": "safe" if reasons else "model", "layer": layer,
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
-           "events": _events(now), "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast()}
+           "events": events, "events_meta": events_meta, "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild()}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec
@@ -123,6 +204,8 @@ def console(rec: dict) -> str:
     b = (personal().get("budget") or {}).get("weekly_usd")
     if b:
         lines.append(t("report.personal_line", budget=fmt.usd(b), amount=fmt.usd(b * rec["multiplier"])))
-    lines += [t("report.event_line", time=fmt.datetime_vn(e["time"]), name=t(f"report.{e['type']}")) for e in rec["events"]] or [t("report.events_none")]
+    lines += [("⚑ " if e.get("flag") else "") + t("report.event_line", time=fmt.datetime_vn(e["time"]), name=t(f"report.{e['type']}")) for e in rec["events"]] or [t("report.events_none")]
+    if (rec.get("events_meta") or {}).get("rerun_after"):
+        lines.append(t("report.rerun", date=fmt.date(rec["events_meta"]["rerun_after"])))
     return "\n".join(lines)
 

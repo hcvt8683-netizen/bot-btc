@@ -349,7 +349,8 @@ def limits(I: dict, G: dict, pl: dict | None) -> list[str]:
             f"- **Vĩ mô.** Chế độ Fed (hiện là {REG_VI[cur]}) chỉ để chia nhóm; lịch sự kiện nhập tay từ trang chính thức và có thể thiếu.",
             ("- **Kế hoạch giải ngân** dựa trên lợi nhuận quá khứ với khoảng " + str(pl["episodes"]) + " đợt độc lập; kết quả đổi khi đổi giai đoạn dữ liệu.") if pl else "- Kế hoạch giải ngân chưa có số liệu.",
             "- **Không thể biết:** giá tương lai; chu kỳ 4 năm có còn lặp lại không; thay đổi cấu trúc (quỹ ETF, quy định, sự cố lớn); và liệu một quy tắc từng có vẻ tốt có còn tốt không.",
-            "- **Trang web** đã có ô kế hoạch giải ngân, nhưng các khung và tỷ lệ \"nên mua / nên bán\" trên trang vẫn là của bot cũ; chưa đưa kết luận bản xây lại lên các phần đó.",
+            "- **Trang web** hiện kết luận bản xây lại ở đầu trang (6 tiêu chí, thứ hạng tuần này, khung theo đợt, kịch bản giá, dự báo dải giá, kế hoạch giải ngân). "
+            "Phần phân tích cũ tính trong trình duyệt (đồng hồ \"nên mua / nên bán\", giá đề xuất, các bảng xác suất) vẫn còn để tham khảo, đặt dưới cảnh báo, và chưa được tính lại theo thước đo thống nhất.",
             "", "Công cụ tham khảo, không phải lời khuyên đầu tư.", ""]
 
 

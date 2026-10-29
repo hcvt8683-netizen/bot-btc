@@ -1,12 +1,12 @@
 # Báo cáo bot BTC (bản xây lại), phân tích tại ngày 25/10/2026
 
-Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải về, bằng kiểm chứng đi tới: tại mỗi tuần chỉ dùng dữ liệu đã có đến tuần đó. Báo cáo tạo lúc 06:41 29/10/2026 UTC bằng `python -m bot.cli final-report`, từ các file kết quả trong `data/results`. Cách làm từng phần và mọi thay đổi thiết kế: [REBUILD_LOG.md](REBUILD_LOG.md). Bảng chi tiết: [PHU_LUC.md](PHU_LUC.md).
+Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải về, bằng kiểm chứng đi tới: tại mỗi tuần chỉ dùng dữ liệu đã có đến tuần đó. Báo cáo tạo lúc 07:14 29/10/2026 UTC bằng `python -m bot.cli final-report`, từ các file kết quả trong `data/results`. Cách làm từng phần và mọi thay đổi thiết kế: [REBUILD_LOG.md](REBUILD_LOG.md). Bảng chi tiết: [PHU_LUC.md](PHU_LUC.md).
 
 Mỗi con số về khung đi kèm số tuần, số đợt độc lập, khoảng tin cậy bootstrap (95%) và mức chênh so với mốc "mua vào một tuần bất kỳ". Kết quả không có ý nghĩa thống kê ghi "chưa có lợi thế".
 
 ## Bối cảnh
 - Giá đóng tuần (Chủ nhật 23:59 UTC) ngày 25/10/2026: **80.039 $**. Mọi tính toán dùng giá đóng tuần; giá trực tiếp chỉ để hiển thị trên trang.
-- Dữ liệu (ngày cuối của từng nguồn lúc tải, 13:03 29/10/2026): Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành) đến 28/10/2026; Fear & Greed (Alternative.me) đến 29/10/2026; Binance (giá và khối lượng ngày) đến 28/10/2026; DefiLlama (tổng cung stablecoin) đến 29/10/2026; FRED (chỉ số đô la Mỹ rộng) đến 23/10/2026; FRED (lợi suất thực 10 năm) đến 27/10/2026; FRED (Nasdaq Composite) đến 28/10/2026; FRED (cung tiền M2) đến 01/09/2026; Coin Metrics (giờ chốt số liệu, khối lượng giao ngay, nguồn cung) đến 28/10/2026; Bitstamp (giá ngày từ 2011, để đối chiếu) đến 28/10/2026; CoinGecko (giá 365 ngày gần nhất, để đối chiếu) đến 28/10/2026; FRED (trần lãi suất Fed) đến 28/10/2026.
+- Dữ liệu (ngày cuối của từng nguồn lúc tải, 13:56 29/10/2026): Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành) đến 28/10/2026; Fear & Greed (Alternative.me) đến 29/10/2026; Binance (giá và khối lượng ngày) đến 28/10/2026; DefiLlama (tổng cung stablecoin) đến 29/10/2026; FRED (chỉ số đô la Mỹ rộng) đến 23/10/2026; FRED (lợi suất thực 10 năm) đến 27/10/2026; FRED (Nasdaq Composite) đến 28/10/2026; FRED (cung tiền M2) đến 01/09/2026; Coin Metrics (giờ chốt số liệu, khối lượng giao ngay, nguồn cung) đến 28/10/2026; Bitstamp (giá ngày từ 2011, để đối chiếu) đến 28/10/2026; CoinGecko (giá 365 ngày gần nhất, để đối chiếu) đến 28/10/2026; FRED (trần lãi suất Fed) đến 28/10/2026.
 - Mô hình đang theo dõi: phiên bản `v1-f46ea015fc`, đóng băng ngày 25/10/2026: bộ S1, còn Giá / MA 200 tuần (bỏ MVRV vì sai dấu).
 - Mốc so sánh bắt buộc: mua đều; quy tắc đơn giản 1 chỉ số (phân vị MVRV, phân vị Giá / MA 200 tuần).
 - Giai đoạn chấm: đi tới lồng nhau (học lại mỗi 13 tuần) có thứ hạng từ 13/02/2022; holdout 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần lúc 2026-10-29T05:32:09Z (mã `af7ccea`).
@@ -262,6 +262,6 @@ Cấu hình có p hiệu chỉnh < 0,05 trên holdout: Quy tắc Giá/MA 200 tu�
 - **Vĩ mô.** Chế độ Fed (hiện là tăng) chỉ để chia nhóm; lịch sự kiện nhập tay từ trang chính thức và có thể thiếu.
 - **Kế hoạch giải ngân** dựa trên lợi nhuận quá khứ với khoảng 9 đợt độc lập; kết quả đổi khi đổi giai đoạn dữ liệu.
 - **Không thể biết:** giá tương lai; chu kỳ 4 năm có còn lặp lại không; thay đổi cấu trúc (quỹ ETF, quy định, sự cố lớn); và liệu một quy tắc từng có vẻ tốt có còn tốt không.
-- **Trang web** đã có ô kế hoạch giải ngân, nhưng các khung và tỷ lệ "nên mua / nên bán" trên trang vẫn là của bot cũ; chưa đưa kết luận bản xây lại lên các phần đó.
+- **Trang web** hiện kết luận bản xây lại ở đầu trang (6 tiêu chí, thứ hạng tuần này, khung theo đợt, kịch bản giá, dự báo dải giá, kế hoạch giải ngân). Phần phân tích cũ tính trong trình duyệt (đồng hồ "nên mua / nên bán", giá đề xuất, các bảng xác suất) vẫn còn để tham khảo, đặt dưới cảnh báo, và chưa được tính lại theo thước đo thống nhất.
 
 Công cụ tham khảo, không phải lời khuyên đầu tư.
