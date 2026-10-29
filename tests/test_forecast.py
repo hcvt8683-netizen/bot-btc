@@ -60,3 +60,18 @@ def test_log_appends_once_per_anchor_and_only_future_targets(tmp_path):
     q = pd.concat([p, pd.Series([p.iloc[-1] * 1.01], index=[T + pd.Timedelta(days=1)])])
     s = pf.score_log(q, log)
     assert s["rows"] == 5 and s["matured"] >= 1 and all(isinstance(r["in80"], bool) for r in s["recent"])
+
+
+def test_search_reproduces_the_method_in_use_and_never_looks_ahead():
+    from bot.models import forecast_search as fs
+    p = walk()
+    cur = {"vol": "std30", "window": 1461, "center": "empirical", "dist": "empirical"}
+    lq = fs.log_quantiles(p, 7, cur, CFG["min_obs"])
+    b = pf.bands(p, 7, CFG)
+    T = p.index[2600]
+    assert np.allclose(np.exp(lq.loc[T].to_numpy()), b.loc[T][["q10", "q25", "q50", "q75", "q90"]].to_numpy())
+    q = p.copy()
+    q[q.index > T] *= 3
+    for v in ({"vol": "ewma94", "window": "all", "center": "zero", "dist": "empirical"}, {"vol": "none", "window": 730, "center": "empirical", "dist": "empirical"},
+              {"vol": "std60", "window": None, "center": "zero", "dist": "normal"}):
+        assert np.allclose(fs.log_quantiles(p, 30, v).loc[T].to_numpy(), fs.log_quantiles(q, 30, v).loc[T].to_numpy())

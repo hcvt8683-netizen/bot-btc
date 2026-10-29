@@ -664,6 +664,8 @@ web:
     note_direction: "Không phải dự báo hướng giá: kiểm định 6 tiêu chí cho thấy tín hiệu của bot chưa có lợi thế. \"Giữa\" không phải mục tiêu giá; trong lịch sử giá thật cao hơn giữa ở {0} số lần."
     note_time: "Giá đóng ngày theo Coin Metrics, chốt lúc 00:00 UTC (07:00 sáng hôm sau giờ Việt Nam). Ngày gốc là ngày đóng cửa cuối có trong dữ liệu, nên có thể chậm hơn hôm nay một ngày."
     note_wide: "Dải rộng là đúng bản chất: BTC dao động mạnh. Dải hẹp hơn sẽ sai nhiều hơn."
+    note_search: "Đã so {0} cách tính trên giá từ {1}, chấm bằng điểm phân vị (thưởng dải vừa trúng đúng tỷ lệ vừa hẹp; chỉ nhìn tỷ lệ trúng thì dải càng rộng càng \"đúng\"). Cách tốt nhất giai đoạn {2} không hơn rõ rệt cách đang dùng ở giai đoạn {3} (chênh {4}, khoảng tin cậy {5} đến {6}), nên giữ nguyên."
+    note_search_switch: "Đã so {0} cách tính trên giá từ {1}, chấm bằng điểm phân vị. Cách tốt nhất giai đoạn {2} vẫn tốt hơn ở giai đoạn {3} (chênh {4}, khoảng tin cậy {5} đến {6}), nên đã đổi sang cách đó."
     note_ref: "Công cụ tham khảo, không phải lời khuyên đầu tư."
     verify_title: "Kiểm chứng trực tiếp các dự báo đã đến hạn"
     verify_none: "Chưa có dự báo nào đến hạn. Dự báo đầu tiên đến hạn với giá đóng ngày {0}. Mỗi ngày bot ghi dự báo một lần vào data/forecast/forecast_log.csv (chỉ thêm dòng, không sửa)."

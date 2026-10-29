@@ -973,6 +973,11 @@
     }
     const th = el('thead'); th.append(h); $('t-fc').replaceChildren(th, tb);
     const notes = [tx('web.fc.note_method'), tx('web.fc.note_direction', pc(chk(7) ? chk(7).above_median : null)), tx('web.fc.note_time'), tx('web.fc.note_wide'), tx('web.fc.note_ref')];
+    const Sx = F.search;
+    if (Sx) {
+      const args = [Sx.n_variants, fmtDate(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, spc(Sx.diff, 1), spc(Sx.ci[0], 1), spc(Sx.ci[1], 1)];
+      notes.splice(1, 0, Sx.switch ? tx('web.fc.note_search_switch', ...args) : tx('web.fc.note_search', ...args));
+    }
     $('fc-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
     const lg = F.log || { matured: 0, versions: {}, recent: [] }, v = (lg.versions || {})[F.version];
     $('fc-verify-sum').textContent = !lg.matured ? tx('web.fc.verify_none', lg.first_due ? fmtDate(lg.first_due) : '—')

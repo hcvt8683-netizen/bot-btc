@@ -161,7 +161,13 @@ def _forecast() -> dict | None:
     """Daily price bands with their walk-forward check and the live log (bot/models/price_forecast.py); None on failure."""
     try:
         from bot.models import price_forecast
-        return price_forecast.for_report()
+        out = price_forecast.for_report()
+        srch = DATA / "results" / "forecast_search.json"
+        if srch.exists():  # summary of the method search (bot/models/forecast_search.py), shown as a note on the page
+            o = json.loads(srch.read_text(encoding="utf-8"))
+            out["search"] = {k: o[k] for k in ("n_variants", "data_from", "selection", "confirm_from", "current", "best", "switch")} | {
+                "diff": o["confirm"]["diff"], "ci": o["confirm"]["ci"]}
+        return out
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None
 

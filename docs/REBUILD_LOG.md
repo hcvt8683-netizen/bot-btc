@@ -326,3 +326,22 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - **Báo cáo tải về:** dòng lý do và dòng thứ hạng tuần này theo bản xây lại; sự kiện có ⚑.
 - **Kiểm tra:** test sự kiện theo mốc chốt (gắn cờ, không liệt kê sự kiện trước mốc chốt); ảnh chụp giao diện và báo cáo đã duyệt khác biệt.
 - **Chưa làm:** phần phân tích cũ trong trình duyệt chưa được tính lại theo thước đo thống nhất; nó chỉ còn để tham khảo.
+
+## Dự báo dải giá: so 32 cách tính trên dữ liệu từ 2010 (29/10/2026)
+
+**Yêu cầu:** chạy lại từ dữ liệu cũ, tìm cách dự báo chính xác nhất, cập nhật nếu cần.
+
+**Vì sao không chọn theo tỷ lệ trúng.** Dải càng rộng càng trúng. Thước đo là điểm phân vị trên log giá: thưởng cho dải vừa trúng đúng tỷ lệ vừa hẹp.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `forecast_search`, commit `c3b4f52`, trước khi tính):
+- 32 cách: 5 kiểu độ dao động × 3 độ dài lịch sử × có / không xu hướng, cộng 2 cách phân phối chuẩn;
+- chọn trên 2014–2021, xác nhận trên 2022 → nay;
+- chỉ thay nếu khoảng tin cậy của chênh lệch nằm hẳn dưới 0 và dải 80% phủ 75–85%. "Phủ 75–85%" được hiểu là trung bình qua 8 kỳ hạn; cách hiểu này chốt trước khi chạy.
+
+**Kết quả** (`docs/FORECAST_SEARCH.md`, mọi cấu hình trong `experiments/forecast_configs.csv`):
+- Tốt nhất giai đoạn chọn: phân phối chuẩn với độ dao động EWMA 0,94, điểm 0,979 (cách đang dùng = 1).
+- Ở giai đoạn xác nhận (1.732 ngày): chênh −0,1%, khoảng tin cậy −1,1% đến +0,8%, tức chứa 0. **Giữ nguyên cách đang dùng.**
+- Cách đang dùng ở 2022 → nay: dải 80% trúng 79,8–80,8% ở mọi kỳ hạn, dải 50% trúng 49–55%. Đoán đúng hướng chỉ 50–52% (54% ở 2014–2021, do xu hướng tăng).
+- Cách không chuẩn hóa theo độ dao động với toàn bộ lịch sử có dải quá rộng: trúng hơn 90%, điểm kém nhất.
+
+**Trang web:** thêm một dòng ghi chú ở mục dự báo. Không sửa `price_forecast.py`, nên phiên bản dự báo và nhật ký kiểm chứng giữ nguyên.

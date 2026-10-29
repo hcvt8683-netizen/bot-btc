@@ -690,6 +690,23 @@
      "version": "4f3048fe39"
     }
    ]
+  },
+  "search": {
+   "n_variants": 32,
+   "data_from": "2010-07-18",
+   "selection": [
+    "2014-01-01",
+    "2021-12-31"
+   ],
+   "confirm_from": "2022-01-01",
+   "current": "std30/1461/empirical",
+   "best": "chuẩn/ewma94",
+   "switch": false,
+   "diff": -0.0011171922302550808,
+   "ci": [
+    -0.010603139977439566,
+    0.008473549039447921
+   ]
   }
  },
  "rebuild": {

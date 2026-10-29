@@ -138,6 +138,7 @@ Thứ Sáu
 	30 ngày	82.215 $	79.085 $ – 86.571 $	74.102 $ – 94.575 $	80%
 Wilson 72%–87%, 106 lần độc lập
 Cách tính (định trước khi tính): lợi suất k ngày chia cho độ dao động 30 ngày, lấy phân vị trong 4 năm trước ngày gốc (chỉ những lần đã biết kết quả), nhân lại với độ dao động hiện tại.
+Đã so 32 cách tính trên giá từ 18/07/2010, chấm bằng điểm phân vị (thưởng dải vừa trúng đúng tỷ lệ vừa hẹp; chỉ nhìn tỷ lệ trúng thì dải càng rộng càng "đúng"). Cách tốt nhất giai đoạn 2014–2021 không hơn rõ rệt cách đang dùng ở giai đoạn 2022–nay (chênh −0,1%, khoảng tin cậy −1,1% đến +0,8%), nên giữ nguyên.
 Không phải dự báo hướng giá: kiểm định 6 tiêu chí cho thấy tín hiệu của bot chưa có lợi thế. "Giữa" không phải mục tiêu giá; trong lịch sử giá thật cao hơn giữa ở 48% số lần.
 Giá đóng ngày theo Coin Metrics, chốt lúc 00:00 UTC (07:00 sáng hôm sau giờ Việt Nam). Ngày gốc là ngày đóng cửa cuối có trong dữ liệu, nên có thể chậm hơn hôm nay một ngày.
 Dải rộng là đúng bản chất: BTC dao động mạnh. Dải hẹp hơn sẽ sai nhiều hơn.
