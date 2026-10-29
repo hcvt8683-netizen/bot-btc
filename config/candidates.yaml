@@ -85,3 +85,13 @@ sell:
   base: dca                       # nền: vẫn mua đều mỗi tuần; so với mua đều giữ nguyên (không bán)
   outcome_weeks: 26               # chấm từng tiêu chí: giá 26 tuần sau thấp hơn lúc bật (theo đợt, Wilson) và chênh so với mốc
   trusted_rule: "hoạt động ngoài mẫu ở ít nhất 2 chu kỳ gần nhất, có chu kỳ 2021–2025 (cần dữ liệu holdout, chấm ở Phần I)"
+
+# Phần F: kịch bản giá động (đăng ký trước, lưu git trước khi chạy)
+scenarios:
+  price_changes: [-0.30, -0.20, -0.10, -0.05, 0.0, 0.05, 0.10, 0.20, 0.30, 0.50]
+  weeks: [1, 2, 4]                  # giá đi tới mức giả định sau k tuần, theo đường đều trên thang log
+  direct: "chỉ số tính từ giá (MVRV, MVRV Z, Pi, Mayer, MA 200 tuần, MA 20 tuần, RSI, biến động 30 ngày, giảm từ đỉnh, Puell) tính lại đúng từ đường giá giả định"
+  hold_fixed: "vốn hóa thực, nguồn cung, số BTC phát hành mỗi ngày, hash rate giữ ở giá trị cuối (thay đổi rất chậm trong ≤ 4 tuần)"
+  fng_model: "ΔF&G sau k tuần = a + b × lợi suất log k tuần + c × (F&G hiện tại − 50), bình phương nhỏ nhất trên dữ liệu đến ngày phân tích"
+  band: [0.10, 0.90]                # khoảng dao động = phân vị 10% và 90% của phần dư
+  fng_check: {fit_until: 2021-12-31, test: [2022-01-01, 2023-12-31]}   # kiểm ngoài mẫu: độ phủ của khoảng 10–90% (kỳ vọng ~80%)
