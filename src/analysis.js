@@ -231,7 +231,90 @@ const B3 = (() => {
   const SP = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(0) + '%');
   const D = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
   const nm = (id) => IND.find((d) => d.id === id).ten;
-  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn) {
+  const SP1 = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : '') + (x * 100).toFixed(1).replace('.', ',') + '%');
+  const FEAT = { p_200wma: 'wma', mvrv: 'mvrv', fng: 'fng', pi_ratio: 'pi', puell: 'puell', mayer: 'mayer', rsi_14w: 'rsiw', dd_ath: 'dd', mvrv_z: 'mvrvz', vol_rel: 'vol' };
+  const featName = (f) => (FEAT[f] && IND.some((d) => d.id === FEAT[f]) ? nm(FEAT[f]) : f);
+  // Verified results of the rebuild (from the weekly report KN): what an expert reader, or claude.ai, needs without the API.
+  function verifiedMd(kn, t) {
+    const rb = kn.rebuild && kn.rebuild.acceptance ? kn.rebuild : null, F = kn.forecast && kn.forecast.rows ? kn.forecast : null, PL = kn.plan && kn.plan.options ? kn.plan : null;
+    const head = (c) => { t(`| ${c.join(' | ')} |`); t(`|${'---|'.repeat(c.length)}`); }, row = (c) => t(`| ${c.join(' | ')} |`);
+    const zn = (z) => (z ? tx('web.rb.zone_' + z) : '—'), r0 = (x) => (x == null ? '—' : Math.round(x).toString()), d3 = (x) => (x == null || !isFinite(x) ? '—' : x.toFixed(3).replace('.', ','));
+    const rng = (r) => (r == null ? '—' : Math.round(r[0]) === Math.round(r[1]) ? r0(r[0]) : `${r0(r[0])}–${r0(r[1])}`);
+    t(tx('web.vr.title')); t(tx('web.vr.intro'));
+    if (rb) {
+      const A = rb.acceptance, C = A.criteria, W = rb.week, M = rb.model, yrs = Object.values(C.c1.years || {}), mono = Object.values(C.c4.monotone || {}), h6 = C.c6.holdout || {};
+      const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days;
+      t(tx('web.vr.verdict', (stale ? 1 : kn.multiplier).toFixed(1).replace('.', ','), Object.values(C).filter((c) => c.pass).length, D(A.holdout_start), D(A.last_week), A.holdout_weeks, D(A.run_at.slice(0, 10)))); t('');
+      t(tx('web.vr.crit_title'));
+      head(['#', tx('web.kn.col_crit'), tx('web.kn.col_result'), tx('web.kn.col_pass')]);
+      const val = {
+        c1: tx('web.kn.c1_v', yrs.filter((v) => v > 0).length, yrs.length, SP1(C.c1.holdout)),
+        c2: tx('web.kn.c2_v', SP1(C.c2.holdout), SP1(C.c2.ci && C.c2.ci[0]), SP1(C.c2.ci && C.c2.ci[1])),
+        c3: tx('web.kn.c3_v', d3(C.c3.p_ic), d3(C.c3.p_cost)),
+        c4: tx('web.kn.c4_v', mono.filter(Boolean).length, mono.length, C.c4.drops ?? '—', C.c4.model_weeks ?? '—'),
+        c5: C.c5.weeks ? tx('web.kn.c5_v', d3(C.c5.brier), d3(C.c5.brier_base), C.c5.weeks) : tx('web.kn.c5_none'),
+        c6: tx('web.kn.c6_v', SP1(h6['Lồng nhau']), SP1(h6['Quy tắc MVRV']), SP1(h6['Quy tắc Giá/MA 200 tuần'])),
+      };
+      Object.keys(val).forEach((k, i) => row([i + 1, tx('web.kn.' + k), val[k], tx(C[k].pass ? 'web.kn.pass_yes' : 'web.kn.pass_no')]));
+      t(''); t(tx('web.vr.week_title'));
+      t(tx('web.kn.md_rb_week', D(W.date), r0(W.rank), zn(W.zone), r0(W.rank_mvrv), zn(W.zone_mvrv), r0(W.rank_200w), zn(W.zone_200w)));
+      t('- ' + tx('web.rb.sell', W.sell_groups, tx('web.rb.level_' + W.sell_level), rb.sell_trusted));
+      t('- ' + tx('web.rb.fed', tx('web.rb.reg_' + rb.fed.regime), D(rb.fed.since)) + (rb.fed.warn && rb.fed.warn.length ? ' ' + tx('web.rb.fed_warn', rb.fed.warn.join(', ')) : ''));
+      t('- ' + tx('web.rb.model', M.version, D(M.asof), M.set, M.features.map(featName).join(', ') || '—', M.dropped.length ? tx('web.rb.model_dropped', M.dropped.map(featName).join(', ')) : '', M.weeks_logged));
+      t(''); t(tx('web.vr.zones_title'));
+      head(['col_strategy', 'col_zone', 'col_h', 'col_weeks', 'col_eps', 'col_win', 'col_base', 'col_diff', 'col_verdict'].map((k) => tx('web.rb.' + k)));
+      rb.zones.forEach((z) => row([z.strategy === 'Lồng nhau' ? tx('web.rb.strat_nested') : z.strategy, zn(z.zone), tx('web.rb.h_' + z.h), z.weeks, z.episodes, P(z.win), P(z.base),
+        tx('web.rb.diff_cell', SP1(z.diff), SP1(z.ci && z.ci[0]), SP1(z.ci && z.ci[1])), tx('web.rb.v_' + (z.verdict || 'it_dot'))]));
+      if (rb.scenarios) {
+        t(''); t(tx('web.vr.scn_title', rb.scenarios.k));
+        head(['col_price', 'col_change', 'col_fng', 'col_200w', 'col_mvrv', 'col_sell'].map((k) => tx('web.rb.' + k)));
+        rb.scenarios.rows.forEach((r) => row([usdT(r.price), r.delta ? SP(r.delta) : tx('web.rb.now'), `${r0(r.fng[1])} (${r0(r.fng[0])}–${r0(r.fng[2])})`,
+          `${rng(r.range_200w)} → ${r.zones_200w.map(zn).join(' / ')}`, `${r0(r.rank_mvrv)} (${rng(r.range_mvrv)}) → ${r.zones_mvrv.map(zn).join(' / ')}`,
+          `${rng(r.groups)} → ${r.levels.map((x) => tx('web.rb.level_' + x)).join(' / ')}`]));
+        t(''); t(tx('web.rb.scn_note'));
+      }
+      t('');
+    }
+    t(tx('web.vr.events_title'));
+    (kn.events || []).forEach((e) => t('- ' + (e.flag ? tx('web.kn.ev_flag', vnTime(e.time), tx('web.kn.ev_' + e.type)) : tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type)))));
+    if (!(kn.events || []).length) t('- ' + tx('web.kn.events_none'));
+    const meta = kn.events_meta || {};
+    if (meta.rerun_after) t('- ' + tx('web.kn.rerun', D(meta.rerun_after)));
+    Object.entries(meta.stale || {}).forEach(([k, d]) => t('- ' + tx('web.kn.stale_cal', tx('web.kn.ev_' + k), d ? D(d) : '—')));
+    t('');
+    if (F) {
+      const row7 = F.rows.find((r) => r.k === 7), row30 = F.rows.find((r) => r.k === 30), ck = (k) => (F.check && F.check[k] ? F.check[k].vol : null);
+      t(tx('web.vr.fc_title'));
+      if (row7 && row30) { t('- ' + tx('web.fc.sum', D(F.anchor), usdT(F.price), D(row7.target), usdT(row7.q10), usdT(row7.q90), D(row30.target), usdT(row30.q10), usdT(row30.q90))); t(''); }
+      head(['col_date', 'col_k', 'col_mid', 'col_50', 'col_80', 'col_hist'].map((k) => tx('web.fc.' + k)));
+      F.rows.forEach((r) => { const c = ck(r.k); row([D(r.target), tx('web.fc.k_days', r.k), usdT(r.q50), tx('web.fc.range', usdT(r.q25), usdT(r.q75)), tx('web.fc.range', usdT(r.q10), usdT(r.q90)),
+        c ? `${P(c.cover80)} (${tx('web.fc.hist_sub', P(c.cover80_ci[0]), P(c.cover80_ci[1]), c.n_eff)})` : '—']); });
+      t('');
+      const lg = F.log || {}, v = (lg.versions || {})[F.version];
+      t('- ' + (lg.matured ? tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, P(v ? v.in80 / v.matured : null), v ? v.in50 : 0, P(v ? v.in50 / v.matured : null))
+        : tx('web.fc.verify_none', lg.first_due ? D(lg.first_due) : '—')));
+      if (F.search) { const Sx = F.search; t('- ' + tx(Sx.switch ? 'web.fc.note_search_switch' : 'web.fc.note_search', Sx.n_variants, D(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, SP1(Sx.diff), SP1(Sx.ci[0]), SP1(Sx.ci[1]))); }
+      t('- ' + tx('web.fc.note_direction', P(ck(7) ? ck(7).above_median : null))); t('');
+    }
+    if (PL) {
+      const pn = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n)), op = (n) => PL.options.find((o) => o.weeks === n), rec = op(PL.recommended), best = op(PL.best_roi);
+      t(tx('web.vr.plan_title'));
+      head(['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_loss', 'col_mdd', 'col_beat'].map((k) => tx('web.plan.' + k)));
+      PL.options.forEach((o) => row([pn(o.weeks) + (o === best ? ` (${tx('web.plan.tag_best')})` : '') + (o === rec ? ` (${tx('web.plan.tag_rec')})` : '') + (o.not_worse ? '' : `, ${tx('web.plan.worse')}`),
+        SP(o.median), SP(o.p10), SP(o.worst), P(o.loss_share), SP(o.mdd_median), o.beat_lump == null ? '—' : `${P(o.beat_lump)} (${tx('web.plan.beat_sub', P(o.beat_lump_ci[0]), P(o.beat_lump_ci[1]))})`]));
+      t('');
+      t(tx('web.vr.plan_line', pn(best.weeks), pn(rec.weeks), PL.starts, D(PL.from), PL.episodes));
+      const safer = PL.options.filter((o) => o.not_worse && o !== rec && o.worst > rec.worst).sort((x, y) => y.worst - x.worst)[0];
+      if (safer) t('- ' + tx('web.plan.safer', pn(safer.weeks), SP(safer.median), SP(safer.worst), SP(rec.worst)));
+      t('');
+    }
+    if (kn.freshness) {
+      t(tx('web.vr.fresh_title'));
+      Object.entries(kn.freshness).forEach(([k, s]) => t('- ' + (s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), D(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))));
+      t('');
+    }
+  }
+  function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn, opts = {}) {
     const L = [], t = (x) => L.push(x);
     t(tx('web.analysis.bao_cao_bot_btc_phan_tich', D(a.date))); t('');
     t(tx('web.analysis.bot_thong_ke_khong_co_tri')); t('');
@@ -261,6 +344,7 @@ const B3 = (() => {
       t(tx('web.kn.md_events', kn.events.length ? kn.events.map((e) => (e.flag ? '⚑ ' : '') + tx('web.kn.event_line', vnTime(e.time), tx('web.kn.ev_' + e.type))).join('; ') : tx('web.kn.events_none')));
       t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
     }
+    if (kn && isToday && opts.verified !== false) verifiedMd(kn, t);
     if (lv) {
       t(tx('web.analysis.gia_de_xuat_mua_va_ban', D(lv.date), usdT(lv.price)));
       t(tx('web.analysis.gia_btc_de_bot_chuyen_khung'));

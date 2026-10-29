@@ -363,7 +363,7 @@
       <div class="two">
         <div>
           <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_1_xuat_file_keo_vao}}</p>
-          <div class="inline"><button class="btn main" type="button" id="dl-md">{{web.page.tai_bao_cao_md}}</button><button class="btn" type="button" id="dl-csv">{{web.page.du_lieu_tung_tuan_csv}}</button><button class="btn" type="button" id="dl-pa">{{web.page.so_sanh_phuong_an_csv}}</button><button class="btn" type="button" id="copy-md">{{web.page.sao_chep_bao_cao}}</button></div>
+          <div class="inline"><button class="btn main" type="button" id="dl-md">{{web.page.tai_bao_cao_md}}</button><button class="btn" type="button" id="dl-csv">{{web.page.du_lieu_tung_tuan_csv}}</button><button class="btn" type="button" id="dl-pa">{{web.page.so_sanh_phuong_an_csv}}</button><button class="btn" type="button" id="copy-md">{{web.page.sao_chep_bao_cao}}</button><button class="btn" type="button" id="dl-pkg">{{web.page.tai_goi_claude_ai}}</button></div>
           <p class="muted" style="font-size:13px;margin:8px 0 0">{{web.page.gui_ca_bao_cao_va_hai}}</p>
           <p class="muted" id="copy-msg" style="font-size:13px"></p>
         </div>
@@ -373,12 +373,15 @@
           <label class="check"><input type="checkbox" id="ck-remember">{{web.page.ghi_nho_khoa_tren_may_nay}}</label>
           <label class="field">{{web.page.mo_hinh}}<select id="cmodel"><option value="claude-opus-5-5">{{web.page.claude_opus_khuyen_dung}}</option><option value="claude-sonnet-5-5">{{web.page.claude_sonnet_nhanh}}</option><option value="claude-haiku-5-5">{{web.page.claude_haiku_5_5_nhanh_re}}</option></select></label>
           <label class="check"><input type="checkbox" id="cweb" checked>{{web.page.cho_claude_tim_tin_tuc_hien}}</label>
-          <p style="margin:12px 0 6px;font-weight:600">{{web.page.ho_so_title}}</p>
-          <label class="field">{{web.page.ho_so_horizon}}<select id="cp-horizon"><option value="">{{web.page.ho_so_none}}</option><option value="h1">{{web.page.ho_so_h1}}</option><option value="h2">{{web.page.ho_so_h2}}</option><option value="h3">{{web.page.ho_so_h3}}</option></select></label>
-          <label class="field">{{web.page.ho_so_drawdown}}<select id="cp-drawdown"><option value="">{{web.page.ho_so_none}}</option><option value="d1">{{web.page.ho_so_d1}}</option><option value="d2">{{web.page.ho_so_d2}}</option><option value="d3">{{web.page.ho_so_d3}}</option></select></label>
-          <label class="field">{{web.page.ho_so_share}}<select id="cp-share"><option value="">{{web.page.ho_so_none}}</option><option value="s1">{{web.page.ho_so_s1}}</option><option value="s2">{{web.page.ho_so_s2}}</option><option value="s3">{{web.page.ho_so_s3}}</option></select></label>
+          <label class="field">{{web.page.do_sau}}<select id="ceffort"><option value="high">{{web.page.do_sau_high}}</option><option value="medium">{{web.page.do_sau_medium}}</option><option value="low">{{web.page.do_sau_low}}</option></select></label>
           <p class="muted" style="font-size:13px;margin:4px 0 0">{{web.page.claude_gui_gi}}</p>
         </div>
+      </div>
+      <p style="margin:16px 0 6px;font-weight:600">{{web.page.ho_so_title}}</p>
+      <div class="profile" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px">
+        <label class="field">{{web.page.ho_so_horizon}}<select id="cp-horizon"><option value="">{{web.page.ho_so_none}}</option><option value="h1">{{web.page.ho_so_h1}}</option><option value="h2">{{web.page.ho_so_h2}}</option><option value="h3">{{web.page.ho_so_h3}}</option></select></label>
+        <label class="field">{{web.page.ho_so_drawdown}}<select id="cp-drawdown"><option value="">{{web.page.ho_so_none}}</option><option value="d1">{{web.page.ho_so_d1}}</option><option value="d2">{{web.page.ho_so_d2}}</option><option value="d3">{{web.page.ho_so_d3}}</option></select></label>
+        <label class="field">{{web.page.ho_so_share}}<select id="cp-share"><option value="">{{web.page.ho_so_none}}</option><option value="s1">{{web.page.ho_so_s1}}</option><option value="s2">{{web.page.ho_so_s2}}</option><option value="s3">{{web.page.ho_so_s3}}</option></select></label>
       </div>
       <div class="chat" id="chat"></div>
       <label class="field">{{web.page.cau_hoi_them}}<textarea id="ai-q" rows="2" placeholder="{{web.page.vi_du_voi_ket_qua_nay}}"></textarea></label>

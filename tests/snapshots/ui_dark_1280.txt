@@ -699,9 +699,10 @@ Cách 1: xuất file, kéo vào claude.ai
 Tải báo cáo (.md)
 Dữ liệu từng tuần (.csv)
 So sánh phương án (.csv)
-Sao chép báo cáo
+Sao chép gói cho claude.ai
+Tải gói cho claude.ai (.md)
 
-Gửi cả báo cáo và hai file dữ liệu cho Claude để Claude tự kiểm tra lại số liệu. File dữ liệu từng tuần có cột kết quả thực tế sau 1 tháng đến 1 năm; bot không dùng các cột này khi tính. File .csv mở được bằng Excel hoặc Google Sheets.
+Không cần khóa API: bấm "Sao chép gói cho claude.ai" rồi dán vào claude.ai, hoặc tải gói .md và kéo vào khung chat. Gói gồm chỉ dẫn chuyên gia, hồ sơ của bạn (ở dưới) và báo cáo có đủ phần đã kiểm định. Muốn Claude tự kiểm tra lại số liệu thì gửi thêm hai file .csv.
 
 Cách 2: gọi Claude API ngay tại đây
 
@@ -712,8 +713,14 @@ Claude Opus 5.5 (chuyên gia, khuyên dùng)
 Claude Sonnet 5.5 (nhanh, rẻ hơn)
 Claude Haiku 5.5 (rất nhanh, phân tích nông)
 Cho Claude tìm tin tức hiện tại trên web
+Độ sâu phân tích
+Cao: kỹ nhất, tốn token nhất
+Vừa: cân bằng
+Thấp: nhanh, rẻ nhất
 
-Hồ sơ của bạn (không bắt buộc, giúp lời khuyên sát hơn)
+Khi bấm, trang gửi tới Anthropic bằng khóa của bạn: hồ sơ dữ liệu của bot, báo cáo, câu hỏi, các lựa chọn hồ sơ (ở dưới) và số tiền trong ô kế hoạch giải ngân (nếu đã nhập). Trang không lưu những thứ này.
+
+Hồ sơ của bạn (không bắt buộc, dùng cho cả hai cách, giúp lời khuyên sát hơn)
 
 Thời gian định nắm giữ
 Không nói
@@ -730,9 +737,6 @@ Không nói
 Dưới 5%
 5–20%
 Trên 20%
-
-Khi bấm, trang gửi tới Anthropic bằng khóa của bạn: hồ sơ dữ liệu của bot, báo cáo, câu hỏi, các lựa chọn hồ sơ ở trên và số tiền trong ô kế hoạch giải ngân (nếu đã nhập). Trang không lưu những thứ này.
-
 Câu hỏi thêm
 Nhờ Claude đánh giá như chuyên gia
 Gửi câu hỏi

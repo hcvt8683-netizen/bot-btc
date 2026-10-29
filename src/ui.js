@@ -466,9 +466,19 @@
 
   // ---------- xuất file và Claude ----------
   const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: tx('web.ui.gia_truc_tiep_binance_coingecko'), fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: tx('web.ui.binance_gia_khoi_luong_ngay'), cache: tx('web.ui.ban_luu_tren_may') }[k])).filter(Boolean).join(', ');
-  const report = () => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN);
+  const report = (verified = true) => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN, { verified });
+  // Gói cho claude.ai (không cần khóa API): chỉ dẫn chuyên gia + hồ sơ của người dùng + báo cáo có đủ phần đã kiểm định.
+  function profileText() {
+    const lines = [['cp-horizon', 'ho_so_horizon'], ['cp-drawdown', 'ho_so_drawdown'], ['cp-share', 'ho_so_share']]
+      .filter(([id]) => $(id).value).map(([id, k]) => tx('web.ui.ho_so_dong', tx('web.page.' + k), $(id).options[$(id).selectedIndex].text));
+    const amt = PLAN ? parseAmount($('plan-amount').value) : null;
+    if (amt > 0) lines.push(tx('web.ui.ho_so_tien', nf(UNIT[pl.unit].d).format(amt), tx('web.plan.unit_' + pl.unit), fmtDate($('plan-start').value || nextMonday())));
+    return lines.length ? lines.join('\n') : tx('web.ui.ho_so_chua_co');
+  }
+  const claudePackage = () => tx('web.ui.claude_ai_prompt', profileText(), report(true), tx('web.ui.hay_nhan_dinh_ve_ket_luan'));
   function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
   $('dl-md').addEventListener('click', () => download(`bao-cao-bot-btc-${st.a.date}.md`, report(), 'text/markdown;charset=utf-8'));
+  $('dl-pkg').addEventListener('click', () => download(`goi-claude-ai-bot-btc-${st.a.date}.md`, claudePackage(), 'text/markdown;charset=utf-8'));
   $('dl-csv').addEventListener('click', () => download(`du-lieu-tuan-bot-btc-${st.a.date}.csv`, B3.csvWeekly(st.S, st.a), 'text/csv;charset=utf-8'));
   $('dl-pa').addEventListener('click', () => { if (!st.cmp) { $('copy-msg').textContent = tx('web.ui.chua_co_ket_qua_so_sanh'); return; } download(`so-sanh-phuong-an-bot-btc-${st.a.date}.csv`, B3.csvOptions(st.cmp), 'text/csv;charset=utf-8'); });
 
@@ -651,7 +661,8 @@
   let indW = 0;
   new ResizeObserver(() => { const w = $('ind-charts').clientWidth; if (st.a && Math.abs(w - indW) > 2) { indW = w; drawIndCharts(); } }).observe($('ind-charts'));
   $('copy-md').addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(report()); } catch (e) { const ta = el('textarea'); ta.value = report(); document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    const text = claudePackage();
+    try { await navigator.clipboard.writeText(text); } catch (e) { const ta = el('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
     $('copy-msg').textContent = tx('web.ui.da_sao_chep_dan_vao_khung');
   });
   const KEY_STORE = 'btc-claude-key';
@@ -751,7 +762,7 @@
     const key = $('ck').value.trim(); if (!key) throw new Error(tx('web.ui.hay_dan_khoa_api_cua_claude'));
     const model = $('cmodel').value, current = !/haiku/.test(model);  // Opus 5.5 / Sonnet 5.5: web search with dynamic filtering and server-side fallback
     const body = { model, max_tokens: 32000, stream: true, system: SYS, cache_control: { type: 'ephemeral' },
-      thinking: { type: 'adaptive', display: 'summarized' }, output_config: { effort: 'high' }, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
+      thinking: { type: 'adaptive', display: 'summarized' }, output_config: { effort: $('ceffort').value }, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
     if ($('cweb').checked) body.tools = [{ type: current ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 5 }];
     const headers = { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2026-10-21', 'anthropic-dangerous-direct-browser-access': 'true' };
     let fallback = current, text = '', srcs = [], res = null;
@@ -786,7 +797,7 @@
   }
   async function sendToClaude(q, first) {
     const btns = [$('ai-first'), $('ai-send')]; btns.forEach((b) => { b.disabled = true; }); $('ai-busy').hidden = false; $('ai-err').hidden = true; $('ai-stop').hidden = false;
-    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', JSON.stringify(dossier()), report(), q) : q;
+    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', JSON.stringify(dossier()), report(false), q) : q;
     chat.push({ role: 'user', content }); addMsg('user', q);
     const m = el('div', 'msg assistant'), status = el('p', 'muted', tx('web.ui.claude_dang_suy_luan')), out = el('div');
     m.append(status, out); $('chat').append(m);

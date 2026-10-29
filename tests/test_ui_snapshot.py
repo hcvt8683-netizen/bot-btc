@@ -225,7 +225,7 @@ async def _claude_flow(page_path: pathlib.Path, data: dict) -> dict:
     one = "document.querySelectorAll('#chat .msg.assistant')"
     async with async_playwright() as pw:
         b = await pw.chromium.launch()
-        ctx = await b.new_context(viewport={"width": 1280, "height": 900}, locale="vi-VN", timezone_id="Asia/Ho_Chi_Minh")
+        ctx = await b.new_context(viewport={"width": 1280, "height": 900}, locale="vi-VN", timezone_id="Asia/Ho_Chi_Minh", accept_downloads=True)
         pg = await ctx.new_page()
         errs: list[str] = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
@@ -236,16 +236,20 @@ async def _claude_flow(page_path: pathlib.Path, data: dict) -> dict:
         await pg.fill("#ck", "sk-ant-test")
         await pg.select_option("#cp-horizon", "h3")
         await pg.fill("#plan-amount", "50000000")
+        async with pg.expect_download() as dl:
+            await pg.click("#dl-pkg")
+        package = pathlib.Path(await (await dl.value).path()).read_text(encoding="utf-8")
         await pg.click("#ai-first")
         await pg.wait_for_function(f"document.getElementById('ai-stop').hidden && {one}.length === 1 && /Mua đều/.test({one}[0].innerText)", timeout=30000)
         first = await pg.evaluate(f"{one}[0].innerText")
         await pg.select_option("#cmodel", "claude-haiku-5-5")
+        await pg.select_option("#ceffort", "low")
         await pg.fill("#ai-q", "Câu hỏi tiếp")
         await pg.click("#ai-send")
         await pg.wait_for_function(f"{one}.length === 2 && /Trả lời ngắn/.test({one}[1].innerText)", timeout=30000)
         stop_hidden = await pg.evaluate("document.getElementById('ai-stop').hidden")
         await b.close()
-    return {"calls": calls, "first": first, "errors": errs, "stop_hidden": stop_hidden}
+    return {"calls": calls, "first": first, "errors": errs, "stop_hidden": stop_hidden, "package": package}
 
 
 def test_claude_panel_sends_the_verified_dossier_and_streams(built_page: pathlib.Path, synth: dict) -> None:
@@ -260,11 +264,16 @@ def test_claude_panel_sends_the_verified_dossier_and_streams(built_page: pathlib
     assert b1["tools"][0]["type"] == "web_search_20260209" and "chuyên gia cấp cao" in b1["system"]
     dossier = b1["messages"][0]["content"]
     assert '"ban_xay_lai"' in dossier and '"du_bao_dai_gia"' in dossier and "Trên 3 năm" in dossier and '"so_tien":50000000' in dossier
+    assert "## Bản xây lại (đã kiểm định)" not in dossier  # the API gets the JSON once, not the same numbers twice
+    pkg = res["package"]  # claude.ai package: instructions, the user's profile and the report with its verified part
+    assert pkg.startswith("Bạn là chuyên gia cấp cao") and "Thời gian định nắm giữ: Trên 3 năm" in pkg and "Số tiền muốn giải ngân: 50.000.000 VNĐ" in pkg
+    assert "## Bản xây lại (đã kiểm định): kết quả chính" in pkg and "### Dự báo dải giá" in pkg and "### Kế hoạch giải ngân" in pkg
     # pause_turn: the second request resends the paused turn's blocks unchanged (thinking with signature, the search and its result)
     turn = res["calls"][1]["body"]["messages"][1]
     assert turn["role"] == "assistant" and [x["type"] for x in turn["content"]] == ["thinking", "server_tool_use", "web_search_tool_result"]
     assert turn["content"][0]["signature"] == "sig123" and turn["content"][1]["input"] == {"query": "bitcoin tin mới"}
     assert "Mua đều" in res["first"] and "Tin BTC" in res["first"]  # streamed answer and its source
     h3, b3 = res["calls"][2]["headers"], res["calls"][2]["body"]
+    assert b3["output_config"] == {"effort": "low"}
     assert b3["model"] == "claude-haiku-5-5" and "fallbacks" not in b3 and "anthropic-beta" not in h3 and b3["tools"][0]["type"] == "web_search_20250305"
     assert [m["role"] for m in b3["messages"]] == ["user", "assistant", "user"] and b3["messages"][2]["content"] == "Câu hỏi tiếp"
