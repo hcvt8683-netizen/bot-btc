@@ -692,7 +692,7 @@ Giá / MA 200 tuần
 28/10/2026: 0,57, vùng rẻ
 Hỏi Claude về nhận định của bot
 
-Bot chỉ làm thống kê. Claude đọc báo cáo, đánh giá độ tin cậy và đối chiếu bối cảnh hiện tại.
+Bot chỉ làm thống kê. Claude nhận toàn bộ kết quả đã kiểm định (6 tiêu chí, khung theo đợt, dải giá, kế hoạch giải ngân, sự kiện) cùng báo cáo, đánh giá như một chuyên gia và đề xuất kế hoạch hành động hợp với bạn.
 
 Cách 1: xuất file, kéo vào claude.ai
 
@@ -708,12 +708,33 @@ Cách 2: gọi Claude API ngay tại đây
 Khóa API (console.anthropic.com)
 Ghi nhớ khóa trên máy này
 Mô hình
-Claude Sonnet 5.5 (khuyên dùng)
-Claude Opus 5.5 (suy luận sâu nhất)
-Claude Haiku 5.5 (nhanh, rẻ)
+Claude Opus 5.5 (chuyên gia, khuyên dùng)
+Claude Sonnet 5.5 (nhanh, rẻ hơn)
+Claude Haiku 5.5 (rất nhanh, phân tích nông)
 Cho Claude tìm tin tức hiện tại trên web
+
+Hồ sơ của bạn (không bắt buộc, giúp lời khuyên sát hơn)
+
+Thời gian định nắm giữ
+Không nói
+Dưới 1 năm
+1–3 năm
+Trên 3 năm
+Chịu được giá giảm tạm thời
+Không nói
+Tối đa 20%
+Tối đa 50%
+Trên 50%
+BTC chiếm bao nhiêu tổng tài sản
+Không nói
+Dưới 5%
+5–20%
+Trên 20%
+
+Khi bấm, trang gửi tới Anthropic bằng khóa của bạn: hồ sơ dữ liệu của bot, báo cáo, câu hỏi, các lựa chọn hồ sơ ở trên và số tiền trong ô kế hoạch giải ngân (nếu đã nhập). Trang không lưu những thứ này.
+
 Câu hỏi thêm
-Nhờ Claude nhận định
+Nhờ Claude đánh giá như chuyên gia
 Gửi câu hỏi
 Nguồn dữ liệu
 Fear & Greed (Alternative.me): 3191 ngày

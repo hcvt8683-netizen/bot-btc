@@ -241,7 +241,8 @@ const B3 = (() => {
     t(tx('web.analysis.ket_luan'));
     t(tx('web.analysis.ty_le_nen_mua_0_khung', a.buy.score.toFixed(0), a.buy.zone.ten, a.buy.score.toFixed(0)));
     t(tx('web.analysis.ty_le_nen_ban_0_khung', a.sell.score.toFixed(0), a.sell.zone.ten, a.sell.score.toFixed(0))); t('');
-    if (kn) {
+    if (kn && !isToday) { t(tx('web.kn.md_title')); t(tx('web.kn.md_past_note')); t(''); }
+    if (kn && isToday) {
       const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days, m = stale ? 1 : kn.multiplier, ev = kn.evidence;
       const d3 = (x) => (x == null ? '—' : x.toFixed(3).replace('.', ','));
       t(tx('web.kn.md_title'));
@@ -292,6 +293,7 @@ const B3 = (() => {
     }
     if (rec) {
       t(tx('web.analysis.bo_chi_so_co_ty_le', D(rec.asOfDate), D(rec.from)));
+      if (rec.asOfDate > a.date) t(tx('web.analysis.rec_after_date', D(a.date)));
       t(tx('web.analysis.bo_thang_1_thang_thang_3')); t('|---|---|---|---|---|---|---|');
       rec.ranking.slice(0, 8).forEach((r) => t(`| ${warnMd(r.phai.eps, r.nua1[2], r.nua2[2])}${r.ten}: ${r.ids.map(nm).join(', ')} | ` + r.phai.h.map((x) => P(x.win)).join(' | ') + ` | ${P(r.nua1[2].win)} | ${P(r.nua2[2].win)} |`));
       t('');

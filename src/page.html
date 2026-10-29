@@ -371,13 +371,18 @@
           <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_2_goi_claude_api_ngay}}</p>
           <label class="field">{{web.page.khoa_api_console_anthropic_com}}<input type="password" id="ck" placeholder="sk-ant-…" autocomplete="off"></label>
           <label class="check"><input type="checkbox" id="ck-remember">{{web.page.ghi_nho_khoa_tren_may_nay}}</label>
-          <label class="field">{{web.page.mo_hinh}}<select id="cmodel"><option value="claude-sonnet-5-5">{{web.page.claude_sonnet_5_5_khuyen_dung}}</option><option value="claude-opus-5-5">{{web.page.claude_opus_5_5_suy_luan}}</option><option value="claude-haiku-5-5">{{web.page.claude_haiku_5_5_nhanh_re}}</option></select></label>
+          <label class="field">{{web.page.mo_hinh}}<select id="cmodel"><option value="claude-opus-5-5">{{web.page.claude_opus_khuyen_dung}}</option><option value="claude-sonnet-5-5">{{web.page.claude_sonnet_nhanh}}</option><option value="claude-haiku-5-5">{{web.page.claude_haiku_5_5_nhanh_re}}</option></select></label>
           <label class="check"><input type="checkbox" id="cweb" checked>{{web.page.cho_claude_tim_tin_tuc_hien}}</label>
+          <p style="margin:12px 0 6px;font-weight:600">{{web.page.ho_so_title}}</p>
+          <label class="field">{{web.page.ho_so_horizon}}<select id="cp-horizon"><option value="">{{web.page.ho_so_none}}</option><option value="h1">{{web.page.ho_so_h1}}</option><option value="h2">{{web.page.ho_so_h2}}</option><option value="h3">{{web.page.ho_so_h3}}</option></select></label>
+          <label class="field">{{web.page.ho_so_drawdown}}<select id="cp-drawdown"><option value="">{{web.page.ho_so_none}}</option><option value="d1">{{web.page.ho_so_d1}}</option><option value="d2">{{web.page.ho_so_d2}}</option><option value="d3">{{web.page.ho_so_d3}}</option></select></label>
+          <label class="field">{{web.page.ho_so_share}}<select id="cp-share"><option value="">{{web.page.ho_so_none}}</option><option value="s1">{{web.page.ho_so_s1}}</option><option value="s2">{{web.page.ho_so_s2}}</option><option value="s3">{{web.page.ho_so_s3}}</option></select></label>
+          <p class="muted" style="font-size:13px;margin:4px 0 0">{{web.page.claude_gui_gi}}</p>
         </div>
       </div>
       <div class="chat" id="chat"></div>
       <label class="field">{{web.page.cau_hoi_them}}<textarea id="ai-q" rows="2" placeholder="{{web.page.vi_du_voi_ket_qua_nay}}"></textarea></label>
-      <div class="inline"><button class="btn main" type="button" id="ai-first">{{web.page.nho_claude_nhan_dinh}}</button><button class="btn" type="button" id="ai-send">{{web.page.gui_cau_hoi}}</button><span class="progress" id="ai-busy" hidden>{{web.page.claude_dang_doc_bao_cao}}</span></div>
+      <div class="inline"><button class="btn main" type="button" id="ai-first">{{web.page.nho_claude_nhan_dinh}}</button><button class="btn" type="button" id="ai-send">{{web.page.gui_cau_hoi}}</button><button class="btn" type="button" id="ai-stop" hidden>{{web.page.dung_claude}}</button><span class="progress" id="ai-busy" hidden>{{web.page.claude_dang_doc_bao_cao}}</span></div>
       <p class="err" id="ai-err" hidden></p>
     </section>
 

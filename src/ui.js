@@ -680,42 +680,137 @@
     return box;
   }
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function srcNodes(srcs) {
+    if (!srcs || !srcs.length) return [];
+    const ol = el('ol', 'srcs'); srcs.forEach((x) => { const li = el('li'); const a = el('a', null, x.title); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; li.append(a); ol.append(li); });
+    return [el('div', 'sub', tx('web.ui.nguon_claude_da_doc')), ol];
+  }
   function addMsg(role, text, srcs) {
     const m = el('div', 'msg ' + role);
-    if (role === 'assistant') { m.append(mdToNodes(text)); if (srcs && srcs.length) { const ol = el('ol', 'srcs'); srcs.forEach((x) => { const li = el('li'); const a = el('a', null, x.title); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; li.append(a); ol.append(li); }); m.append(el('div', 'sub', tx('web.ui.nguon_claude_da_doc')), ol); } }
+    if (role === 'assistant') m.append(mdToNodes(text), ...srcNodes(srcs));
     else m.textContent = text;
     $('chat').append(m); m.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    return m;
   }
-  async function callClaude() {
+  // Hồ sơ dữ liệu gửi kèm câu hỏi đầu tiên: kết quả đã kiểm định từ báo cáo tuần (KN) và lựa chọn của người dùng; không lưu lại.
+  function dossier() {
+    const pick = (id) => { const s = $(id); return s && s.value ? s.options[s.selectedIndex].text : null; };
+    const amt = PLAN ? parseAmount($('plan-amount').value) : null, F = KN && KN.forecast;
+    return {
+      thoi_diem_hoi: new Date().toISOString(),
+      gia_truc_tiep_chi_de_hien_thi: st.raw.live ? st.raw.live.price : null,
+      ngay_phan_tich: st.a ? st.a.date : null,
+      ngay_phan_tich_la_hom_nay: !!st.S && st.asOf === st.S.price.length - 1,
+      khuyen_nghi_tuan: KN ? { he_so: knStale() ? 1 : KN.multiplier, che_do: KN.mode, ly_do: KN.reasons, cap_nhat: KN.generated_at, du_lieu_cu: knStale(), do_moi: KN.freshness } : null,
+      ban_xay_lai: RB,
+      su_kien: KN ? { danh_sach: KN.events, moc_chot: KN.events_meta || null } : null,
+      du_bao_dai_gia: F ? { ngay_goc: F.anchor, gia_goc: F.price, phien_ban: F.version, dai: F.rows,
+        kiem_chung_lich_su: Object.fromEntries(Object.entries(F.check || {}).map(([k, v]) => [k, v.vol])), kiem_chung_truc_tiep: F.log, so_sanh_phuong_phap: F.search || null } : null,
+      ke_hoach_giai_ngan: PLAN ? { ...PLAN, so_tien_nguoi_dung: amt > 0 ? { so_tien: amt, don_vi: pl.unit, bat_dau: $('plan-start').value } : null } : null,
+      ho_so_nguoi_dung: { thoi_gian_nam_giu: pick('cp-horizon'), chiu_giam_tam_thoi: pick('cp-drawdown'), ty_trong_btc: pick('cp-share') },
+    };
+  }
+  const apiError = (status, j) => (status === 401 ? tx('web.ui.khoa_api_khong_hop_le') : status === 429 ? tx('web.ui.claude_dang_gioi_han_so_luot')
+    : status === 529 || (j.error && j.error.type === 'overloaded_error') ? tx('web.ui.claude_qua_tai') : tx('web.ui.claude_api_bao_loi_0_1', status, (j.error && j.error.message) || ''));
+  // Đọc luồng sự kiện (SSE) của Messages API, dựng lại các khối nội dung để gửi lại nguyên vẹn khi gặp pause_turn.
+  async function readStream(r, onEvent) {
+    const reader = r.body.getReader(), dec = new TextDecoder(), blocks = [], json = {};
+    let buf = '', stopReason = null, stopDetails = null;
+    const handle = (d) => {
+      if (d.type === 'content_block_start') {
+        blocks[d.index] = { ...d.content_block };
+        if (d.content_block.type === 'server_tool_use' || d.content_block.type === 'tool_use') json[d.index] = '';
+      } else if (d.type === 'content_block_delta') {
+        const b = blocks[d.index], x = d.delta;
+        if (x.type === 'text_delta') { b.text = (b.text || '') + x.text; onEvent({ kind: 'text', text: x.text }); }
+        else if (x.type === 'citations_delta') (b.citations = b.citations || []).push(x.citation);
+        else if (x.type === 'thinking_delta') { b.thinking = (b.thinking || '') + x.thinking; onEvent({ kind: 'thinking', text: b.thinking }); }
+        else if (x.type === 'signature_delta') b.signature = (b.signature || '') + x.signature;
+        else if (x.type === 'input_json_delta') json[d.index] += x.partial_json;
+      } else if (d.type === 'content_block_stop') {
+        const b = blocks[d.index];
+        if (b && d.index in json) { try { b.input = json[d.index] ? JSON.parse(json[d.index]) : {}; } catch (e) { b.input = {}; } onEvent({ kind: 'tool', block: b }); }
+      } else if (d.type === 'message_delta') { stopReason = d.delta.stop_reason || stopReason; stopDetails = d.delta.stop_details || stopDetails; }
+      else if (d.type === 'error') throw new Error(apiError(0, d));
+    };
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const data = buf.slice(0, i).split('\n').filter((l) => l.startsWith('data:')).map((l) => l.slice(5).trim()).join('');
+        buf = buf.slice(i + 2);
+        if (data) handle(JSON.parse(data));
+      }
+    }
+    return { blocks: blocks.filter(Boolean), stopReason, stopDetails };
+  }
+  let aiAbort = null;
+  async function callClaude(onEvent) {
     const key = $('ck').value.trim(); if (!key) throw new Error(tx('web.ui.hay_dan_khoa_api_cua_claude'));
-    const body = { model: $('cmodel').value, max_tokens: 4000, system: SYS, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
-    if ($('cweb').checked) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
-    let text = '', srcs = [];
+    const model = $('cmodel').value, current = !/haiku/.test(model);  // Opus 5.5 / Sonnet 5.5: web search with dynamic filtering and server-side fallback
+    const body = { model, max_tokens: 32000, stream: true, system: SYS, cache_control: { type: 'ephemeral' },
+      thinking: { type: 'adaptive', display: 'summarized' }, output_config: { effort: 'high' }, messages: chat.map((x) => ({ role: x.role, content: x.content })) };
+    if ($('cweb').checked) body.tools = [{ type: current ? 'web_search_20260209' : 'web_search_20250305', name: 'web_search', max_uses: 5 }];
+    const headers = { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2026-10-21', 'anthropic-dangerous-direct-browser-access': 'true' };
+    let fallback = current, text = '', srcs = [], res = null;
+    aiAbort = new AbortController();
     for (let k = 0; k < 6; k++) {
+      const req = fallback ? { ...body, fallbacks: 'default' } : body;
       let r;
       try {
-        r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
-      } catch (e) { throw new Error(tx('web.ui.khong_ket_noi_duoc_claude_api')); }
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(r.status === 401 ? tx('web.ui.khoa_api_khong_hop_le') : r.status === 429 ? tx('web.ui.claude_dang_gioi_han_so_luot') : tx('web.ui.claude_api_bao_loi_0_1', r.status, (j.error && j.error.message) || ''));
-      for (const b of j.content || []) {
-        if (b.type === 'text') { text += b.text; (b.citations || []).forEach((c) => c.url && srcs.push({ title: c.title || c.url, url: c.url })); }
+        r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: aiAbort.signal, body: JSON.stringify(req),
+          headers: fallback ? { ...headers, 'anthropic-beta': 'server-side-fallback-2026-07-01' } : headers });
+      } catch (e) {
+        if (e.name === 'AbortError') throw e;
+        if (fallback) { fallback = false; k--; continue; }  // a network path that rejects the beta header: try once without the fallback
+        throw new Error(tx('web.ui.khong_ket_noi_duoc_claude_api'));
+      }
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        if (fallback && r.status === 400 && /fallback|beta/i.test((j.error && j.error.message) || '')) { fallback = false; k--; continue; }
+        throw new Error(apiError(r.status, j));
+      }
+      res = await readStream(r, onEvent);
+      for (const b of res.blocks) {
+        if (b.type === 'text') { text += b.text || ''; (b.citations || []).forEach((c) => c.url && srcs.push({ title: c.title || c.url, url: c.url })); }
         if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) b.content.forEach((x) => x.url && srcs.push({ title: x.title || x.url, url: x.url }));
       }
-      if (j.stop_reason === 'pause_turn') { body.messages = [...body.messages, { role: 'assistant', content: j.content }]; continue; }
+      if (res.stopReason === 'pause_turn') { body.messages = [...body.messages, { role: 'assistant', content: res.blocks }]; continue; }
       break;
     }
+    if (res && res.stopReason === 'refusal') throw new Error(tx('web.ui.claude_tu_choi', (res.stopDetails && (res.stopDetails.explanation || res.stopDetails.category)) || '—'));
     const seen = new Set(); srcs = srcs.filter((x) => !seen.has(x.url) && seen.add(x.url)).slice(0, 12);
-    return { text: text.trim(), srcs };
+    return { text: text.trim(), srcs, cut: !!res && res.stopReason === 'max_tokens' };
   }
   async function sendToClaude(q, first) {
-    const btns = [$('ai-first'), $('ai-send')]; btns.forEach((b) => { b.disabled = true; }); $('ai-busy').hidden = false; $('ai-err').hidden = true;
-    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', report(), q) : q;
+    const btns = [$('ai-first'), $('ai-send')]; btns.forEach((b) => { b.disabled = true; }); $('ai-busy').hidden = false; $('ai-err').hidden = true; $('ai-stop').hidden = false;
+    const content = first ? tx('web.ui.day_la_bao_cao_moi_nhat', JSON.stringify(dossier()), report(), q) : q;
     chat.push({ role: 'user', content }); addMsg('user', q);
-    try { const r = await callClaude(); chat.push({ role: 'assistant', content: r.text || tx('web.ui.claude_khong_tra_loi_noi_dung') }); addMsg('assistant', r.text, r.srcs); }
-    catch (e) { chat.pop(); $('ai-err').textContent = e.message; $('ai-err').hidden = false; }
-    finally { btns.forEach((b) => { b.disabled = false; }); $('ai-busy').hidden = true; }
+    const m = el('div', 'msg assistant'), status = el('p', 'muted', tx('web.ui.claude_dang_suy_luan')), out = el('div');
+    m.append(status, out); $('chat').append(m);
+    let live = '', raf = 0;
+    const paint = () => { raf = 0; out.replaceChildren(mdToNodes(live)); };
+    const onEvent = (ev) => {
+      if (ev.kind === 'thinking' && !live) status.textContent = `${tx('web.ui.claude_dang_suy_luan')} ${ev.text.trim().split(/\n+/).pop().slice(-160)}`;
+      else if (ev.kind === 'tool' && ev.block.name === 'web_search') status.textContent = tx('web.ui.claude_dang_tim_tin', (ev.block.input && ev.block.input.query) || '');
+      else if (ev.kind === 'text') { live += ev.text; status.textContent = tx('web.ui.claude_dang_viet'); if (!raf) raf = requestAnimationFrame(paint); }
+    };
+    const settle = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };  // a pending redraw must not overwrite the final answer
+    try {
+      const r = await callClaude(onEvent);
+      settle();
+      const final = (r.text || tx('web.ui.claude_khong_tra_loi_noi_dung')) + (r.cut ? '\n\n' + tx('web.ui.claude_cat_ngang') : '');
+      status.remove(); out.replaceChildren(mdToNodes(final), ...srcNodes(r.srcs));
+      chat.push({ role: 'assistant', content: r.text || tx('web.ui.claude_khong_tra_loi_noi_dung') });
+    } catch (e) {
+      settle();
+      if (e.name === 'AbortError' && live) { status.remove(); out.replaceChildren(mdToNodes(live + '\n\n' + tx('web.ui.claude_da_dung'))); chat.push({ role: 'assistant', content: live }); }
+      else { m.remove(); chat.pop(); if (e.name !== 'AbortError') { $('ai-err').textContent = e.message; $('ai-err').hidden = false; } }
+    } finally { btns.forEach((b) => { b.disabled = false; }); $('ai-busy').hidden = true; $('ai-stop').hidden = true; aiAbort = null; }
   }
+  $('ai-stop').addEventListener('click', () => { if (aiAbort) aiAbort.abort(); });
   $('ai-first').addEventListener('click', () => { chat.length = 0; $('chat').replaceChildren(); sendToClaude(tx('web.ui.hay_nhan_dinh_ve_ket_luan'), true); });
   $('ai-send').addEventListener('click', () => { const q = $('ai-q').value.trim(); if (!q) return; $('ai-q').value = ''; sendToClaude(q, chat.length === 0); });
   $('ai-q').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('ai-send').click(); });
