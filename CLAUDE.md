@@ -2,6 +2,8 @@
 
 Bot chạy trên máy người dùng (Windows và Mac), giao diện tiếng Việt, giúp quyết định mua thêm hoặc chốt lời BTC bằng thống kê lịch sử. Người dùng không phải lập trình viên: luôn giải thích bằng tiếng Việt đơn giản, mỗi thay đổi nhỏ và kiểm tra được.
 
+Kế hoạch cải tiến cho các phiên sau, kèm câu lệnh từng bước và quy tắc bắt buộc: `docs/KE_HOACH_CAI_TIEN.md`. Đọc file này trước khi bắt đầu một bước cải tiến.
+
 ## Cấu trúc
 - `src/engine.js` (đối tượng `BOT`): tải và ghép dữ liệu, tính 10 chỉ số (Fear & Greed, MVRV, MVRV Z-Score, Giá/MA 200 tuần, Mayer, RSI 14 tuần, Pi Cycle, Puell, Giảm từ đỉnh, Khối lượng tương đối), hồi quy logistic, khối lượng giao dịch.
 - `src/analysis.js` (đối tượng `B3`): phân tích theo tuần tại một ngày bất kỳ (`analyze`), tìm bộ chỉ số (`search`), so sánh phương án PA1–PA6 (`compareOptions`), bên bán (`sellSide`), báo cáo và CSV.

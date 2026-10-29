@@ -70,4 +70,5 @@ Lần chạy holdout duy nhất (`python -m bot.cli acceptance --final`) đã ch
 
 - [docs/BAO_CAO.md](docs/BAO_CAO.md): báo cáo tổng; [docs/PHU_LUC.md](docs/PHU_LUC.md): phụ lục (cấu hình, hoán vị, hiệu chỉnh, chu kỳ, chế độ Fed).
 - [docs/REBUILD_LOG.md](docs/REBUILD_LOG.md): nhật ký xây lại, Phần A–I và mọi thay đổi thiết kế.
+- [docs/KE_HOACH_CAI_TIEN.md](docs/KE_HOACH_CAI_TIEN.md): kế hoạch cải tiến, mỗi bước có câu lệnh dán vào một phiên Claude Code mới.
 - Từng phần: `DATA_REPORT.md` (A), `MEASURE_B.md` (B), `MODEL_C.md` (C), `ZONES_D.md` (D), `SELL_E.md` (E), `SCENARIO_F.md` (F), `MACRO_G.md` (G), `FORWARD_H.md` (H), `ACCEPTANCE_I.md` (I), `PLAN.md` (kế hoạch giải ngân).
