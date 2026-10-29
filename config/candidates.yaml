@@ -112,3 +112,16 @@ macro:
     cutoff: "giá đóng Chủ nhật cuối cùng dùng để tính tín hiệu (23:59:59 UTC)"
     ahead_days: 7
     rule: "chỉ liệt kê sự kiện SAU mốc chốt dữ liệu; sự kiện giữa mốc chốt và lúc phát hành báo cáo được gắn cờ, đề nghị chạy lại sau giá đóng tuần kế tiếp; lịch thiếu ngày phủ tới hết cửa sổ thì cảnh báo"
+
+# Phần H: kiểm định đi tới. Đăng ký trước khi chạy (29/10/2026).
+forward:
+  model: "mô hình lồng nhau (Phần C) đóng băng: chọn bộ chỉ số, λ và trọng số MỘT lần tại ngày đóng băng; không học lại trong thời gian theo dõi"
+  also_logged: [rule_mvrv, rule_200w, sell]   # mốc so sánh và bên bán, ghi cùng dòng
+  columns: [date, close, score, rank, zone, mult_rule, mult_used, model_version, rank_mvrv, zone_mvrv, rank_200w, zone_200w, sell_groups, sell_level, logged_at, late]
+  hash: "sha256 của mã tính đầu ra (chuẩn hóa xuống dòng LF), các mục cấu hình model/sets/zones/multiplier/sell/rebuild, và trạng thái đóng băng (trọng số, lịch sử điểm để xếp hạng, khung tuần trước, ước lượng lợi thế từng khung, trạng thái cổng Phần I)"
+  version_rule: "mã, cấu hình hoặc trạng thái đổi → không ghi tiếp; đóng băng lại thành phiên bản mới với nhật ký mới; nhật ký cũ giữ nguyên, chỉ thêm dòng, không sửa"
+  late_rule: "dòng ghi sau giá đóng Chủ nhật kế tiếp → late = 1"
+  score_horizons: [26, 52]
+  score_rule: "chấm mọi dòng đã đủ kỳ hạn bằng giá đóng thứ Hai (như Phần B), cùng thước đo thống nhất; mốc = mọi tuần của nhật ký đã đủ kỳ hạn"
+  real_freeze: "ngay sau lần chạy holdout duy nhất ở Phần I (đóng băng cần dữ liệu 2024–2026, làm sau để giữ khóa holdout)"
+  dry_run: {freeze: 2022-12-25, log_until: 2023-12-31}   # chạy thử quy trình trên dữ liệu đã dùng ở Phần B–E; không phải kiểm định
