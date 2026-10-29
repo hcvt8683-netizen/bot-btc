@@ -53,3 +53,17 @@ tests:
   multiple_testing: [max_statistic, holm]
   loco_cycles: ["2012-11-28/2016-07-08", "2016-07-09/2020-05-10", "2020-05-11/2023-12-31"]
   zone_order: [phai, cannhac, __baseline__, khong]   # không đơn điệu → gộp khung
+
+# Phần D (đăng ký trước, lưu git trước khi chạy)
+zones:
+  thresholds: {phai: 80, cannhac: 60}   # theo thứ hạng 0–100 (cố định theo nguyên tắc dự án, không dò)
+  hysteresis: 5                         # vào khung khi vượt ngưỡng; chỉ ra khi lùi quá ngưỡng 5 điểm
+  rank_note: "Tỷ lệ nên mua là THỨ HẠNG của điểm tuần này trong các điểm ngoài mẫu trước đó, không phải xác suất có lãi."
+multiplier:
+  bounds: [0.5, 1.5]
+  edge: win_diff_26w        # lợi thế của khung = tỷ lệ thắng 26 tuần của khung trừ mốc cùng giai đoạn
+  use_bound: true           # dùng cận dưới (khung mua) hoặc cận trên (khung Không nên mua) của khoảng tin cậy, không dùng giá trị giữa
+  scale: 2.0                # m = 1 + 2 × cận (ví dụ cận dưới +10 điểm % → 1,2); cận chứa 0 → 1,0
+  min_episodes: 3           # khung dưới 3 đợt → 1,0
+  refit_weeks: 13           # ước lượng lại lợi thế mỗi 13 tuần, chỉ bằng các tuần đã biết kết quả (đi tới)
+  gate: part_i              # chỉ dùng hệ số khác 1,0 khi đạt TẤT CẢ tiêu chí Phần I; chưa đạt → 1,0 kèm lý do
