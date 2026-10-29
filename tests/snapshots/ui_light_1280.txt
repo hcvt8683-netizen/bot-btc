@@ -164,6 +164,64 @@ Không nên bán
 Phải mua
 	0,8%
 Không nên bán
+Kế hoạch giải ngân một khoản tiền
+
+Nhập số tiền bạn muốn đưa vào BTC. Bot so các cách giải ngân trên giá thật trong quá khứ (mua mỗi tuần ở giá đóng thứ Hai, có tính phí), đề xuất cách có lợi nhuận tốt nhất theo lịch sử và lập lịch theo ngày.
+
+Số tiền muốn giải ngân
+Đơn vị
+VNĐ
+USD
+Bắt đầu từ ngày
+
+Nhập số tiền để xem đề xuất và lịch giải ngân.
+
+Đây cũng là cách có ROI trung vị cao nhất.
+
+Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất −64% thay vì −82%.
+
+So sánh các cách giải ngân (giá trị 1 năm sau lần mua đầu)
+
+Cách giải ngân	Trung vị	10% xấu nhất	Xấu nhất	Tỷ lệ lỗ	Giảm sâu nhất	Thắng giải ngân một lần	Với số tiền của bạn (trung vị)
+Giải ngân một lầnROI cao nhấtĐề xuất
+	+56%	−45%	−82%	32%	−48%	—	—
+Chia đều 4 tuần
+mỗi tuần 1/4 số tiền · kém ROI cao nhất đáng kể
+	+52%	−46%	−78%	32%	−48%	43%
+Wilson 19%–73%
+	—
+Chia đều 13 tuần
+mỗi tuần 1/13 số tiền
+	+53%	−48%	−71%	32%	−46%	41%
+Wilson 19%–73%
+	—
+Chia đều 26 tuần
+mỗi tuần 1/26 số tiền
+	+44%	−46%	−64%	32%	−40%	40%
+Wilson 19%–73%
+	—
+Chia đều 52 tuần
+mỗi tuần 1/52 số tiền · kém ROI cao nhất đáng kể
+	+26%	−31%	−55%	30%	−28%	34%
+Wilson 12%–65%
+	—
+Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Mua ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần mua, tiền chưa mua không tính lãi.
+Cách chọn, định trước khi tính: ROI cao nhất là cách có trung vị cao nhất. Đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không kém ROI cao nhất đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
+"Thắng giải ngân một lần": tỷ lệ tuần bắt đầu mà cách đó cho kết quả tốt hơn, kèm khoảng tin cậy Wilson theo số đợt độc lập. "Giảm sâu nhất": mức tụt lớn nhất của tổng giá trị (BTC đã mua + tiền chưa mua) trong năm, lấy trung vị qua các tuần bắt đầu.
+Lịch không nghiêng theo tín hiệu của bot: kiểm định 6 tiêu chí không đạt (tín hiệu chưa có lợi thế), nên chỉ chia đều theo thời gian.
+Lợi nhuận quá khứ không bảo đảm tương lai. BTC đã tăng mạnh trong lịch sử nên giải ngân sớm thường lợi hơn; điều đó có thể không lặp lại.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+
+Lịch giải ngân theo thời gian
+
+Giải ngân một lần
+Chia đều 4 tuần
+Chia đều 13 tuần
+Chia đều 26 tuần
+Chia đều 52 tuần
+Lần	Ngày	Số tiền	Cộng dồn	Đã giải ngân
+Nhập số tiền để xem đề xuất và lịch giải ngân.
+Tải lịch giải ngân (CSV)
 So sánh các phương án
 
 Bot chạy cả 6 phương án tại ngày 28/10/2026 và chấm trên cùng giai đoạn từ 01/01/2021. Hạng xếp theo tỷ lệ thắng thấp nhất có thể ở khung Phải mua (cận dưới khoảng tin cậy). Phương án có ít tín hiệu Phải mua được xếp sau, theo khung từ Cân nhắc mua trở lên. Nút "Tự động: phương án tốt nhất" luôn dùng phương án hạng 1. ⚠: dưới 10 đợt độc lập ở khung Phải mua, hoặc kết quả 6 tháng của hai nửa giai đoạn lệch nhau hơn 20 điểm %; nên coi là ít bằng chứng.

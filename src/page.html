@@ -255,6 +255,24 @@
     </section>
 
     <div id="buy-view">
+    <section class="panel" id="plan-sec" style="margin:16px 0">
+      <h2>{{web.plan.title}}</h2>
+      <p class="lead">{{web.plan.lead}}</p>
+      <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
+        <label>{{web.plan.amount}}<input type="text" inputmode="decimal" id="plan-amount" placeholder="{{web.plan.amount_ph}}" autocomplete="off"></label>
+        <label>{{web.plan.unit}}<span class="seg" id="plan-unit"></span></label>
+        <label>{{web.plan.start}}<input type="date" id="plan-start"></label>
+      </div>
+      <div class="cons" id="plan-sum" style="margin-top:12px"></div>
+      <p class="sm" style="margin-top:16px">{{web.plan.cmp_title}}</p>
+      <div class="scroll"><table id="t-plan"></table></div>
+      <ul class="crit" id="plan-notes"></ul>
+      <p class="sm" style="margin-top:16px">{{web.plan.sched_title}}</p>
+      <div class="seg" id="plan-opts" style="margin-bottom:8px"></div>
+      <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
+      <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
+    </section>
+
     <section class="panel" id="pa-sec">
       <h2>{{web.page.so_sanh_cac_phuong_an}}</h2>
       <p class="lead" id="pa-lead"></p>

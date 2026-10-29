@@ -259,3 +259,31 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Dòng đầu: giá 80.039 $, điểm 0,716, thứ hạng 76 → Cân nhắc mua, hệ số dùng thực tế 1,0 (mua đều).
 - Hai quy tắc đều ở Cân nhắc mua; bên bán 0 nhóm → Giữ.
 - Các khung này chỉ để tham khảo: đã kiểm định là **chưa có lợi thế**.
+
+## Tính năng: kế hoạch giải ngân một khoản tiền (29/10/2026)
+
+**Yêu cầu:** nhập số tiền muốn giải ngân, bot đề xuất cách giải ngân "best ROI" kèm các mốc thời gian.
+
+**Vì sao không nghiêng theo tín hiệu.** Phần I không đạt, nên "mua nhiều khi bot báo rẻ" là tự đặt ra một lợi thế không có thật. Các phương án chỉ khác nhau về thời gian giải ngân.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `plan`, commit `0be9828`, trước khi tính):
+- 5 phương án: một lần, chia đều 4, 13, 26 hoặc 52 tuần;
+- so giá trị 52 tuần sau lần mua đầu, giá đóng thứ Hai, có phí; tiền chưa mua không có lãi;
+- dữ liệu từ 07/2016 (toàn bộ lịch sử chỉ để tham khảo);
+- ROI cao nhất = trung vị cao nhất;
+- đề xuất = phân vị 10% cao nhất trong các phương án không kém ROI cao nhất đáng kể.
+
+**Kết quả** (486 tuần bắt đầu, khoảng 9 đợt độc lập; chi tiết `docs/PLAN.md`):
+- ROI cao nhất và đề xuất đều là **giải ngân một lần**: trung vị +56%, 10% xấu nhất −45%, xấu nhất −82%, 32% số tuần bắt đầu lỗ sau 1 năm.
+- Chia đều 13 và 26 tuần không kém đáng kể. Chia đều 4 tuần kém đáng kể (+0,3 đến +3,6 điểm, vì giá thường tăng trong 4 tuần), chia đều 52 tuần cũng kém đáng kể.
+- Toàn bộ lịch sử từ 2012: ROI cao nhất là chia đều 4 tuần, đề xuất là chia đều 26 tuần. Kết quả nhạy với giai đoạn chọn, nên giao diện nói rõ khoảng tin cậy rộng.
+
+**Thêm sau khi xem kết quả, chỉ ở cách trình bày, không đổi quy tắc:**
+- Dòng "nếu ngại mua đúng đỉnh": phương án không kém đáng kể có mức xấu nhất nhẹ nhất (chia đều 26 tuần: −64% so với −82%).
+- Làm tròn giá trị dự kiến 3 chữ số, mỗi lần mua bằng VNĐ làm tròn nghìn đồng.
+
+**Kiểm tra:** `tests/test_plan.py` (số học, chỉ dùng giá trong cửa sổ của mình, quy tắc chọn). Chạy thử trên trình duyệt với dữ liệu thật:
+- 100.000.000 ₫ chia 26 tuần: 26 lần từ 02/11/2026 đến 26/04/2027, tổng đúng bằng số tiền;
+- USD có số lẻ; số nhập sai bị báo;
+- CSV có BOM UTF-8;
+- không tràn ngang ở 390 px; chỉ hiện ở chế độ Bên mua.

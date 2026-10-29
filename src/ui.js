@@ -773,12 +773,119 @@
     if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
   }
 
+  // ----- Kế hoạch giải ngân một khoản tiền: số liệu lịch sử từ báo cáo tuần (KN.plan), lịch tính trên máy người dùng, không lưu số tiền -----
+  const PLAN = KN && KN.plan && KN.plan.options && KN.plan.options.length ? KN.plan : null;
+  const pl = { unit: 'vnd', pick: PLAN ? PLAN.recommended : null };
+  const UNIT = { vnd: { cents: 1, step: 1000, d: 0, sym: ' ₫' }, usd: { cents: 100, step: 1, d: 2, sym: ' $' } };  // step: each part is a multiple of it (minor units)
+  const money = (x) => (x == null || !isFinite(x) ? '—' : nf(UNIT[pl.unit].d).format(x) + UNIT[pl.unit].sym);
+  const approx = (x) => { if (x == null || !isFinite(x) || x === 0) return money(x); const k = 10 ** Math.max(0, Math.floor(Math.log10(Math.abs(x))) - 2); return money(Math.round(x / k) * k); };  // 3 significant digits
+  const planName = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n));
+  const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const weekday = (s) => new Intl.DateTimeFormat('vi-VN', { weekday: 'long' }).format(new Date(s + 'T12:00:00'));
+  function nextMonday() { const d = new Date(); d.setHours(12, 0, 0, 0); while (d.getDay() !== 1) d.setDate(d.getDate() + 1); return isoDay(d); }
+  function parseAmount(s) {
+    const t = String(s || '').replace(/\s/g, '');
+    if (!t) return null;
+    const m = t.match(/^(.*?)[.,](\d{1,2})$/), int = (m ? m[1] : t).replace(/[.,]/g, ''), dec = m ? m[2] : '';
+    return /^\d*$/.test(int) && (int || dec) ? Number((int || '0') + (dec ? '.' + dec : '')) : NaN;
+  }
+  function schedule(amount, n, start) {
+    const { cents: c, step } = UNIT[pl.unit], total = Math.round(amount * c), base = Math.floor(total / n / step) * step, d0 = new Date(start + 'T12:00:00'), rows = [];
+    let cum = 0;
+    for (let k = 0; k < n; k++) {
+      const part = k === n - 1 ? total - base * (n - 1) : base, d = new Date(d0);
+      cum += part; d.setDate(d0.getDate() + 7 * k);
+      rows.push({ k: k + 1, date: isoDay(d), amount: part / c, cum: cum / c, share: cum / total });
+    }
+    return rows;
+  }
+  function renderPlan() {
+    const optEl = $('plan-opts');
+    $('plan-unit').replaceChildren(...['vnd', 'usd'].map((u) => { const b = el('button', null, tx('web.plan.unit_' + u)); b.type = 'button'; b.setAttribute('aria-pressed', String(pl.unit === u));
+      b.addEventListener('click', () => { pl.unit = u; renderPlan(); }); return b; }));
+    if (!PLAN) {
+      $('plan-sum').replaceChildren(el('span', 'warn', tx('web.plan.none')));
+      for (const id of ['t-plan', 't-plan-sched', 'plan-notes', 'plan-opts']) $(id).replaceChildren();
+      $('dl-plan').disabled = true;
+      return;
+    }
+    const opt = (n) => PLAN.options.find((o) => o.weeks === n), rec = opt(PLAN.recommended), best = opt(PLAN.best_roi);
+    const amount = parseAmount($('plan-amount').value), ok = amount != null && isFinite(amount) && amount > 0, start = $('plan-start').value || nextMonday();
+    const sum = [];
+    if (amount != null && !ok) sum.push(el('p', 'warn', tx('web.plan.bad_amount')));
+    else if (!ok) sum.push(el('p', null, tx('web.plan.enter')));
+    else {
+      const rows = schedule(amount, rec.weeks, start), last = rows[rows.length - 1], p1 = el('p');
+      p1.append(el('b', null, rec.weeks === 1 ? tx('web.plan.sum_rec_1', money(amount), fmtDate(start)) : tx('web.plan.sum_rec', planName(rec.weeks), rec.weeks, money(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
+        ' ', tx('web.plan.sum_hist', spc(rec.median), approx(amount * (1 + rec.median)), spc(rec.p10), approx(amount * (1 + rec.p10)), spc(rec.worst), pc(rec.loss_share)));
+      sum.push(p1);
+    }
+    sum.push(el('p', null, rec === best ? tx('web.plan.sum_best_same') : tx('web.plan.sum_best_diff', planName(best.weeks), spc(best.median))));
+    const safer = PLAN.options.filter((o) => o.not_worse && o !== rec && o.worst > rec.worst).sort((a, b) => b.worst - a.worst)[0];
+    if (safer) sum.push(el('p', null, tx('web.plan.safer', planName(safer.weeks), spc(safer.median), spc(safer.worst), spc(rec.worst))));
+    $('plan-sum').replaceChildren(...sum);
+    const h = el('tr');
+    ['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_loss', 'col_mdd', 'col_beat', 'col_value'].forEach((k, i) => h.append(el('th', i ? 'r' : '', tx('web.plan.' + k))));
+    const tb = el('tbody');
+    for (const o of PLAN.options) {
+      const tr = el('tr', o === rec ? 'here' : ''), n = el('td');
+      n.append(el('b', 'nowrap', planName(o.weeks)));
+      if (o === best) n.append(el('span', 'tag', tx('web.plan.tag_best')));
+      if (o === rec) n.append(el('span', 'tag', tx('web.plan.tag_rec')));
+      n.append(el('span', 'sub', o.weeks === 1 ? (o.not_worse ? '' : tx('web.plan.worse')) : tx('web.plan.opt_n_sub', o.weeks) + (o.not_worse ? '' : ' · ' + tx('web.plan.worse'))));
+      const beat = el('td', 'r num'), val = el('td', 'r num nowrap', ok ? approx(amount * (1 + o.median)) : '—');
+      if (ok) val.append(el('span', 'sub', tx('web.plan.value_sub', approx(amount * (1 + o.p10)))));
+      beat.append(o.beat_lump == null ? '—' : pc(o.beat_lump));
+      if (o.beat_lump != null && o.beat_lump_ci) beat.append(el('span', 'sub', tx('web.plan.beat_sub', pc(o.beat_lump_ci[0]), pc(o.beat_lump_ci[1]))));
+      tr.append(n, el('td', 'r num ' + (o.median >= 0 ? 'good' : 'bad'), spc(o.median)), el('td', 'r num bad', spc(o.p10)), el('td', 'r num bad', spc(o.worst)),
+        el('td', 'r num', pc(o.loss_share)), el('td', 'r num', spc(o.mdd_median)), beat,
+        val);
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-plan').replaceChildren(th, tb);
+    const notes = [tx('web.plan.note_data', PLAN.starts, fmtDate(PLAN.from), fmtDate(PLAN.to), PLAN.episodes, pc(PLAN.cost, 2)), tx('web.plan.note_rule'), tx('web.plan.note_beat')];
+    if (!PLAN.signals_passed) notes.push(tx('web.plan.note_signals'));
+    notes.push(tx('web.plan.note_past'), tx('web.plan.note_ref'));
+    $('plan-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+    optEl.replaceChildren(...PLAN.options.map((o) => { const b = el('button', null, planName(o.weeks)); b.type = 'button'; b.setAttribute('aria-pressed', String(pl.pick === o.weeks));
+      b.addEventListener('click', () => { pl.pick = o.weeks; renderPlan(); }); return b; }));
+    const sh = el('tr');
+    ['col_n', 'col_date', 'col_amount', 'col_cum', 'col_share'].forEach((k, i) => sh.append(el('th', i > 1 ? 'r' : '', tx('web.plan.' + k))));
+    const sb = el('tbody');
+    if (ok) for (const r of schedule(amount, pl.pick, start)) {
+      const tr = el('tr'), dc = el('td', 'nowrap');
+      dc.append(fmtDate(r.date), el('span', 'sub', weekday(r.date)));
+      tr.append(el('td', 'num', String(r.k)), dc, el('td', 'r num nowrap', money(r.amount)), el('td', 'r num nowrap', money(r.cum)), el('td', 'r num', pc(r.share)));
+      sb.append(tr);
+    }
+    else { const tr = el('tr'), td = el('td', 'muted', tx('web.plan.enter')); td.colSpan = 5; tr.append(td); sb.append(tr); }
+    const sth = el('thead'); sth.append(sh); $('t-plan-sched').replaceChildren(sth, sb);
+    $('dl-plan').disabled = !ok;
+  }
+  function initPlan() {
+    if (!$('plan-sec')) return;
+    $('plan-start').value = nextMonday();
+    $('plan-amount').addEventListener('input', renderPlan);
+    $('plan-amount').addEventListener('change', () => { const a = parseAmount($('plan-amount').value); if (a > 0) $('plan-amount').value = nf(UNIT[pl.unit].d).format(a); renderPlan(); });
+    $('plan-start').addEventListener('change', renderPlan);
+    $('dl-plan').addEventListener('click', () => {
+      const a = parseAmount($('plan-amount').value);
+      if (!PLAN || !(a > 0)) return;
+      const start = $('plan-start').value || nextMonday(), d = UNIT[pl.unit].d, cell = (x) => (/[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x);
+      const head = ['col_n', 'col_date', 'col_amount', 'col_cum', 'col_share'].map((k) => tx('web.plan.' + k));
+      const rows = schedule(a, pl.pick, start).map((r) => [String(r.k), r.date, r.amount.toFixed(d), r.cum.toFixed(d), r.share.toFixed(4)]);
+      download(`lich-giai-ngan-bot-btc-${start}.csv`, '﻿' + [head, ...rows].map((r) => r.map(cell).join(',')).join('\n'), 'text/csv;charset=utf-8');
+    });
+    renderPlan();
+  }
+
   function renderStatus() {
-    const names = { live: tx('web.ui.gia_truc_tiep_2'), fng: 'Fear & Greed (Alternative.me)', cm: tx('web.ui.gia_lich_su_mvrv_tho_dao'), kl: tx('web.ui.gia_va_khoi_luong_ngay_binance'), cache: tx('web.ui.du_lieu_luu_tren_may') };
+    const names ={ live: tx('web.ui.gia_truc_tiep_2'), fng: 'Fear & Greed (Alternative.me)', cm: tx('web.ui.gia_lich_su_mvrv_tho_dao'), kl: tx('web.ui.gia_va_khoi_luong_ngay_binance'), cache: tx('web.ui.du_lieu_luu_tren_may') };
     $('status').replaceChildren(...Object.entries(st.status).map(([k, s]) => el('li', s.ok ? 'ok' : 'err', `${names[k]}: ${s.ok || k === 'cache' ? s.msg : tx('web.ui.loi') + s.msg}`)));
   }
 
 
+  initPlan();
   loadAll();
   setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
 })();

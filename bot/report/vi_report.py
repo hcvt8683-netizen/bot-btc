@@ -68,6 +68,16 @@ def _evidence(summary: dict) -> dict:
             "trials": summary["trials"], "passed": summary["passed"], "run_at": summary["run_at"]}
 
 
+def _plan() -> dict | None:
+    """Lump-sum deployment plans (bot/models/deploy_plan.py); None when the data are missing, so the page says so."""
+    try:
+        from bot.models import deploy_plan
+        out = deploy_plan.for_report()
+        return out if out.get("options") else None
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
+
+
 def build(now: dt.datetime | None = None, write: bool = True) -> dict:
     now = now or dt.datetime.now(dt.timezone.utc).replace(tzinfo=None, microsecond=0)
     summary = json.loads(SUMMARY.read_text(encoding="utf-8")) if SUMMARY.exists() else None
@@ -88,7 +98,7 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
            "events": _events(now), "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None}
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan()}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec

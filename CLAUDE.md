@@ -8,6 +8,7 @@ Bot chạy trên máy người dùng (Windows và Mac), giao diện tiếng Vi�
 - `src/ui.js`: toàn bộ giao diện (bên mua, bên bán, biểu đồ canvas, Claude API, xuất file).
 - `src/page.html`: khung trang và CSS; có 4 chỗ đánh dấu `/*I18N*/`, `/*CORE*/`, `/*B3*/`, `/*UI*/`; chữ trong trang viết dạng `{{web.page.khoa}}`.
 - `src/i18n.js` (`I18N.tx`, `I18N.vnTime`): đọc chữ từ `bot/i18n/vi.yaml`. Mọi chữ người dùng thấy nằm trong `vi.yaml`, mã chỉ dùng `tx('web.ui.khoa', ...)`. `python build.py` sinh `src/vi.json` cho bài kiểm tra node.
+- `bot/models/deploy_plan.py`: kế hoạch giải ngân một khoản tiền (phương án và quy tắc ở `config/candidates.yaml` mục `plan`), ghi vào `data/recommendation.json` (`plan`); giao diện ở `#plan-sec` (bên mua), lịch tính trên trình duyệt, không lưu số tiền.
 - `bot/` (Python): dữ liệu theo thời điểm công bố, mô phỏng so với mua đều, kiểm định, mô hình, khuyến nghị tuần (`data/recommendation.json`). Kết quả nghiên cứu: `docs/RESULTS.md` (mô hình mới chưa đạt, khuyến nghị luôn là mua đều).
 - `build.py`: ghép thành `bot-xac-suat.html` (một file, chạy bằng cách mở trực tiếp hoặc qua `chay_bot_xac_suat.py`). `python build.py --zip` tạo `dist/BotBTC-Windows.zip` và `dist/BotBTC-Mac.zip`.
 - `chay_bot_xac_suat.py`: máy chủ cục bộ cổng 8789, chuyển tiếp yêu cầu dữ liệu (tránh CORS), lưu bản sao vào `du_lieu_tam/` để dùng khi mất mạng.
