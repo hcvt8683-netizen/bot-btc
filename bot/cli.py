@@ -9,6 +9,8 @@ features        weekly feature table → data/features.parquet
 report          weekly recommendation → data/recommendation.json (fail-safe: DCA)
 final --final   phase 7: the single logged run on the locked holdout + acceptance criteria
 forward freeze|log|score   part H forward log in data/forward/ (freeze only after the Part I holdout run)
+acceptance rehearsal       part I on a pretend holdout inside already-seen data (no log, no acceptance file)
+acceptance --final         part I: the single logged run on the holdout from 01/01/2024 (refuses a second run)
 """
 from __future__ import annotations
 
@@ -75,6 +77,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "forward":
         return forward_cmd(ap, args)
+    if args.command == "acceptance":
+        from bot.models import part_i
+        if args.action == "rehearsal":
+            o = part_i.rehearse()
+        elif args.final:
+            o = part_i.run_final()
+        else:
+            ap.error("holdout khóa: `acceptance rehearsal` để diễn tập, `acceptance --final` cho lần chạy duy nhất")
+        print("passed:", o["passed"], {k: bool(v["pass"]) for k, v in o["criteria"].items()})
+        return 0
     ap.error(f"unknown command {args.command}")
     return 2
 

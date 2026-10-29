@@ -17,7 +17,7 @@ CYCLES = [("2012-11-28", "2016-07-08"), ("2016-07-09", "2020-05-10"), ("2020-05-
 LEVEL_VI = {"giu": "Giữ", "chot": "Chốt lời một phần", "ban": "Bán phần lớn"}
 
 
-def criterion(on: np.ndarray, price: np.ndarray, dates: pd.DatetimeIndex, h: int, gap: int, n_boot: int, seed: int) -> dict:
+def criterion(on: np.ndarray, price: np.ndarray, dates: pd.DatetimeIndex, h: int, gap: int, n_boot: int, seed: int, cycles=CYCLES) -> dict:
     """Episodes of a criterion, share of episodes whose price h weeks later is lower (Wilson), and the uniform
     bootstrap of the difference vs all weeks; also per cycle."""
     eps = ss.episode_starts(on, gap)
@@ -29,7 +29,7 @@ def criterion(on: np.ndarray, price: np.ndarray, dates: pd.DatetimeIndex, h: int
     z = pd.Series(np.where(on, "bat", "tat"), index=dates, dtype=object)
     tab = measure.zone_table(z, price, [h], ["bat", "tat"], n_boot=n_boot, seed=seed, gap=gap)["zones"]["bat"][h]
     per = []
-    for a_, b_ in CYCLES:
+    for a_, b_ in cycles:
         m = (dates >= a_) & (dates <= b_)
         e = [x for x in done if m[x]]
         rr = r[m]
@@ -43,6 +43,30 @@ def criterion(on: np.ndarray, price: np.ndarray, dates: pd.DatetimeIndex, h: int
             "boot_diff_lower": None if tab.get("diff") is None else -tab["diff"], "boot_ci_lower": None if tab.get("ci", [None])[0] is None else [-tab["ci"][1], -tab["ci"][0]],
             "verdict": tab.get("verdict"), "cycles": per,
             "trusted": "cho_phan_i" if works_recent else "khong"}
+
+
+def simulate_rules(dates, close, fill, cnt, se: dict, gap: int, periods) -> list[dict]:
+    """Sell X% once per episode of "≥ g groups" with the buy-back rule, against holding, per period."""
+    sims = []
+    bb = se["buyback"]
+    for g in se["triggers"]:
+        mask = (cnt >= g).to_numpy()
+        for frac in se["sell_fractions"]:
+            row = {"trigger": g, "frac": frac, "cycles": []}
+            for a_, b_ in periods:
+                m = (dates >= a_) & (dates <= b_)
+                idx = np.where(m)[0]
+                if len(idx) < 52:
+                    continue
+                st = ss.episode_starts(mask[idx], gap)  # already relative to the window
+                r = ss.simulate(close[idx], fill[idx], st, frac, bb["price_below_sale"], bb["max_weeks"])
+                tr = r["trades"]
+                closed = [x for x in tr if "buy" in x]
+                row["cycles"].append({"period": f"{a_[:4]}–{b_[:4]}", "ratio": float(r["equity"][-1] / r["equity_dca"][-1]),
+                                      "mdd": ss.mdd(r["equity"]), "mdd_dca": ss.mdd(r["equity_dca"]), "sales": len(tr), "closed": len(closed),
+                                      "right": int(sum(x["right"] for x in closed)), "open_end": len(tr) - len(closed)})
+            sims.append(row)
+    return sims
 
 
 def run(write: bool = True) -> dict:
@@ -59,25 +83,7 @@ def run(write: bool = True) -> dict:
     h, gap = se["outcome_weeks"], rb["episode_gap_weeks"]
     crit = {f: criterion(fl[f].to_numpy(), fill, dates, h, gap, rb["bootstrap_n"], rb["seed"]) for f in fl.columns}
     trig = {f"≥{g} nhóm": criterion((cnt >= g).to_numpy(), fill, dates, h, gap, rb["bootstrap_n"], rb["seed"]) for g in se["triggers"]}
-    sims = []
-    bb = se["buyback"]
-    for g in se["triggers"]:
-        mask = (cnt >= g).to_numpy()
-        for frac in se["sell_fractions"]:
-            row = {"trigger": g, "frac": frac, "cycles": []}
-            for a_, b_ in [("2012-11-28", "2023-12-31")] + CYCLES:
-                m = (dates >= a_) & (dates <= b_)
-                idx = np.where(m)[0]
-                if len(idx) < 52:
-                    continue
-                st = ss.episode_starts(mask[idx], gap)  # already relative to the window
-                r = ss.simulate(close[idx], fill[idx], st, frac, bb["price_below_sale"], bb["max_weeks"])
-                tr = r["trades"]
-                closed = [x for x in tr if "buy" in x]
-                row["cycles"].append({"period": f"{a_[:4]}–{b_[:4]}", "ratio": float(r["equity"][-1] / r["equity_dca"][-1]),
-                                      "mdd": ss.mdd(r["equity"]), "mdd_dca": ss.mdd(r["equity_dca"]), "sales": len(tr), "closed": len(closed),
-                                      "right": int(sum(x["right"] for x in closed)), "open_end": len(tr) - len(closed)})
-            sims.append(row)
+    sims = simulate_rules(dates, close, fill, cnt, se, gap, [("2012-11-28", "2023-12-31")] + CYCLES)
     last = dates[-1]
     out = {"eval_end": eval_end.strftime("%Y-%m-%d"), "criteria": crit, "triggers": trig, "sims": sims,
            "last": {"date": last.strftime("%Y-%m-%d"), "groups_on": int(cnt.iloc[-1]), "level": ss.level_of(int(cnt.iloc[-1]), se["levels"]),
