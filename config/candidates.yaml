@@ -145,3 +145,15 @@ acceptance:
     trusted: "tiêu chí đúng nhiều hơn mốc (≥ 2 đợt, giá 26 tuần sau thấp hơn) ở CẢ hai chu kỳ gần nhất: 2020–2024 (đỉnh 2021) và 2024–nay (đỉnh 10/2025); cách đếm như Phần E"
   once: "chạy bằng `python -m bot.cli acceptance --final`, ghi vào experiments/final_runs.log; đã có một lần chạy thì lệnh từ chối; không sửa gì theo kết quả"
   rehearsal: {holdout_start: 2022-01-01, data_end: 2023-12-31}   # diễn tập cùng mã trên dữ liệu đã xem, để bắt lỗi trước lần chạy thật
+
+# Kế hoạch giải ngân một khoản tiền (tính năng web). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
+plan:
+  options_weeks: [1, 4, 13, 26, 52]   # 1 = giải ngân hết một lần; còn lại chia đều mỗi thứ Hai trong N tuần
+  horizon_weeks: 52                   # so giá trị 52 tuần sau lần mua đầu; tiền chưa mua giữ nguyên, lãi 0%
+  data_from: 2016-07-09               # 3 chu kỳ gần nhất (từ kỳ giảm một nửa 2016); toàn bộ từ 2012-11-28 chỉ ghi thêm để tham khảo
+  data_from_full: 2012-11-28
+  execution: "mua ở giá đóng thứ Hai (như Phần B), phí và trượt giá như bot"
+  best_roi: "phương án có trung vị lợi nhuận sau 52 tuần cao nhất"
+  rule: "đề xuất = trong phương án ROI cao nhất và các phương án không kém nó đáng kể (khoảng tin cậy 95% của trung vị chênh lệch theo từng tuần bắt đầu, bootstrap khối 52 tuần, chứa 0), chọn phương án có phân vị 10% cao nhất (ít thiệt nhất khi gặp lúc xấu)"
+  signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
+  episodes: "số đợt độc lập = số tuần bắt đầu chia 52 (các cửa sổ 1 năm chồng lấn); Wilson tính theo số đợt"
