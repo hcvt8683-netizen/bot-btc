@@ -31,6 +31,22 @@ def cost(price: np.ndarray, m: np.ndarray, n_boot: int, block: int, seed: int) -
     return {"advantage": er - 1, "ci": [float(np.quantile(b, 0.025)), float(np.quantile(b, 0.975))]}
 
 
+def strategy_ranks(t: pd.DataFrame, sp: dict) -> dict[str, tuple[pd.Series, np.ndarray]]:
+    """Out-of-sample rank (0–100) and execution price per week for the nested model and the two simple rules."""
+    md = sp["model"]
+    sets = {k: v["features"] for k, v in sp["sets"].items()}
+    nested = wf.nested_oos(t, sets, md["lambdas"], h=md["target_weeks"], refit=md["refit_weeks"], min_train=md["min_train_weeks"],
+                           inner_valid=md["inner_valid_weeks"])
+    scores = {"Mô hình lồng nhau": nested["p"], "Quy tắc MVRV": t["cheap_mvrv"], "Quy tắc Giá/MA 200 tuần": t["cheap_p_200wma"]}
+    out = {}
+    for name, p in scores.items():
+        rank = (wf.oos_rank(p.dropna(), md["rank_min_weeks"]) * 100).dropna()
+        price = t["exec_monday"].reindex(rank.index).to_numpy(dtype=float)
+        ok = np.isfinite(price)
+        out[name] = (rank[ok], price[ok])
+    return out
+
+
 def run(write: bool = True) -> dict:
     sp = part_c.spec()
     md, zc, mc = sp["model"], sp["zones"], sp["multiplier"]
@@ -38,17 +54,9 @@ def run(write: bool = True) -> dict:
     seed, n_boot = rb["seed"], rb["bootstrap_n"]
     eval_end = pd.Timestamp(str(md["eval_end"]))
     t = part_c.table(eval_end)
-    sets = {k: v["features"] for k, v in sp["sets"].items()}
-    nested = wf.nested_oos(t, sets, md["lambdas"], h=md["target_weeks"], refit=md["refit_weeks"], min_train=md["min_train_weeks"],
-                           inner_valid=md["inner_valid_weeks"])
-    scores = {"Mô hình lồng nhau": nested["p"], "Quy tắc MVRV": t["cheap_mvrv"], "Quy tắc Giá/MA 200 tuần": t["cheap_p_200wma"]}
     bounds = tuple(mc["bounds"])
     out = {"eval_end": eval_end.strftime("%Y-%m-%d"), "rank_note": zc["rank_note"], "strategies": {}}
-    for name, p in scores.items():
-        rank = (wf.oos_rank(p.dropna(), md["rank_min_weeks"]) * 100).dropna()
-        price = t["exec_monday"].reindex(rank.index).to_numpy(dtype=float)
-        ok = np.isfinite(price)
-        rank, price = rank[ok], price[ok]
+    for name, (rank, price) in strategy_ranks(t, sp).items():
         zp, zh = zn.plain_zones(rank, zc["thresholds"]), zn.hysteresis_zones(rank, zc["thresholds"], zc["hysteresis"])
         tab = measure.zone_table(zh, price, rb["horizons_weeks"], zn.ORDER, n_boot=n_boot, seed=seed, gap=rb["episode_gap_weeks"])
         mono = measure.monotone(tab, ["phai", "cannhac", "__baseline__", "khong"])

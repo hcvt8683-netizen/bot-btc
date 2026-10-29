@@ -169,3 +169,25 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - So với cách cũ giữ nguyên F&G: số nhóm bên bán chỉ khác ở 1/30 kịch bản (1 tuần, +30%: 1 → 2 nhóm).
 
 **Kết luận:** kịch bản giờ tính lại đầy đủ và có khoảng. Đây là mô tả bot sẽ đọc thế nào, không phải dự báo; hệ số giải ngân vẫn 1,0.
+
+## Phần G: Vĩ mô và sự kiện (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước** (`config/candidates.yaml` mục `macro`, commit `1548ac2`, trước khi chạy):
+- tách kết quả khung của 4 chiến lược (PA3 của bot hiện tại, mô hình lồng nhau, quy tắc MVRV, quy tắc Giá/MA 200 tuần) theo chế độ Fed tăng / giữ / giảm;
+- mốc là mọi tuần cùng chế độ; bảng chính kỳ 26 tuần, các kỳ khác trong file JSON;
+- cảnh báo khi chế độ hiện tại có dưới 3 đợt trong giai đoạn đánh giá;
+- sự kiện: chỉ liệt kê sau mốc chốt dữ liệu (giá đóng Chủ nhật), gắn cờ sự kiện giữa mốc chốt và lúc phát hành, cảnh báo lịch thiếu.
+
+**Lỗi cũ được sửa.** Báo cáo tuần cũ liệt kê sự kiện từ lúc chạy báo cáo, nên sự kiện xảy ra sau Chủ nhật nhưng trước lúc chạy bị bỏ qua im lặng. Module mới `bot/report/events.py` lấy mốc chốt dữ liệu làm điểm bắt đầu. Báo cáo trên web chưa dùng module này: chờ bước tích hợp cuối, khi bạn đồng ý.
+
+**Test.** Sự kiện trước mốc chốt không bao giờ được liệt kê. Sự kiện giữa mốc chốt và lúc phát hành có cờ, kèm ngày chạy lại. Lịch thiếu được nêu tên. Đã thử hai lỗi cài sẵn: danh sách bắt đầu từ lúc phát hành như cách cũ, và danh sách lọt sự kiện 3 ngày trước mốc chốt. Test bắt được cả hai.
+
+**Tách Phần D thành hàm.** Thứ hạng của 3 chiến lược Phần D giờ nằm trong hàm `strategy_ranks` để Phần G dùng lại. Chạy lại Phần D cho kết quả giống hệt từng byte.
+
+**Kết quả (đến 31/12/2023)**
+- Chế độ hiện tại (Chủ nhật 25/10/2026): **tăng**, từ 20/09/2026. Từ 2011 đến nay có 4 đợt tăng, gồm cả đợt hiện tại (chưa có kết quả).
+- Trong giai đoạn đánh giá, chế độ tăng có 1 đợt với PA3 và mô hình lồng nhau, 2 đợt với quy tắc Giá/MA 200 tuần, 3 đợt với quy tắc MVRV. **Cảnh báo** cho 3 chiến lược đầu.
+- 25 ô có dữ liệu ở kỳ 26 tuần: 0 hơn mốc, 1 kém mốc (quy tắc MVRV, Cân nhắc mua, chế độ tăng: 5 đợt, −38,6 điểm %), 9 chưa có lợi thế, 15 ít đợt. Với 25 phép so, 1 ô kém mốc nằm trong mức may rủi (khoảng 1,25 ô ở ngưỡng 5%).
+- Sự kiện lúc chạy: FOMC 28/10/2026 (sau mốc chốt 25/10) được gắn cờ, đề nghị chạy lại sau Chủ nhật 01/11/2026. Lịch CPI chỉ tới 14/10/2026: cảnh báo cần cập nhật.
+
+**Kết luận:** chưa có khung nào có lợi thế trong một chế độ Fed riêng. Chế độ Fed chỉ để chia nhóm báo cáo.
