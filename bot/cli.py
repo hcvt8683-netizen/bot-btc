@@ -4,6 +4,7 @@ fetch           fetch all sources, check quality, save snapshots (daily job)
 record          forward-record open interest and funding only
 check-sources   reachability of every endpoint
 backtest        current bot vs DCA (add --final for the logged holdout run)
+data-report     part A data-quality report + data/manifest.json
 features        weekly feature table → data/features.parquet
 report          weekly recommendation → data/recommendation.json (fail-safe: DCA)
 final --final   phase 7: the single logged run on the locked holdout + acceptance criteria
@@ -49,6 +50,13 @@ def main(argv: list[str] | None = None) -> int:
         with open(DATA / "derived" / "final_result.pkl", "wb") as f:
             pickle.dump(res, f)
         print("passed:", res["passed"], [(c["id"], c["ok"]) for c in res["criteria"]])
+        return 0
+    if args.command == "data-report":
+        from bot.data import manifest
+        from bot.report import data_report
+        data_report.build()
+        manifest.build()
+        print("docs/DATA_REPORT.md, data/results/data_quality.json, data/manifest.json")
         return 0
     if args.command == "features":
         from bot.features import build as fb

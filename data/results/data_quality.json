@@ -1,0 +1,534 @@
+{
+ "weekly": {
+  "from": "2010-07-18",
+  "to": "2026-10-25",
+  "weeks": 850,
+  "missing_close": 0
+ },
+ "coverage": [
+  {
+   "feature": "mvrv",
+   "first_raw": "2010-07-18",
+   "first_pct": "2012-07-08",
+   "weeks": 747,
+   "gaps": 0
+  },
+  {
+   "feature": "mvrv_z",
+   "first_raw": "2010-08-22",
+   "first_pct": "2012-08-12",
+   "weeks": 742,
+   "gaps": 0
+  },
+  {
+   "feature": "pi_ratio",
+   "first_raw": "2011-07-03",
+   "first_pct": "2013-06-23",
+   "weeks": 697,
+   "gaps": 0
+  },
+  {
+   "feature": "p_200wma",
+   "first_raw": "2014-05-18",
+   "first_pct": "2016-05-08",
+   "weeks": 547,
+   "gaps": 0
+  },
+  {
+   "feature": "mayer",
+   "first_raw": "2011-02-06",
+   "first_pct": "2013-01-27",
+   "weeks": 718,
+   "gaps": 0
+  },
+  {
+   "feature": "rsi_14w",
+   "first_raw": "2010-10-24",
+   "first_pct": "2012-10-14",
+   "weeks": 731,
+   "gaps": 2
+  },
+  {
+   "feature": "puell",
+   "first_raw": "2011-05-15",
+   "first_pct": "2013-05-05",
+   "weeks": 704,
+   "gaps": 0
+  },
+  {
+   "feature": "dd_ath",
+   "first_raw": "2010-07-18",
+   "first_pct": "2012-07-08",
+   "weeks": 747,
+   "gaps": 0
+  },
+  {
+   "feature": "vol_rel",
+   "first_raw": "2011-05-15",
+   "first_pct": "2013-06-02",
+   "weeks": 700,
+   "gaps": 4
+  },
+  {
+   "feature": "fng",
+   "first_raw": "2018-02-04",
+   "first_pct": "2020-02-02",
+   "weeks": 352,
+   "gaps": 1
+  },
+  {
+   "feature": "rv30",
+   "first_raw": "2010-08-15",
+   "first_pct": "2012-08-05",
+   "weeks": 743,
+   "gaps": 0
+  },
+  {
+   "feature": "dev_ma20w",
+   "first_raw": "2010-12-05",
+   "first_pct": "2012-11-25",
+   "weeks": 727,
+   "gaps": 0
+  }
+ ],
+ "outliers": {
+  "price_weeks": [
+   {
+    "date": "2011-05-01",
+    "change": 0.8959910984573793
+   },
+   {
+    "date": "2011-06-05",
+    "change": 0.9692219997323093
+   },
+   {
+    "date": "2013-04-14",
+    "change": -0.4543427509987636
+   }
+  ],
+  "feature_jumps": {
+   "mvrv": 1,
+   "mvrv_z": 4,
+   "pi_ratio": 3,
+   "p_200wma": 6,
+   "mayer": 10,
+   "rsi_14w": 0,
+   "puell": 6,
+   "dd_ath": 3,
+   "vol_rel": 3,
+   "fng": 0,
+   "rv30": 6,
+   "dev_ma20w": 11
+  }
+ },
+ "crosscheck": {
+  "bitstamp": {
+   "from": "2011-08-18",
+   "to": "2026-10-28",
+   "days": 5551,
+   "median": 0.001447791861201475,
+   "p99": 0.09558472434032572,
+   "max": 0.7679520431088649,
+   "above": 242,
+   "eras": [
+    {
+     "era": "2010–2013",
+     "days": 867,
+     "median": 0.00853430757113105,
+     "p99": 0.26926662847581473,
+     "above": 209
+    },
+    {
+     "era": "2014–2016",
+     "days": 1096,
+     "median": 0.002254059755361082,
+     "p99": 0.01847765012451581,
+     "above": 10
+    },
+    {
+     "era": "2017–2020",
+     "days": 1461,
+     "median": 0.0013877445004674138,
+     "p99": 0.022595769610833285,
+     "above": 20
+    },
+    {
+     "era": "2021–nay",
+     "days": 2127,
+     "median": 0.0008077814100612146,
+     "p99": 0.008705692905951261,
+     "above": 3
+    }
+   ],
+   "worst": [
+    {
+     "date": "2011-10-19",
+     "primary": 2.21725471303331,
+     "other": 3.92,
+     "diff": 0.7679520431088649
+    },
+    {
+     "date": "2011-10-18",
+     "primary": 2.42227473816482,
+     "other": 3.92,
+     "diff": 0.6183135373693804
+    },
+    {
+     "date": "2011-09-10",
+     "primary": 4.74284665517242,
+     "other": 7.4,
+     "diff": 0.5602444139596545
+    },
+    {
+     "date": "2011-10-17",
+     "primary": 2.58124672180012,
+     "other": 3.92,
+     "diff": 0.5186459964843093
+    },
+    {
+     "date": "2011-09-09",
+     "primary": 4.98677704178843,
+     "other": 7.4,
+     "diff": 0.4839243739972994
+    }
+   ]
+  },
+  "binance_spot": {
+   "from": "2017-08-17",
+   "to": "2026-10-28",
+   "days": 3360,
+   "median": 0.0012925606457260264,
+   "p99": 0.027300853512105934,
+   "max": 0.1080325554421998,
+   "above": 65,
+   "eras": [
+    {
+     "era": "2017–2020",
+     "days": 1233,
+     "median": 0.00237142080729813,
+     "p99": 0.03912733877370179,
+     "above": 62
+    },
+    {
+     "era": "2021–nay",
+     "days": 2127,
+     "median": 0.0009814320426578815,
+     "p99": 0.009206075829957956,
+     "above": 3
+    }
+   ],
+   "worst": [
+    {
+     "date": "2017-12-23",
+     "primary": 14910.8581049094,
+     "other": 13300.0,
+     "diff": -0.1080325554421998
+    },
+    {
+     "date": "2017-12-22",
+     "primary": 14305.7183436587,
+     "other": 13326.61,
+     "diff": -0.06844174617017462
+    },
+    {
+     "date": "2017-09-04",
+     "primary": 4374.75349649328,
+     "other": 4100.11,
+     "diff": -0.06277919355077477
+    },
+    {
+     "date": "2018-11-14",
+     "primary": 5574.25834891876,
+     "other": 5922.41,
+     "diff": 0.062457035409700934
+    },
+    {
+     "date": "2017-12-12",
+     "primary": 17433.9307381648,
+     "other": 16349.99,
+     "diff": -0.062174202389822186
+    }
+   ]
+  },
+  "coingecko": {
+   "from": "2025-10-29",
+   "to": "2026-10-28",
+   "days": 365,
+   "median": 0.0007416158703575926,
+   "p99": 0.0074664284834104495,
+   "max": 0.034905026428604824,
+   "above": 1,
+   "eras": [
+    {
+     "era": "2021–nay",
+     "days": 365,
+     "median": 0.0007416158703575926,
+     "p99": 0.0074664284834104495,
+     "above": 1
+    }
+   ],
+   "worst": [
+    {
+     "date": "2026-02-22",
+     "primary": 67550.0240768556,
+     "other": 65192.18870120006,
+     "diff": -0.034905026428604824
+    },
+    {
+     "date": "2026-03-21",
+     "primary": 69707.285009059,
+     "other": 68424.07687771624,
+     "diff": -0.018408522598118426
+    },
+    {
+     "date": "2026-02-05",
+     "primary": 63494.6884456458,
+     "other": 62778.217566354324,
+     "diff": -0.011283949836289109
+    },
+    {
+     "date": "2026-01-18",
+     "primary": 94261.3294313267,
+     "other": 93344.2194849136,
+     "diff": -0.009729439972319232
+    },
+    {
+     "date": "2026-04-08",
+     "primary": 71085.0583702513,
+     "other": 70644.79416156793,
+     "diff": -0.006193484520899184
+    }
+   ]
+  }
+ },
+ "cm_fields": {
+  "available": [
+   "AdrActCnt",
+   "AdrBalCnt",
+   "AssetCompletionTime",
+   "AssetEODCompletionTime",
+   "BlkCnt",
+   "CapMVRVCur",
+   "CapMrktCurUSD",
+   "CapMrktEstUSD",
+   "FeeTotNtv",
+   "FlowInExNtv",
+   "FlowInExUSD",
+   "FlowOutExNtv",
+   "FlowOutExUSD",
+   "HashRate",
+   "IssTotNtv",
+   "IssTotUSD",
+   "PriceBTC",
+   "PriceUSD",
+   "ROI1yr",
+   "ROI30d",
+   "ReferenceRate",
+   "ReferenceRateETH",
+   "ReferenceRateEUR",
+   "ReferenceRateUSD",
+   "SplyCur",
+   "SplyExNtv",
+   "SplyExUSD",
+   "SplyExpFut10yr",
+   "TxCnt",
+   "TxTfrCnt",
+   "volume_reported_spot_usd_1d"
+  ],
+  "wanted": {
+   "PriceUSD": true,
+   "CapMrktCurUSD": true,
+   "CapMVRVCur": true,
+   "CapRealUSD": false,
+   "IssTotUSD": true,
+   "IssTotNtv": true,
+   "SplyCur": true,
+   "HashRate": true,
+   "RevUSD": false,
+   "AssetEODCompletionTime": true,
+   "volume_reported_spot_usd_1d": true
+  }
+ },
+ "publication": {
+  "median_h": 26.998055555555556,
+  "p90_h": 27.832611111111113,
+  "max_h": 41.948055555555555,
+  "rows": 365
+ },
+ "regimes": {
+  "weeks": {
+   "giu": 430,
+   "tang": 260,
+   "giam": 136
+  },
+  "episodes": {
+   "giu": 7,
+   "tang": 4,
+   "giam": 3
+  },
+  "current": "tang",
+  "current_since": "2026-09-20"
+ },
+ "fng_substitutes": {
+  "rv30": {
+   "weeks": 352,
+   "spearman": -0.17735655990522173
+  },
+  "dd_ath": {
+   "weeks": 352,
+   "spearman": 0.5545269400930808
+  },
+  "dev_ma20w": {
+   "weeks": 352,
+   "spearman": 0.8886574324874632
+  },
+  "rsi_14w": {
+   "weeks": 352,
+   "spearman": 0.7845783715656502
+  }
+ },
+ "sources": {
+  "coinmetrics": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 5947,
+   "warnings": [
+    "price: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
+    "mcap: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
+    "mvrv: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
+    "iss_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 20/04/2024"
+   ],
+   "errors": []
+  },
+  "fng": {
+   "ok": true,
+   "last": "2026-10-29",
+   "rows": 3189,
+   "warnings": [
+    "2 khoảng trống (lớn nhất 4 ngày): 13/04/2018→17/04/2018, 25/10/2024→27/10/2024",
+    "fng: 7 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 23/08/2019"
+   ],
+   "errors": []
+  },
+  "binance_spot": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 3360,
+   "warnings": [
+    "close: 5 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/02/2021",
+    "quote_volume: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/02/2018"
+   ],
+   "errors": []
+  },
+  "binance_funding": {
+   "ok": true,
+   "last": "2026-10-29",
+   "rows": 7818,
+   "warnings": [
+    "funding_rate: 44 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
+   ],
+   "errors": []
+  },
+  "binance_oi": {
+   "ok": true,
+   "last": "2026-10-29",
+   "rows": 30,
+   "warnings": [],
+   "errors": []
+  },
+  "binance_basis": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 2280,
+   "warnings": [
+    "fut_close: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/11/2022"
+   ],
+   "errors": []
+  },
+  "stablecoins": {
+   "ok": true,
+   "last": "2026-10-29",
+   "rows": 3257,
+   "warnings": [
+    "stable_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 31/07/2018"
+   ],
+   "errors": []
+  },
+  "fred_DTWEXBGS": {
+   "ok": true,
+   "last": "2026-10-23",
+   "rows": 5217,
+   "warnings": [
+    "2 khoảng trống (lớn nhất 7 ngày): 05/02/2010→12/02/2010, 21/01/2016→27/01/2016",
+    "usd_broad: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 26/03/2020"
+   ],
+   "errors": []
+  },
+  "fred_DFII10": {
+   "ok": true,
+   "last": "2026-10-27",
+   "rows": 5959,
+   "warnings": [
+    "real_yield_10y: 10 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
+   ],
+   "errors": []
+  },
+  "fred_NASDAQCOM": {
+   "ok": true,
+   "last": "2026-10-27",
+   "rows": 14050,
+   "warnings": [
+    "1 khoảng trống (lớn nhất 7 ngày): 10/09/2001→17/09/2001",
+    "nasdaq: 43 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/04/2025"
+   ],
+   "errors": []
+  },
+  "fred_M2SL": {
+   "ok": true,
+   "last": "2026-09-01",
+   "rows": 813,
+   "warnings": [
+    "m2: 3 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 01/05/2020"
+   ],
+   "errors": []
+  },
+  "coinmetrics_ext": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 5947,
+   "warnings": [
+    "volume_spot_usd: có giá trị ≤ 0",
+    "volume_spot_usd: 11 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 14/11/2011",
+    "supply: 36 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 18/11/2010"
+   ],
+   "errors": []
+  },
+  "bitstamp": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 5551,
+   "warnings": [
+    "close: 22 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020"
+   ],
+   "errors": []
+  },
+  "coingecko": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 365,
+   "warnings": [
+    "price: 1 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 05/02/2026"
+   ],
+   "errors": []
+  },
+  "fred_DFEDTARU": {
+   "ok": true,
+   "last": "2026-10-28",
+   "rows": 6526,
+   "warnings": [
+    "fed_upper: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 03/11/2022"
+   ],
+   "errors": []
+  }
+ }
+}

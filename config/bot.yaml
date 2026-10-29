@@ -48,6 +48,9 @@ sources:
   stablecoins: {lag_days: 1}
   fred: {lag_days: 1}
   fred_monthly: {lag_days: 45}
+  coinmetrics_ext: {lag_days: 1}
+  bitstamp: {lag_days: 0}
+  coingecko: {lag_days: 0}
 features:
   disabled:
     - etf_flow_5d        # nguồn tùy chọn (bảng Farside), lấy bằng đọc trang web nên dễ hỏng; chưa bật

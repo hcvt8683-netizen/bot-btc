@@ -13,6 +13,10 @@ quality:
 
 sources:
   coinmetrics: "Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành)"
+  coinmetrics_ext: "Coin Metrics (giờ chốt số liệu, khối lượng giao ngay, nguồn cung)"
+  bitstamp: "Bitstamp (giá ngày từ 2011, để đối chiếu)"
+  coingecko: "CoinGecko (giá 365 ngày gần nhất, để đối chiếu)"
+  fred_DFEDTARU: "FRED (trần lãi suất Fed)"
   fng: "Fear & Greed (Alternative.me)"
   binance_spot: "Binance (giá và khối lượng ngày)"
   binance_funding: "Binance (funding rate hợp đồng vĩnh cửu)"

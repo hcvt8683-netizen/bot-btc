@@ -15,7 +15,7 @@ import pandas as pd
 
 from bot.config import DATA, cfg
 from bot.data import pit_store, quality
-from bot.data.fetchers import alternative, binance, coinmetrics, defillama, fred
+from bot.data.fetchers import alternative, binance, bitstamp, coingecko, coinmetrics, coinmetrics_ext, defillama, fred
 
 
 @dataclasses.dataclass
@@ -34,6 +34,9 @@ def _fred(series: str) -> Callable[[], pd.DataFrame]:
 
 SOURCES: list[Source] = [
     Source("coinmetrics", coinmetrics.fetch, ["price", "mcap", "mvrv", "hashrate", "iss_usd"]),
+    Source("coinmetrics_ext", coinmetrics_ext.fetch, ["volume_spot_usd", "supply"]),
+    Source("bitstamp", bitstamp.fetch, ["close"]),
+    Source("coingecko", coingecko.fetch, ["price"]),
     Source("fng", alternative.fetch, ["fng"]),
     Source("binance_spot", binance.fetch_spot, ["close", "quote_volume"]),
     Source("binance_funding", binance.fetch_funding, ["funding_rate"], freq="8h"),

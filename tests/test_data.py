@@ -102,3 +102,23 @@ def test_vi_formats():
     assert fmt.datetime_vn("2026-10-28T18:00Z") == "01:00 29/10/2026"
     assert fmt.btc(0.0248) == "0,0248 BTC" and fmt.btc(0.00012345) == "0,000123 BTC"
     assert fmt.usd(None) == "—" and fmt.num(1234567.891, 2) == "1.234.567,89"
+
+
+def test_new_source_parsers():
+    from bot.data.fetchers import bitstamp, coingecko, coinmetrics_ext
+    b = bitstamp.parse([{"timestamp": "1313625600", "open": "10.90", "high": "10.90", "low": "10.90", "close": "10.90", "volume": "0.49"}])
+    assert b["date"].iloc[0] == pd.Timestamp("2011-08-18") and b["close"].iloc[0] == 10.9
+    g = coingecko.parse({"prices": [[1793232000000, 81274.4], [1793238810000, 80095.3]]})  # 29/10 00:00 = close of 28/10; later point dropped
+    assert list(g["date"]) == [pd.Timestamp("2026-10-28")] and g["price"].iloc[0] == 81274.4
+    e = coinmetrics_ext.parse([{"time": "2026-10-27T00:00:00.000000000Z", "AssetEODCompletionTime": "1793155778", "volume_reported_spot_usd_1d": "6.0e9",
+                                "SplyCur": "2.0e7", "IssTotNtv": "450"}])
+    assert e["eod_completed_at"].iloc[0] == pd.Timestamp("2026-10-28 02:49:38") and e["volume_spot_usd"].iloc[0] == 6e9
+
+
+def test_fed_regime_from_six_month_change():
+    from bot.features import weekly_close as wc
+    days = pd.date_range("2024-01-01", "2026-10-25", freq="D")
+    rate = np.where(days < "2025-01-01", 5.5, np.where(days < "2026-01-01", 4.5, 4.5))
+    fed = pd.DataFrame({"date": days, "fed_upper": rate})
+    sundays = pd.DatetimeIndex(["2024-12-29", "2025-03-02", "2025-08-03", "2026-10-25"])
+    assert list(wc.fed_regime(fed, sundays)) == ["giu", "giam", "giu", "giu"]

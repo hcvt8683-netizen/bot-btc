@@ -8,7 +8,7 @@ import pandas as pd
 
 from bot.data import http
 
-SERIES = {"DTWEXBGS": "usd_broad", "DFII10": "real_yield_10y", "NASDAQCOM": "nasdaq", "M2SL": "m2"}
+SERIES = {"DTWEXBGS": "usd_broad", "DFII10": "real_yield_10y", "NASDAQCOM": "nasdaq", "M2SL": "m2", "DFEDTARU": "fed_upper"}
 MONTHLY = {"M2SL"}
 
 
