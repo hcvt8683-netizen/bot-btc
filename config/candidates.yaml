@@ -171,3 +171,19 @@ forecast:
   check_from: 2018-01-01   # kiểm chứng lịch sử: mỗi ngày từ đây, dự báo bằng dữ liệu đến ngày đó, đếm số lần giá thật rơi vào khoảng 50% và 80%
   log: "mỗi ngày ghi một lần dự báo của ngày gốc mới nhất vào data/forecast/forecast_log.csv (chỉ thêm dòng, không ghi bù, chỉ ghi ngày đích chưa tới); chấm khi có giá ngày đích; đổi phương pháp = phiên bản mới, thống kê tách theo phiên bản"
   no_direction: "không phải dự báo hướng giá: kiểm định 6 tiêu chí (Phần I) cho thấy tín hiệu chưa có lợi thế"
+
+# Tìm cách tính dải giá chính xác nhất. Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
+forecast_search:
+  why: "tỷ lệ trúng một mình không đủ: dải càng rộng càng trúng. Thước đo chính là điểm phân vị (pinball loss), thưởng cho dải vừa đúng tỷ lệ vừa hẹp"
+  metric: "điểm phân vị trung bình trên log giá, 5 phân vị × 8 kỳ hạn; mỗi kỳ hạn chia cho điểm của cách đang dùng trong cùng giai đoạn rồi lấy trung bình (dưới 1 là tốt hơn)"
+  also_report: "độ phủ dải 80% và 50%, độ rộng dải 80%, sai số tuyệt đối của trung vị, tỷ lệ giá thật cao hơn trung vị"
+  grid:
+    vol: [none, std30, std60, ewma94, ewma97]   # none = lợi suất không chuẩn hóa; ewma = trung bình trượt mũ của bình phương lợi suất ngày
+    window_days: [730, 1461, all]                # all = toàn bộ lịch sử từ 2010 đến ngày gốc
+    center: [empirical, zero]                    # zero = ép trung vị lợi suất chuẩn hóa về 0 (không giả định xu hướng)
+    normal: [std30, ewma94]                      # thêm: phân phối chuẩn quanh 0 thay cho phân vị thực nghiệm
+  current: {vol: std30, window_days: 1461, center: empirical}
+  selection: {from: 2014-01-01, to: 2021-12-31}
+  confirm_from: 2022-01-01                       # đến ngày cuối đã biết kết quả 30 ngày
+  rule: "chọn cấu hình có điểm thấp nhất ở giai đoạn chọn. Chỉ thay cách đang dùng nếu ở giai đoạn xác nhận nó vẫn có điểm thấp hơn với khoảng tin cậy 95% của chênh lệch (bootstrap khối 30 ngày, 2000 lần) nằm hẳn dưới 0, và dải 80% phủ 75–85%. Không thì giữ nguyên"
+  log: experiments/forecast_configs.csv
