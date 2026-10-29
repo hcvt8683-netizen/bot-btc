@@ -308,6 +308,17 @@ const B3 = (() => {
       if (safer) t('- ' + tx('web.plan.safer', pn(safer.weeks), SP(safer.median), SP(safer.worst), SP(rec.worst)));
       t('');
     }
+    const CB = kn.calib && Object.keys(kn.calib).length ? kn.calib : null;
+    if (CB) {
+      const hs = Object.keys(CB).sort((x, y) => x - y), d3 = (x) => (x == null || !isFinite(x) ? '—' : x.toFixed(3).replace('.', ','));
+      t(tx('web.vr.cp_title'));
+      t('- ' + tx('web.cp.sum', D(CB[hs[0]].now.date), ...hs.map((h) => P(CB[h].now.p))) + ' ' + (hs.some((h) => CB[h].pick) ? tx('web.cp.sum_pick') : tx('web.cp.sum_nopick'))); t('');
+      head(['col_h', 'col_p', 'col_logit', 'col_bins', 'col_brier', 'col_said80', 'col_pick'].map((k) => tx('web.cp.' + k)));
+      hs.forEach((h) => { const x = CB[h], m = x.methods, best = m[x.best], s8 = x.said80 && x.said80.logit;
+        row([tx('web.cp.h_' + h), P(x.now.p), P(x.now.logit_p), P(x.now.bins_p), `${tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier))} (${tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))})`,
+          s8 && s8.weeks ? tx('web.cp.said80_cell', P(s8.win), s8.weeks, s8.episodes, P(s8.base)) : tx('web.cp.said80_none'), tx(x.pick ? 'web.cp.pick_yes' : 'web.cp.pick_no')]); });
+      t(''); t('- ' + tx('web.cp.note_overconf')); t('');
+    }
     if (kn.freshness) {
       t(tx('web.vr.fresh_title'));
       Object.entries(kn.freshness).forEach(([k, s]) => t('- ' + (s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), D(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))));

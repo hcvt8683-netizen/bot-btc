@@ -157,6 +157,18 @@ def _plan() -> dict | None:
         return None
 
 
+def _calib(now: dt.datetime) -> dict | None:
+    """Calibrated probability of profit for 1/3/6 months (bot/models/calib_prob.py); logs this week's values. None on failure."""
+    try:
+        from bot.models import calib_prob
+        res = calib_prob.run(write=True)
+        calib_prob.log_week(res, now.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        keep = ("h", "weeks", "from", "to", "best", "pick", "now", "said80")
+        return {h: {k: o[k] for k in keep} | {"methods": {m: {"brier": v["brier"], "gain_ci": v["gain_ci"]} for m, v in o["methods"].items()}} for h, o in res.items()}
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
+
+
 def _forecast() -> dict | None:
     """Daily price bands with their walk-forward check and the live log (bot/models/price_forecast.py); None on failure."""
     try:
@@ -194,7 +206,7 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
            "events": events, "events_meta": events_meta, "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild()}
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild(), "calib": _calib(now)}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec

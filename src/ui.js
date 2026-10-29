@@ -714,6 +714,7 @@
       ngay_phan_tich_la_hom_nay: !!st.S && st.asOf === st.S.price.length - 1,
       khuyen_nghi_tuan: KN ? { he_so: knStale() ? 1 : KN.multiplier, che_do: KN.mode, ly_do: KN.reasons, cap_nhat: KN.generated_at, du_lieu_cu: knStale(), do_moi: KN.freshness } : null,
       ban_xay_lai: RB,
+      xac_suat_co_lai_da_hieu_chinh: KN && KN.calib ? KN.calib : null,
       su_kien: KN ? { danh_sach: KN.events, moc_chot: KN.events_meta || null } : null,
       du_bao_dai_gia: F ? { ngay_goc: F.anchor, gia_goc: F.price, phien_ban: F.version, dai: F.rows,
         kiem_chung_lich_su: Object.fromEntries(Object.entries(F.check || {}).map(([k, v]) => [k, v.vol])), kiem_chung_truc_tiep: F.log, so_sanh_phuong_phap: F.search || null } : null,
@@ -887,6 +888,35 @@
       el('td', 'r ' + (C[k].pass ? 'good' : 'bad'), tx(C[k].pass ? 'web.kn.pass_yes' : 'web.kn.pass_no'))); tb.append(tr); });
     const th = el('thead'); th.append(h); $('t-kn').replaceChildren(th, tb);
     $('kn-ev').replaceChildren(el('li', null, tx('web.rb.report_link')));
+  }
+  // ----- xác suất có lãi đã hiệu chỉnh 1/3/6 tháng (KN.calib, bot/models/calib_prob.py) -----
+  function renderCalib() {
+    const C = KN && KN.calib && Object.keys(KN.calib).length ? KN.calib : null;
+    if (!C) { $('cp-sum').replaceChildren(el('span', 'warn', tx('web.cp.none'))); $('t-cp').replaceChildren(); $('cp-notes').replaceChildren(); return; }
+    const hs = Object.keys(C).sort((a, b) => a - b), o = (h) => C[h], d3 = (x) => (x == null || !isFinite(x) ? '—' : nf(3).format(x));
+    const any = hs.some((h) => o(h).pick);
+    const p1 = el('p'); p1.append(el('b', null, tx('web.cp.sum', fmtDate(o(hs[0]).now.date), ...hs.map((h) => pc(o(h).now.p)))));
+    const sum = [p1];
+    sum.push(el('p', null, any ? tx('web.cp.sum_pick') : tx('web.cp.sum_nopick')));
+    $('cp-sum').replaceChildren(...sum);
+    const head = el('tr');
+    ['col_h', 'col_p', 'col_logit', 'col_bins', 'col_brier', 'col_said80', 'col_pick'].forEach((k, i) => head.append(el('th', i ? 'r' : '', tx('web.cp.' + k))));
+    const tb = el('tbody');
+    for (const h of hs) {
+      const x = o(h), m = x.methods, best = m[x.best], s8 = x.said80 && x.said80.logit, tr = el('tr', x.pick ? 'here' : '');
+      const br = el('td', 'r num', tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier)));
+      br.append(el('span', 'sub', tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))));
+      const s8c = el('td', 'r num', s8 && s8.weeks ? pc(s8.win) : tx('web.cp.said80_none'));
+      if (s8 && s8.weeks) s8c.append(el('span', 'sub', tx('web.cp.said80_sub', s8.weeks, s8.episodes, pc(s8.base))));
+      tr.append(el('td', 'nowrap', tx('web.cp.h_' + h)), el('td', 'r num', pc(x.now.p)), el('td', 'r num muted', pc(x.now.logit_p)), el('td', 'r num muted', pc(x.now.bins_p)), br,
+        s8c,
+        el('td', 'r ' + (x.pick ? 'good' : 'muted'), tx(x.pick ? 'web.cp.pick_yes' : 'web.cp.pick_no')));
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(head); $('t-cp').replaceChildren(th, tb);
+    const first = o(hs[0]);
+    $('cp-notes').replaceChildren(...[tx('web.cp.note_method'), tx('web.cp.note_rule'), tx('web.cp.note_overconf'), tx('web.cp.note_data', fmtDate(first.from), fmtDate(o(hs[hs.length - 1]).to)), tx('web.fc.note_ref')]
+      .map((x) => el('li', null, x)));
   }
   function renderRebuild() {
     if (!RB) {
@@ -1130,6 +1160,7 @@
   initPlan();
   if ($('fc-sec')) renderForecast();
   if ($('rb-sec')) renderRebuild();
+  if ($('cp-sec')) renderCalib();
   loadAll();
   setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
 })();

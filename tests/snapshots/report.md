@@ -109,6 +109,17 @@ Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, k
 - ROI trung vị cao nhất: Giải ngân một lần; đề xuất theo quy tắc định trước: Giải ngân một lần. Dữ liệu: 486 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập.
 - Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất -64% thay vì -82%.
 
+### Xác suất có lãi nếu mua tuần này (đã hiệu chỉnh)
+- Mua tuần 25/10/2026: xác suất có lãi sau 1 tháng 57%, sau 3 tháng 60%, sau 6 tháng 68%. Chưa cách nào chọn được tuần mua tốt hơn mua bất kỳ lúc nào, nên đây là tỷ lệ có lãi của 4 năm gần nhất và gần như không đổi theo từng tuần. Trong lịch sử, cách chắc nhất để tăng xác suất có lãi là giữ lâu hơn và mua đều.
+
+| Giữ | Xác suất có lãi (đã hiệu chỉnh) | Mô hình logistic nói | Nhóm theo Giá / MA 200 tuần nói | Sai số Brier: tỷ lệ gốc / cách tốt nhất | Khi mô hình báo ≥ 80%, thực tế có lãi | Chọn được điểm mua? |
+|---|---|---|---|---|---|---|
+| 1 tháng | 57% | 63% | 55% | 0,250 / 0,257 (cải thiện -0,007, khoảng tin cậy -0,017 đến 0,002) | 35% (17 tuần, 1 đợt; mốc 55%) | chưa |
+| 3 tháng | 60% | 68% | 54% | 0,247 / 0,271 (cải thiện -0,024, khoảng tin cậy -0,075 đến 0,021) | 70% (117 tuần, 8 đợt; mốc 57%) | chưa |
+| 6 tháng | 68% | 80% | 56% | 0,240 / 0,254 (cải thiện -0,014, khoảng tin cậy -0,088 đến 0,047) | 74% (201 tuần, 2 đợt; mốc 63%) | chưa |
+
+- Con số cao của mô hình logistic không đáng tin: những lần nó báo từ 80% trở lên trong quá khứ, thực tế có lãi ít hơn nhiều (cột "Khi mô hình báo ≥ 80%").
+
 ### Độ mới của dữ liệu
 - Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành): đến 27/10/2026
 - Fear & Greed (Alternative.me): đến 28/10/2026

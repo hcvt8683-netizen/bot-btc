@@ -101,6 +101,7 @@
   tr:last-child td { border-bottom: 0; }
   td.r, th.r { text-align: right; }
   td .sub { display: block; font-size: 12px; color: var(--muted); }
+  #t-cp th { white-space: normal; }
   tr.base td { color: var(--muted); }
   tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
   tr.here td:first-child { font-weight: 700; }
@@ -212,6 +213,14 @@
       <p class="sm" style="margin-top:16px" id="rb-scn-title"></p>
       <div class="scroll"><table id="t-rb-scn"></table></div>
       <ul class="crit" id="rb-notes"></ul>
+    </section>
+
+    <section class="panel" id="cp-sec" style="margin:16px 0">
+      <h2>{{web.cp.title}}</h2>
+      <p class="lead">{{web.cp.lead}}</p>
+      <div class="cons" id="cp-sum"></div>
+      <div class="scroll"><table id="t-cp"></table></div>
+      <ul class="crit" id="cp-notes"></ul>
     </section>
 
     <section class="panel" id="fc-sec" style="margin:16px 0">
