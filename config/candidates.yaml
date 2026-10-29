@@ -95,3 +95,6 @@ scenarios:
   fng_model: "ΔF&G sau k tuần = a + b × lợi suất log k tuần + c × (F&G hiện tại − 50), bình phương nhỏ nhất trên dữ liệu đến ngày phân tích"
   band: [0.10, 0.90]                # khoảng dao động = phân vị 10% và 90% của phần dư
   fng_check: {fit_until: 2021-12-31, test: [2022-01-01, 2023-12-31]}   # kiểm ngoài mẫu: độ phủ của khoảng 10–90% (kỳ vọng ~80%)
+  # Thêm sau lần chạy đầu (ghi trong docs/REBUILD_LOG.md): khoảng cho quy tắc MVRV và nhóm định giá bên bán theo thay đổi vốn hóa thực
+  # trong k tuần (phân vị 10% và 90% của 208 tuần trước ngày phân tích). Trường hợp giữa vẫn giữ nguyên vốn hóa thực.
+  rc_band: {window_weeks: 208, band: [0.10, 0.90]}

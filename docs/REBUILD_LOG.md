@@ -148,3 +148,24 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Tuần cuối trước holdout (24/12/2023): 0 nhóm bật → Giữ.
 
 **Kết luận:** bên bán **chưa có lợi thế đáng tin**. Chỉ hiển thị mức Giữ / Chốt lời một phần / Bán phần lớn để tham khảo, kèm số đợt, không khuyên tỷ lệ bán.
+
+## Phần F: Kịch bản giá động (xong 29/10/2026, chờ xác nhận)
+
+**Đăng ký trước** (`config/candidates.yaml` mục `scenarios`, commit `f44bab8`, trước khi chạy):
+- lưới giá −30% đến +50%, đạt tới sau 1, 2, 4 tuần theo đường đều trên thang log;
+- chỉ số tính từ giá tính lại đúng theo đường giả định, bằng cùng hàm dựng bảng tuần như dữ liệu thật;
+- vốn hóa thực, nguồn cung, BTC phát hành mỗi ngày, hash rate giữ ở giá trị cuối;
+- Fear & Greed theo mô hình phản ứng ΔF&G = a + b × lợi suất log + c × (F&G − 50), khoảng = phân vị 10–90% phần dư;
+- kiểm ngoài mẫu: học đến 2021, thử 2022–2023.
+
+**Test.** Kịch bản cho đi đúng đường giá thật cho ra đúng bảng thật (mọi chỉ số trừ khối lượng tương đối). Đổi dữ liệu sau ngày phân tích không làm kịch bản đổi. Mô hình F&G tìm lại được quan hệ đã biết trên dữ liệu giả.
+
+**Đổi thiết kế sau lần chạy đầu.** Lần chạy đầu, thứ hạng quy tắc MVRV không có khoảng (quy tắc không dùng F&G), trong khi Phần F yêu cầu "kèm khoảng dao động". Đã thêm `rc_band`: cho vốn hóa thực thay đổi theo phân vị 10% và 90% của thay đổi k tuần trong 208 tuần trước ngày phân tích. Trường hợp giữa vẫn giữ nguyên vốn hóa thực như đăng ký. Thay đổi này chỉ nới khoảng, không đổi ngưỡng hay kết quả giữa.
+
+**Kết quả (ngày phân tích 31/12/2023, giá 42.217 $)**
+- Mô hình F&G: b ≈ 73–93 điểm cho mỗi đơn vị lợi suất log, R² 0,56–0,73. Ngoài mẫu 2022–2023, sai số trung bình 4,3–5,9 điểm so với 5,9–10,6 điểm nếu giữ nguyên F&G. Độ phủ khoảng 98–100% (cao hơn 80% kỳ vọng: khoảng hơi rộng, thận trọng).
+- Sau 4 tuần: quy tắc Giá/MA 200 tuần và quy tắc MVRV chỉ vào Cân nhắc mua khi giá giảm ≥ 20%; đi ngang hoặc tăng thì Không nên mua.
+- Bên bán: Chốt lời một phần khi giá tăng ≥ 20% (RSI 14 tuần vào 5% cao nhất 4 năm). Không mức nào tới Bán phần lớn.
+- So với cách cũ giữ nguyên F&G: số nhóm bên bán chỉ khác ở 1/30 kịch bản (1 tuần, +30%: 1 → 2 nhóm).
+
+**Kết luận:** kịch bản giờ tính lại đầy đủ và có khoảng. Đây là mô tả bot sẽ đọc thế nào, không phải dự báo; hệ số giải ngân vẫn 1,0.

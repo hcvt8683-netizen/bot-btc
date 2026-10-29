@@ -53,3 +53,12 @@ def test_fng_response_recovers_positive_price_sensitivity():
     assert m["b"] > 0 and m["n"] > 100 and m["q"][0] < 0 < m["q"][1]
     lo, mid, hi = sc.fng_predict(m, 50, -0.2)
     assert lo <= mid <= hi and mid < 50  # a 20% fall lowers F&G
+
+
+def test_realized_cap_drift_scales_mvrv_only():
+    s = synth()
+    a = sc.scenario_row(s, ASOF, 0.1, 4, fng_end=50.0)
+    b = sc.scenario_row(s, ASOF, 0.1, 4, fng_end=50.0, rc_change=0.05)
+    assert np.isclose(b["raw_mvrv"], a["raw_mvrv"] / 1.05) and b["close"] == a["close"] and b["raw_p_200wma"] == a["raw_p_200wma"]
+    d = sc.rc_drift(s["cm"], 4, ASOF)
+    assert d["n"] > 1000 and abs(d["q"][0]) < 1e-12 and abs(d["q"][1]) < 1e-12  # realized cap is constant in the synthetic data

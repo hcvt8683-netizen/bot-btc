@@ -3,8 +3,9 @@
 For a hypothetical price change Δ reached after k weeks (even path on a log scale), synthetic days are appended after
 the analysis Sunday and EVERY indicator is recomputed with the same weekly-close builder as the real table:
 price-based indicators follow the path exactly; realized cap, supply, daily issuance in BTC and hash rate stay at their
-last value; Fear & Greed follows a response model estimated on past data only (ΔF&G = a + b·r_k + c·(F&G − 50)),
-with a 10–90% band from its residuals. Nothing after the analysis date is used.
+last value (realized cap can instead drift by `rc_change`, used for the band from its past 4-year changes); Fear & Greed
+follows a response model estimated on past data only (ΔF&G = a + b·r_k + c·(F&G − 50)), with a 10–90% band from its
+residuals. Nothing after the analysis date is used.
 """
 from __future__ import annotations
 
@@ -53,16 +54,26 @@ def fng_check(t: pd.DataFrame, k: int, fit_until: pd.Timestamp, test: tuple[pd.T
             "mae_model": float(np.abs(a[:, 0] - a[:, 2]).mean()), "mae_constant": float(naive_err), "model": m}
 
 
+def rc_drift(cm: pd.DataFrame, k: int, until: pd.Timestamp, window_weeks: int = 208, band=(0.10, 0.90)) -> dict:
+    """10–90% of the k-week change of realized cap (market cap / MVRV) over the `window_weeks` before `until`."""
+    d = cm[cm["date"] <= until].set_index("date")
+    rc = (d["mcap"] / d["mvrv"]).dropna()
+    rc = rc[rc.index > until - pd.Timedelta(weeks=window_weeks)]
+    ch = (rc / rc.shift(7 * k, freq="D").reindex(rc.index) - 1).dropna()
+    return {"k": k, "n": int(len(ch)), "q": [float(np.quantile(ch, band[0])), float(np.quantile(ch, band[1]))]}
+
+
 def synthetic(inputs: dict, asof: pd.Timestamp, delta: float, k: int, fng_end: float | None = None,
-              price_path: np.ndarray | None = None, fng_path: np.ndarray | None = None) -> dict:
+              price_path: np.ndarray | None = None, fng_path: np.ndarray | None = None, rc_change: float = 0.0) -> dict:
     """Inputs cut at `asof` plus 7k synthetic days ending at asof + k weeks with price × (1 + delta)."""
     cut = {n: (None if df is None else df[df["date"] <= asof].copy()) for n, df in inputs.items()}
     cm, ext, fng, fed = cut["cm"], cut["ext"], cut["fng"], cut["fed"]
     days = pd.date_range(asof + pd.Timedelta(days=1), periods=7 * k, freq="D")
     last = cm.iloc[-1]
     p0 = float(last["price"])
-    path = price_path if price_path is not None else p0 * np.exp(np.log(1 + delta) * np.arange(1, len(days) + 1) / len(days))
-    rc = float(last["mcap"] / last["mvrv"])          # realized cap held
+    steps = np.arange(1, len(days) + 1) / len(days)
+    path = price_path if price_path is not None else p0 * np.exp(np.log(1 + delta) * steps)
+    rc = float(last["mcap"] / last["mvrv"]) * np.exp(np.log(1 + rc_change) * steps)  # realized cap held (or drifting)
     supply = float(last["mcap"] / last["price"])      # supply held
     iss_btc = float(last["iss_usd"] / last["price"])  # daily issuance in BTC held
     new_cm = pd.DataFrame({"date": days, "price": path, "mcap": path * supply, "mvrv": path * supply / rc,
