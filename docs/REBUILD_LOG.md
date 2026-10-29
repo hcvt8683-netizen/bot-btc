@@ -287,3 +287,32 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - USD có số lẻ; số nhập sai bị báo;
 - CSV có BOM UTF-8;
 - không tràn ngang ở 390 px; chỉ hiện ở chế độ Bên mua.
+
+## Tính năng: dự báo dải giá theo ngày (29/10/2026)
+
+**Yêu cầu:** dự báo giá BTC từng ngày trong 7 ngày tới và mốc 1 tháng, để người dùng tự kiểm chứng bot.
+
+**Vì sao là dải, không phải một con số.** Phần I cho thấy tín hiệu không đoán được hướng giá. Một con số giá sẽ là bịa. Dải giá thì kiểm chứng được: dải 80% đúng khi giá thật rơi vào trong khoảng 80% số lần.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `forecast`, commit `c15af8c`, trước khi tính):
+- giá đóng ngày Coin Metrics; kỳ 1–7 ngày và 30 ngày; phân vị 10/25/50/75/90;
+- lợi suất k ngày chia cho độ dao động 30 ngày, lấy phân vị trong 4 năm trước ngày gốc (chỉ những lần đã biết kết quả), nhân lại với độ dao động hiện tại;
+- cách không chỉnh độ dao động chỉ để so sánh;
+- nhật ký mỗi ngày một lần, chỉ thêm dòng, không ghi bù, chỉ ghi ngày đích chưa tới.
+
+**Kiểm chứng lịch sử** (mỗi ngày từ 01/01/2018, khoảng 3.200 lần mỗi kỳ hạn):
+- dải 80% chứa giá thật ở 80–81% số lần, dải 50% ở 49–53%, với mọi kỳ hạn từ 1 đến 30 ngày;
+- cách không chỉnh độ dao động có dải rộng thừa (phủ 83–85%).
+
+**Test** (`tests/test_forecast.py`):
+- dải không đổi khi giá sau ngày gốc đổi;
+- cửa sổ trượt bằng đúng cách tính trực tiếp;
+- dải đúng tỷ lệ trên bước ngẫu nhiên giả;
+- nhật ký chỉ thêm dòng, không ghi trùng ngày gốc, bỏ ngày đích đã qua.
+
+Đã cài thử 2 lỗi nhìn trước (cửa sổ lấn một ngày, độ dao động tính cả ngày mai): test bắt được cả 2.
+
+**Nhật ký trực tiếp:**
+- dòng đầu ghi lúc 29/10/2026 06:48 UTC, ngày gốc 28/10/2026 (giá đóng 81.237 $);
+- Daily trên GitHub ghi tiếp mỗi ngày (`python -m bot.cli forecast`);
+- trang web hiện bảng kiểm chứng khi dự báo đến hạn.

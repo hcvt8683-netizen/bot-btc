@@ -862,6 +862,53 @@
     const sth = el('thead'); sth.append(sh); $('t-plan-sched').replaceChildren(sth, sb);
     $('dl-plan').disabled = !ok;
   }
+  // ----- Dự báo dải giá theo ngày: số liệu, kiểm chứng lịch sử và nhật ký từ báo cáo tuần (KN.forecast) -----
+  function renderForecast() {
+    const F = KN && KN.forecast && KN.forecast.rows && KN.forecast.rows.length ? KN.forecast : null;
+    if (!F) {
+      $('fc-sum').replaceChildren(el('span', 'warn', tx('web.fc.none')));
+      for (const id of ['t-fc', 'fc-notes', 't-fc-verify']) $(id).replaceChildren();
+      $('fc-verify-sum').textContent = '';
+      return;
+    }
+    const row = (k) => F.rows.find((r) => r.k === k), chk = (k) => (F.check && F.check[k] ? F.check[k].vol : null), r7 = row(7), r30 = row(30);
+    const sum = [el('p', null, tx('web.fc.sum', fmtDate(F.anchor), usd(F.price), fmtDate(r7.target), usd(r7.q10), usd(r7.q90), fmtDate(r30.target), usd(r30.q10), usd(r30.q90)))];
+    if (chk(7) && chk(30)) sum.push(el('p', null, tx('web.fc.sum_check', fmtDate(chk(7).from), pc(chk(7).cover80), pc(chk(30).cover80))));
+    $('fc-sum').replaceChildren(...sum);
+    const h = el('tr');
+    ['col_date', 'col_k', 'col_mid', 'col_50', 'col_80', 'col_hist'].forEach((k, i) => h.append(el('th', i > 1 ? 'r' : '', tx('web.fc.' + k))));
+    const tb = el('tbody');
+    for (const r of F.rows) {
+      const tr = el('tr'), d = el('td', 'nowrap'), c = chk(r.k), hist = el('td', 'r num');
+      d.append(fmtDate(r.target), el('span', 'sub', weekday(r.target)));
+      hist.append(c ? pc(c.cover80) : '—');
+      if (c) hist.append(el('span', 'sub', tx('web.fc.hist_sub', pc(c.cover80_ci[0]), pc(c.cover80_ci[1]), c.n_eff)));
+      tr.append(d, el('td', 'nowrap', tx('web.fc.k_days', r.k)), el('td', 'r num', usd(r.q50)), el('td', 'r num nowrap', tx('web.fc.range', usd(r.q25), usd(r.q75))),
+        el('td', 'r num nowrap', tx('web.fc.range', usd(r.q10), usd(r.q90))), hist);
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-fc').replaceChildren(th, tb);
+    const notes = [tx('web.fc.note_method'), tx('web.fc.note_direction', pc(chk(7) ? chk(7).above_median : null)), tx('web.fc.note_time'), tx('web.fc.note_wide'), tx('web.fc.note_ref')];
+    $('fc-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+    const lg = F.log || { matured: 0, versions: {}, recent: [] }, v = (lg.versions || {})[F.version];
+    $('fc-verify-sum').textContent = !lg.matured ? tx('web.fc.verify_none', lg.first_due ? fmtDate(lg.first_due) : '—')
+      : tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null));
+    $('fc-verify-box').hidden = !lg.matured;
+    if (lg.matured) {
+      const vh = el('tr');
+      ['col_issued', 'col_date', 'col_k', 'col_80', 'col_actual', 'col_in80', 'col_in50'].forEach((k, i) => vh.append(el('th', i > 2 ? 'r' : '', tx('web.fc.' + k))));
+      const vb = el('tbody');
+      for (const r of lg.recent.slice().reverse()) {
+        const tr = el('tr');
+        tr.append(el('td', 'nowrap', fmtDate(r.issued)), el('td', 'nowrap', fmtDate(r.target)), el('td', 'nowrap', tx('web.fc.k_days', r.k)),
+          el('td', 'r num nowrap', tx('web.fc.range', usd(+r.q10), usd(+r.q90))), el('td', 'r num', usd(r.actual)),
+          el('td', 'r ' + (r.in80 ? 'good' : 'bad'), tx(r.in80 ? 'web.fc.yes' : 'web.fc.no')), el('td', 'r ' + (r.in50 ? 'good' : 'bad'), tx(r.in50 ? 'web.fc.yes' : 'web.fc.no')));
+        vb.append(tr);
+      }
+      const vth = el('thead'); vth.append(vh); $('t-fc-verify').replaceChildren(vth, vb);
+    }
+  }
+
   function initPlan() {
     if (!$('plan-sec')) return;
     $('plan-start').value = nextMonday();
@@ -886,6 +933,7 @@
 
 
   initPlan();
+  if ($('fc-sec')) renderForecast();
   loadAll();
   setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
 })();

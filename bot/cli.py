@@ -11,6 +11,7 @@ final --final   phase 7: the single logged run on the locked holdout + acceptanc
 forward freeze|log|score   part H forward log in data/forward/ (freeze only after the Part I holdout run)
 acceptance rehearsal       part I on a pretend holdout inside already-seen data (no log, no acceptance file)
 acceptance --final         part I: the single logged run on the holdout from 01/01/2024 (refuses a second run)
+forecast                   append today's daily price bands to data/forecast/forecast_log.csv (once per anchor day)
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
@@ -78,6 +79,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "forward":
         return forward_cmd(ap, args)
+    if args.command == "forecast":
+        from bot.models import price_forecast as pf
+        cfg = pf.spec()
+        rows = pf.log_today(pf.daily_prices(), cfg, pf.utc_now())
+        print(f"Dự báo giá: đã ghi {len(rows)} dòng (ngày gốc {rows[0]['issued']}, phiên bản {rows[0]['version']})." if rows
+              else "Dự báo giá: ngày gốc mới nhất đã được ghi, không ghi thêm.")
+        return 0
     if args.command == "final-report":
         from bot.report import final_report
         r = final_report.build()

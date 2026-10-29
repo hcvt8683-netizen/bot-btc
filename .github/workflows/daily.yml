@@ -47,6 +47,8 @@ jobs:
         run: python -m bot.cli fetch || echo "⚠ Một số nguồn lỗi; dùng bản gần nhất, khuyến nghị về mua đều." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Dựng bảng chỉ số
         run: python -m bot.cli features
+      - name: Dự báo dải giá (mỗi ngày gốc ghi một lần, chỉ thêm dòng)
+        run: python -m bot.cli forecast | tee -a "$GITHUB_STEP_SUMMARY" || echo "⚠ Không ghi được dự báo giá hôm nay." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Khuyến nghị tuần
         run: python -m bot.cli report | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Nhật ký đi tới (mỗi giá đóng Chủ nhật một dòng, mô hình đóng băng)
@@ -62,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw data/status.json data/recommendation.json data/features.parquet data/endpoint_check.json data/forward
+          git add data/raw data/status.json data/recommendation.json data/features.parquet data/endpoint_check.json data/forward data/forecast
           if git diff --cached --quiet; then
             echo "Không có dữ liệu mới."
           else

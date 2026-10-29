@@ -78,6 +78,15 @@ def _plan() -> dict | None:
         return None
 
 
+def _forecast() -> dict | None:
+    """Daily price bands with their walk-forward check and the live log (bot/models/price_forecast.py); None on failure."""
+    try:
+        from bot.models import price_forecast
+        return price_forecast.for_report()
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
+
+
 def build(now: dt.datetime | None = None, write: bool = True) -> dict:
     now = now or dt.datetime.now(dt.timezone.utc).replace(tzinfo=None, microsecond=0)
     summary = json.loads(SUMMARY.read_text(encoding="utf-8")) if SUMMARY.exists() else None
@@ -98,7 +107,7 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
            "events": _events(now), "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan()}
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast()}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec

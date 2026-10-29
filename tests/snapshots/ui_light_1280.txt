@@ -80,6 +80,67 @@ FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026
 FRED (lợi suất thực 10 năm): đến 26/10/2026
 FRED (Nasdaq Composite): đến 26/10/2026
 FRED (cung tiền M2): đến 01/09/2026
+Dự báo dải giá BTC: 7 ngày tới và 1 tháng
+
+Bot không đoán một con số giá. Bot đưa ra dải giá cho từng ngày, tính từ cách BTC đã dao động thật trong 4 năm qua (chỉnh theo mức dao động 30 ngày gần nhất), rồi ghi lại mỗi ngày để bạn tự kiểm chứng khi đến ngày.
+
+Gốc: giá đóng ngày 28/10/2026: 81.237 $. Sau 7 ngày (04/11/2026), khoảng 80% là 78.042 $ đến 85.369 $; sau 30 ngày (27/11/2026), khoảng 80% là 74.102 $ đến 94.575 $.
+
+Kiểm chứng từ 01/01/2018: giá thật rơi vào khoảng 80% ở 81% số lần (7 ngày) và 80% số lần (30 ngày); dải đúng thì phải gần 80%.
+
+Ngày đích	Sau	Giữa (trung vị)	Khoảng 50%	Khoảng 80%	Lịch sử: giá thật trong khoảng 80%
+29/10/2026
+Thứ Năm
+	1 ngày	81.245 $	80.744 $ – 81.826 $	80.040 $ – 82.557 $	80%
+Wilson 79%–82%, 3222 lần độc lập
+
+30/10/2026
+Thứ Sáu
+	2 ngày	81.285 $	80.468 $ – 82.091 $	79.520 $ – 83.213 $	80%
+Wilson 78%–82%, 1610 lần độc lập
+
+31/10/2026
+Thứ Bảy
+	3 ngày	81.346 $	80.302 $ – 82.421 $	79.172 $ – 83.725 $	81%
+Wilson 78%–83%, 1073 lần độc lập
+
+01/11/2026
+Chủ Nhật
+	4 ngày	81.309 $	80.208 $ – 82.603 $	78.853 $ – 84.143 $	81%
+Wilson 78%–84%, 804 lần độc lập
+
+02/11/2026
+Thứ Hai
+	5 ngày	81.333 $	80.093 $ – 82.744 $	78.458 $ – 84.667 $	81%
+Wilson 78%–84%, 643 lần độc lập
+
+03/11/2026
+Thứ Ba
+	6 ngày	81.387 $	79.951 $ – 82.917 $	78.236 $ – 84.951 $	81%
+Wilson 78%–84%, 536 lần độc lập
+
+04/11/2026
+Thứ Tư
+	7 ngày	81.412 $	79.812 $ – 83.053 $	78.042 $ – 85.369 $	81%
+Wilson 77%–84%, 459 lần độc lập
+
+27/11/2026
+Thứ Sáu
+	30 ngày	82.215 $	79.085 $ – 86.571 $	74.102 $ – 94.575 $	80%
+Wilson 72%–87%, 106 lần độc lập
+Cách tính (định trước khi tính): lợi suất k ngày chia cho độ dao động 30 ngày, lấy phân vị trong 4 năm trước ngày gốc (chỉ những lần đã biết kết quả), nhân lại với độ dao động hiện tại.
+Không phải dự báo hướng giá: kiểm định 6 tiêu chí cho thấy tín hiệu của bot chưa có lợi thế. "Giữa" không phải mục tiêu giá; trong lịch sử giá thật cao hơn giữa ở 48% số lần.
+Giá đóng ngày theo Coin Metrics, chốt lúc 00:00 UTC (07:00 sáng hôm sau giờ Việt Nam). Ngày gốc là ngày đóng cửa cuối có trong dữ liệu, nên có thể chậm hơn hôm nay một ngày.
+Dải rộng là đúng bản chất: BTC dao động mạnh. Dải hẹp hơn sẽ sai nhiều hơn.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+
+Kiểm chứng trực tiếp các dự báo đã đến hạn
+
+Đã đến hạn 2 dự báo: 1 lần (50%) giá thật nằm trong khoảng 80%, 1 lần (50%) trong khoảng 50%. Dải đúng thì hai tỷ lệ này dần tiến về 80% và 50%. Nhật ký: data/forecast/forecast_log.csv (chỉ thêm dòng, không sửa).
+
+Ngày dự báo	Ngày đích	Sau	Khoảng 80%	Giá thật	Trong khoảng 80%?	Trong khoảng 50%?
+20/10/2026	22/10/2026	2 ngày	78.500 $ – 82.100 $	83.000 $	không	không
+20/10/2026	21/10/2026	1 ngày	79.000 $ – 81.700 $	80.200 $	có	có
 Giá đề xuất mua và bán
 
 Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày 28/10/2026. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.
