@@ -90,6 +90,8 @@
   tr:last-child td { border-bottom: 0; }
   td.r, th.r { text-align: right; }
   td .sub { display: block; font-size: 12px; color: var(--muted); }
+  @media (min-width: 700px) { #cp-sec th { white-space: normal; } }
+  @media (max-width: 699px) { #cp-sec td { white-space: nowrap; } }
   tr.base td { color: var(--muted); }
   tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
   tr.here td:first-child { font-weight: 700; }

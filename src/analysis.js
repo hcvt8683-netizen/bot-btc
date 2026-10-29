@@ -312,11 +312,22 @@ const B3 = (() => {
     if (CB) {
       const hs = Object.keys(CB).sort((x, y) => x - y), d3 = (x) => (x == null || !isFinite(x) ? '—' : x.toFixed(3).replace('.', ','));
       t(tx('web.vr.cp_title'));
-      t('- ' + tx('web.cp.sum', D(CB[hs[0]].now.date), ...hs.map((h) => P(CB[h].now.p))) + ' ' + (hs.some((h) => CB[h].pick) ? tx('web.cp.sum_pick') : tx('web.cp.sum_nopick'))); t('');
-      head(['col_h', 'col_p', 'col_logit', 'col_bins', 'col_brier', 'col_said80', 'col_pick'].map((k) => tx('web.cp.' + k)));
-      hs.forEach((h) => { const x = CB[h], m = x.methods, best = m[x.best], s8 = x.said80 && x.said80.logit;
-        row([tx('web.cp.h_' + h), P(x.now.p), P(x.now.logit_p), P(x.now.bins_p), `${tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier))} (${tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))})`,
-          s8 && s8.weeks ? tx('web.cp.said80_cell', P(s8.win), s8.weeks, s8.episodes, P(s8.base)) : tx('web.cp.said80_none'), tx(x.pick ? 'web.cp.pick_yes' : 'web.cp.pick_no')]); });
+      const n0 = CB[hs[0]].now, sp = (x) => (x == null || !isFinite(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x * 100).toFixed(0) + '%');
+      const usd = (x) => (x == null || !isFinite(x) ? '—' : Math.round(x).toLocaleString('vi-VN') + ' $'), any = hs.some((h) => CB[h].pick);
+      const items = (f) => hs.map((h) => tx('web.cp.sum_item', tx('web.cp.h_' + h), P(f(CB[h].now.p)))).join(', ');
+      t('- ' + tx('web.cp.sum', items((v) => v)) + ' ' + tx(any ? 'web.cp.sum_pick' : 'web.cp.sum_nopick'));
+      t('- ' + tx('web.cp.sum_sell', items((v) => 1 - v)) + ' ' + tx(any ? 'web.cp.sum_pick' : 'web.cp.sum_nopick_sell'));
+      t('- ' + tx('web.vr.cp_price', usd(n0.close), D(n0.close_date || n0.date))); t('');
+      head(['col_h', 'col_p', 'col_p_sell', 'col_ret', 'col_price', 'col_logit', 'col_brier', 'col_said80', 'col_cover', 'col_pick'].map((k) => tx('web.cp.' + k)));
+      hs.forEach((h) => { const x = CB[h], m = x.methods, best = m[x.best], s8 = x.said80 && x.said80.logit, r = x.ret, q = r ? r.now.q : null, rm = r ? r.methods[r.now.method] : null;
+        row([tx('web.cp.h_' + h), P(x.now.p), P(1 - x.now.p), q ? `${sp(q[1])} (${tx('web.cp.ret_sub', sp(q[0]), sp(q[2]))})` : '—',
+          q ? `${usd(n0.close * (1 + q[1]))} (${tx('web.cp.price_sub', usd(n0.close * (1 + q[0])), usd(n0.close * (1 + q[2])))})` : '—', P(x.now.logit_p),
+          `${tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier))} (${tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))})`,
+          s8 && s8.weeks ? tx('web.cp.said80_cell', P(s8.win), s8.weeks, s8.episodes, P(s8.base)) : tx('web.cp.said80_none'), rm ? P(rm.cover80) : '—',
+          tx(x.pick ? 'web.cp.pick_yes' : 'web.cp.pick_no')]); });
+      const lastH = CB[hs[hs.length - 1]];
+      t(''); t('- ' + tx(hs.some((h) => CB[h].ret && CB[h].ret.now.method === 'bins') ? 'web.cp.note_ret_bins' : 'web.cp.note_ret_base'));
+      if (lastH.h >= 52) t('- ' + tx('web.cp.note_few', Math.round(lastH.weeks / lastH.h), D(lastH.from), D(lastH.to)));
       t(''); t('- ' + tx('web.cp.note_overconf')); t('');
     }
     if (kn.freshness) {

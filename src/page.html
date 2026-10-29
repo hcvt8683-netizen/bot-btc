@@ -101,7 +101,8 @@
   tr:last-child td { border-bottom: 0; }
   td.r, th.r { text-align: right; }
   td .sub { display: block; font-size: 12px; color: var(--muted); }
-  #t-cp th { white-space: normal; }
+  @media (min-width: 700px) { #cp-sec th { white-space: normal; } }
+  @media (max-width: 699px) { #cp-sec td { white-space: nowrap; } }
   tr.base td { color: var(--muted); }
   tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
   tr.here td:first-child { font-weight: 700; }
@@ -216,10 +217,12 @@
     </section>
 
     <section class="panel" id="cp-sec" style="margin:16px 0">
-      <h2>{{web.cp.title}}</h2>
-      <p class="lead">{{web.cp.lead}}</p>
+      <h2 id="cp-title">{{web.cp.title}}</h2>
+      <p class="lead" id="cp-lead">{{web.cp.lead}}</p>
       <div class="cons" id="cp-sum"></div>
       <div class="scroll"><table id="t-cp"></table></div>
+      <p class="lead" style="margin:18px 0 8px"><b id="cp-check-title">{{web.cp.check_title}}</b></p>
+      <div class="scroll"><table id="t-cp2"></table></div>
       <ul class="crit" id="cp-notes"></ul>
     </section>
 

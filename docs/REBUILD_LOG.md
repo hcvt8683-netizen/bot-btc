@@ -361,3 +361,19 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - lợi nhuận dự đoán: phân vị 10/50/90% của lợi nhuận h tuần, tỷ lệ gốc 208 tuần so với 5 nhóm Giá / MA 200 tuần, chấm bằng điểm phân vị; chỉ dùng nhóm khi khoảng tin cậy nằm hẳn trên 0; báo tỷ lệ trúng dải 10–90%;
 - trang web nhân phân vị với giá lúc tra để ra giá dự kiến;
 - bên bán: xác suất giá thấp hơn = 1 − xác suất có lãi; báo thêm những tuần mô hình nói ≤ 20% và 20% tuần có xác suất thấp nhất (mô tả).
+
+**Kết quả** (`data/results/calib.json`, chấm đi tới từ 2016; các tuần đầu được chấm khi đủ dữ liệu, từ 08/2018):
+
+| Kỳ hạn | Tuần chấm | Brier gốc / tốt nhất (khoảng tin cậy mức cải thiện) | Xác suất tuần 25/10/2026 | Logistic nói | Logistic nói ≥ 80% thì thực tế có lãi | Lợi nhuận giữa (8/10 lần) | Dải 8/10 trúng |
+|---|---|---|---|---|---|---|---|
+| 1 tháng | 425 | 0,250 / 0,257 nhóm (−0,017 đến 0,002) | 57% | 63% | 35% (1 đợt) | +2% (−13% đến +24%) | 85% |
+| 3 tháng | 407 | 0,247 / 0,271 logistic (−0,075 đến 0,021) | 60% | 68% | 70% (8 đợt) | +6% (−21% đến +54%) | 86% |
+| 6 tháng | 381 | 0,240 / 0,254 logistic (−0,088 đến 0,047) | 68% | 80% | 74% (2 đợt) | +20% (−31% đến +71%) | 87% |
+| 1 năm | 329 | 0,268 / 0,229 logistic (−0,014 đến 0,089) | 62% | 99% | 77% (3 đợt) | +42% (−44% đến +141%) | 87% |
+
+- Không cách nào vượt tỷ lệ gốc ở kỳ hạn nào: hiển thị tỷ lệ gốc, ghi "chưa chọn được điểm mua / điểm bán".
+- Lợi nhuận theo nhóm Giá / MA 200 tuần kém tỷ lệ gốc ở mọi kỳ hạn (6 tháng và 1 năm kém có ý nghĩa); dùng tỷ lệ gốc. Dải 10–90% trúng 85–87%, rộng hơn mục tiêu 80% một chút.
+- Bên bán: mô hình chưa từng báo xác suất có lãi ≤ 20%; 20% tuần có xác suất thấp nhất giảm 40–52% số lần so với mốc 35–45%, khoảng tin cậy chứa 0 hoặc quá ít đợt.
+- Kỳ hạn 1 năm chỉ có khoảng 6 năm không chồng nhau: rất không chắc.
+- Nhật ký đi tới: `data/calib/calib_log.csv` (xác suất) và `data/calib/ret_log.csv` (lợi nhuận), Daily ghi mỗi tuần một lần.
+- Trang web: mục `#cp-sec` đổi theo chế độ Mua / Bán; giá dự kiến = giá lúc tra × (1 + lợi nhuận). Báo cáo tải về, gói claude.ai và hồ sơ gửi Claude có đủ phần này.

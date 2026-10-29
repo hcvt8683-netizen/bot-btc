@@ -109,14 +109,20 @@ Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, k
 - ROI trung vị cao nhất: Giải ngân một lần; đề xuất theo quy tắc định trước: Giải ngân một lần. Dữ liệu: 486 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập.
 - Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất -64% thay vì -82%.
 
-### Xác suất có lãi nếu mua tuần này (đã hiệu chỉnh)
-- Mua tuần 25/10/2026: xác suất có lãi sau 1 tháng 57%, sau 3 tháng 60%, sau 6 tháng 68%. Chưa cách nào chọn được tuần mua tốt hơn mua bất kỳ lúc nào, nên đây là tỷ lệ có lãi của 4 năm gần nhất và gần như không đổi theo từng tuần. Trong lịch sử, cách chắc nhất để tăng xác suất có lãi là giữ lâu hơn và mua đều.
+### Xác suất có lãi và lợi nhuận dự đoán (đã hiệu chỉnh), bên mua và bên bán
+- Mua bây giờ: xác suất có lãi sau 1 tháng 57%, sau 3 tháng 60%, sau 6 tháng 68%, sau 1 năm 62%. Thời điểm mua có lợi nhất: chưa cách nào chọn được tuần mua tốt hơn mua bất kỳ lúc nào, nên các con số là tỷ lệ của 4 năm gần nhất và gần như không đổi theo từng tuần. Trong lịch sử, cách chắc nhất để tăng xác suất có lãi là giữ lâu hơn và mua đều.
+- Bán bây giờ: xác suất giá thấp hơn sau 1 tháng 43%, sau 3 tháng 40%, sau 6 tháng 32%, sau 1 năm 38%. Thời điểm bán có lợi nhất: chưa cách nào chọn được tuần bán tốt hơn bán bất kỳ lúc nào, nên các con số gần như không đổi theo từng tuần.
+- Giá dự kiến tính từ giá đóng 80.039 $ ngày 25/10/2026; trên trang web, giá dự kiến tính theo giá lúc tra.
 
-| Giữ | Xác suất có lãi (đã hiệu chỉnh) | Mô hình logistic nói | Nhóm theo Giá / MA 200 tuần nói | Sai số Brier: tỷ lệ gốc / cách tốt nhất | Khi mô hình báo ≥ 80%, thực tế có lãi | Chọn được điểm mua? |
-|---|---|---|---|---|---|---|
-| 1 tháng | 57% | 63% | 55% | 0,250 / 0,257 (cải thiện -0,007, khoảng tin cậy -0,017 đến 0,002) | 35% (17 tuần, 1 đợt; mốc 55%) | chưa |
-| 3 tháng | 60% | 68% | 54% | 0,247 / 0,271 (cải thiện -0,024, khoảng tin cậy -0,075 đến 0,021) | 70% (117 tuần, 8 đợt; mốc 57%) | chưa |
-| 6 tháng | 68% | 80% | 56% | 0,240 / 0,254 (cải thiện -0,014, khoảng tin cậy -0,088 đến 0,047) | 74% (201 tuần, 2 đợt; mốc 63%) | chưa |
+| Giữ | Xác suất có lãi | Xác suất bán bây giờ tốt hơn | Lợi nhuận dự đoán (mức giữa) | Giá dự kiến theo giá lúc tra | Mô hình logistic nói | Sai số Brier: tỷ lệ gốc / cách tốt nhất | Khi mô hình báo ≥ 80%, thực tế có lãi | Khoảng 8/10 lần chứa kết quả thật | Chọn được điểm mua? |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 tháng | 57% | 43% | +2% (8/10 lần: −13% đến +24%) | 81.281 $ (8/10 lần: 69.341 $ – 99.038 $) | 63% | 0,250 / 0,257 (cải thiện -0,007, khoảng tin cậy -0,017 đến 0,002) | 35% (17 tuần, 1 đợt; mốc 55%) | 85% | chưa |
+| 3 tháng | 60% | 40% | +6% (8/10 lần: −21% đến +54%) | 84.616 $ (8/10 lần: 63.525 $ – 123.248 $) | 68% | 0,247 / 0,271 (cải thiện -0,024, khoảng tin cậy -0,075 đến 0,021) | 70% (117 tuần, 8 đợt; mốc 57%) | 86% | chưa |
+| 6 tháng | 68% | 32% | +20% (8/10 lần: −31% đến +71%) | 96.318 $ (8/10 lần: 55.146 $ – 136.727 $) | 80% | 0,240 / 0,254 (cải thiện -0,014, khoảng tin cậy -0,088 đến 0,047) | 74% (201 tuần, 2 đợt; mốc 63%) | 87% | chưa |
+| 1 năm | 62% | 38% | +42% (8/10 lần: −44% đến +141%) | 113.826 $ (8/10 lần: 44.791 $ – 193.288 $) | 99% | 0,268 / 0,229 (cải thiện 0,039, khoảng tin cậy -0,014 đến 0,089) | 77% (211 tuần, 3 đợt; mốc 63%) | 87% | chưa |
+
+- Lợi nhuận dự đoán: mức 10%, 50% và 90% của lợi nhuận đã gặp trong 4 năm gần nhất. Tính theo nhóm Giá / MA 200 tuần không tốt hơn (điểm phân vị không giảm có ý nghĩa), nên dùng 4 năm gần nhất. 1/10 lần thấp hơn mức dưới, 1/10 lần cao hơn mức trên.
+- Kỳ hạn 1 năm chỉ chấm được khoảng 6 năm không chồng nhau (14/07/2019 đến 26/10/2025), nên mọi con số ở kỳ hạn này rất không chắc.
 
 - Con số cao của mô hình logistic không đáng tin: những lần nó báo từ 80% trở lên trong quá khứ, thực tế có lãi ít hơn nhiều (cột "Khi mô hình báo ≥ 80%").
 

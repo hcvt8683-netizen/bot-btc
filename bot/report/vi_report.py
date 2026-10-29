@@ -158,12 +158,12 @@ def _plan() -> dict | None:
 
 
 def _calib(now: dt.datetime) -> dict | None:
-    """Calibrated probability of profit for 1/3/6 months (bot/models/calib_prob.py); logs this week's values. None on failure."""
+    """Calibrated probability of profit and predicted return for 1/3/6/12 months, buy and sell side (bot/models/calib_prob.py); logs this week's values. None on failure."""
     try:
         from bot.models import calib_prob
         res = calib_prob.run(write=True)
         calib_prob.log_week(res, now.strftime("%Y-%m-%dT%H:%M:%SZ"))
-        keep = ("h", "weeks", "from", "to", "best", "pick", "now", "said80")
+        keep = ("h", "weeks", "from", "to", "best", "pick", "now", "said80", "said20", "top20", "bottom20", "ret")
         return {h: {k: o[k] for k in keep} | {"methods": {m: {"brier": v["brier"], "gain_ci": v["gain_ci"]} for m, v in o["methods"].items()}} for h, o in res.items()}
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None

@@ -490,6 +490,7 @@
     const sell = st.mode === 'sell';
     $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
     $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell;
+    if ($('cp-sec')) renderCalib();
     if (sell && st.sd) requestAnimationFrame(drawSellChart);
     if (!sell && st.a) requestAnimationFrame(drawChart);
   }
@@ -889,34 +890,53 @@
     const th = el('thead'); th.append(h); $('t-kn').replaceChildren(th, tb);
     $('kn-ev').replaceChildren(el('li', null, tx('web.rb.report_link')));
   }
-  // ----- xác suất có lãi đã hiệu chỉnh 1/3/6 tháng (KN.calib, bot/models/calib_prob.py) -----
+  // ----- xác suất có lãi đã hiệu chỉnh 1/3/6/12 tháng, lợi nhuận dự đoán, bên mua và bên bán (KN.calib, bot/models/calib_prob.py) -----
   function renderCalib() {
-    const C = KN && KN.calib && Object.keys(KN.calib).length ? KN.calib : null;
-    if (!C) { $('cp-sum').replaceChildren(el('span', 'warn', tx('web.cp.none'))); $('t-cp').replaceChildren(); $('cp-notes').replaceChildren(); return; }
+    const C = KN && KN.calib && Object.keys(KN.calib).length ? KN.calib : null, sell = st.mode === 'sell';
+    $('cp-title').textContent = tx(sell ? 'web.cp.title_sell' : 'web.cp.title');
+    $('cp-lead').textContent = tx(sell ? 'web.cp.lead_sell' : 'web.cp.lead');
+    if (!C) { $('cp-sum').replaceChildren(el('span', 'warn', tx('web.cp.none'))); for (const id of ['t-cp', 't-cp2', 'cp-notes']) $(id).replaceChildren(); return; }
     const hs = Object.keys(C).sort((a, b) => a - b), o = (h) => C[h], d3 = (x) => (x == null || !isFinite(x) ? '—' : nf(3).format(x));
-    const any = hs.some((h) => o(h).pick);
-    const p1 = el('p'); p1.append(el('b', null, tx('web.cp.sum', fmtDate(o(hs[0]).now.date), ...hs.map((h) => pc(o(h).now.p)))));
-    const sum = [p1];
-    sum.push(el('p', null, any ? tx('web.cp.sum_pick') : tx('web.cp.sum_nopick')));
+    const pOf = (h) => (sell ? 1 - o(h).now.p : o(h).now.p), drop = (x) => (x == null ? null : 1 - x);
+    const n0 = o(hs[0]).now, last = st.S ? st.S.price.length - 1 : -1;
+    const price = last >= 0 ? st.S.price[last] : n0.close;
+    const when = last >= 0 && st.raw.live ? tx('web.cp.price_live') : tx('web.cp.price_close', fmtDate(last >= 0 ? st.S.dates[last] : n0.close_date));
+    const any = hs.some((h) => o(h).pick), items = hs.map((h) => tx('web.cp.sum_item', tx('web.cp.h_' + h), pc(pOf(h)))).join(', ');
+    const p1 = el('p'); p1.append(el('b', null, tx(sell ? 'web.cp.sum_sell' : 'web.cp.sum', items)));
+    const sum = [p1, el('p', null, tx('web.cp.price_now', usd(price), when, fmtDate(n0.date)))];
+    sum.push(el('p', null, tx(any ? 'web.cp.sum_pick' : sell ? 'web.cp.sum_nopick_sell' : 'web.cp.sum_nopick')));
+    if (sell && hs.every((h) => pOf(h) < 0.5)) sum.push(el('p', null, tx('web.cp.sum_hold')));
     $('cp-sum').replaceChildren(...sum);
-    const head = el('tr');
-    ['col_h', 'col_p', 'col_logit', 'col_bins', 'col_brier', 'col_said80', 'col_pick'].forEach((k, i) => head.append(el('th', i ? 'r' : '', tx('web.cp.' + k))));
-    const tb = el('tbody');
-    for (const h of hs) {
-      const x = o(h), m = x.methods, best = m[x.best], s8 = x.said80 && x.said80.logit, tr = el('tr', x.pick ? 'here' : '');
-      const br = el('td', 'r num', tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier)));
-      br.append(el('span', 'sub', tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))));
-      const s8c = el('td', 'r num', s8 && s8.weeks ? pc(s8.win) : tx('web.cp.said80_none'));
-      if (s8 && s8.weeks) s8c.append(el('span', 'sub', tx('web.cp.said80_sub', s8.weeks, s8.episodes, pc(s8.base))));
-      tr.append(el('td', 'nowrap', tx('web.cp.h_' + h)), el('td', 'r num', pc(x.now.p)), el('td', 'r num muted', pc(x.now.logit_p)), el('td', 'r num muted', pc(x.now.bins_p)), br,
-        s8c,
+    const table = (id, cols, rows) => {
+      const head = el('tr'); cols.forEach((k, i) => head.append(el('th', i ? 'r' : '', tx('web.cp.' + k))));
+      const th = el('thead'), tb = el('tbody'); th.append(head); rows.forEach((r) => tb.append(r)); $(id).replaceChildren(th, tb);
+    };
+    const cell = (main, sub, cls = 'r num') => { const td = el('td', cls, main); if (sub) td.append(el('span', 'sub', sub)); return td; };
+    table('t-cp', sell ? ['col_h_sell', 'col_p_sell', 'col_ret_sell', 'col_price', 'col_pick_sell'] : ['col_h', 'col_p', 'col_ret', 'col_price', 'col_pick'], hs.map((h) => {
+      const x = o(h), q = x.ret ? x.ret.now.q : null, tr = el('tr', x.pick ? 'here' : '');
+      tr.append(el('td', 'nowrap', tx('web.cp.h_' + h)), el('td', 'r num', pc(pOf(h))),
+        cell(q ? spc(q[1]) : '—', q ? tx('web.cp.ret_sub', spc(q[0]), spc(q[2])) : ''),
+        cell(q ? usd(price * (1 + q[1])) : '—', q ? tx('web.cp.price_sub', usd(price * (1 + q[0])), usd(price * (1 + q[2]))) : ''),
         el('td', 'r ' + (x.pick ? 'good' : 'muted'), tx(x.pick ? 'web.cp.pick_yes' : 'web.cp.pick_no')));
-      tb.append(tr);
-    }
-    const th = el('thead'); th.append(head); $('t-cp').replaceChildren(th, tb);
-    const first = o(hs[0]);
-    $('cp-notes').replaceChildren(...[tx('web.cp.note_method'), tx('web.cp.note_rule'), tx('web.cp.note_overconf'), tx('web.cp.note_data', fmtDate(first.from), fmtDate(o(hs[hs.length - 1]).to)), tx('web.fc.note_ref')]
-      .map((x) => el('li', null, x)));
+      return tr;
+    }));
+    const flagCell = (f, fn) => (f && f.weeks ? cell(pc(fn(f.win)), tx('web.cp.said80_sub', f.weeks, f.episodes, pc(fn(f.base)))) : cell(tx('web.cp.said80_none'), ''));
+    table('t-cp2', sell ? ['col_h', 'col_logit_sell', 'col_bins_sell', 'col_brier', 'col_said20', 'col_bottom20', 'col_cover'] : ['col_h', 'col_logit', 'col_bins', 'col_brier', 'col_said80', 'col_cover'], hs.map((h) => {
+      const x = o(h), m = x.methods, best = m[x.best], tr = el('tr'), r = x.ret, rm = r ? r.methods[r.now.method] : null;
+      const f = sell ? drop : (v) => v;
+      tr.append(el('td', 'nowrap', tx('web.cp.h_' + h)), el('td', 'r num muted', pc(f(x.now.logit_p))), el('td', 'r num muted', pc(f(x.now.bins_p))),
+        cell(tx('web.cp.brier_cell', d3(m.base.brier), d3(best.brier)), tx('web.cp.brier_sub', d3(m.base.brier - best.brier), d3(best.gain_ci[0]), d3(best.gain_ci[1]))));
+      if (sell) tr.append(flagCell(x.said20 && x.said20.logit, drop), flagCell(x.bottom20, drop));
+      else tr.append(flagCell(x.said80 && x.said80.logit, (v) => v));
+      tr.append(cell(rm ? pc(rm.cover80) : '—', rm ? tx('web.cp.cover_sub', r.weeks) : ''));
+      return tr;
+    }));
+    const lastH = o(hs[hs.length - 1]), retBins = hs.some((h) => o(h).ret && o(h).ret.now.method === 'bins');
+    const notes = sell ? [tx('web.cp.note_sell_same'), tx('web.cp.note_method'), tx('web.cp.note_rule')] : [tx('web.cp.note_method'), tx('web.cp.note_rule'), tx('web.cp.note_overconf')];
+    notes.push(tx(retBins ? 'web.cp.note_ret_bins' : 'web.cp.note_ret_base'));
+    if (lastH.h >= 52) notes.push(tx('web.cp.note_few', nf(0).format(lastH.weeks / lastH.h), fmtDate(lastH.from), fmtDate(lastH.to)));
+    notes.push(tx('web.cp.note_data', fmtDate(o(hs[0]).from), fmtDate(lastH.to)), tx('web.fc.note_ref'));
+    $('cp-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
   }
   function renderRebuild() {
     if (!RB) {
