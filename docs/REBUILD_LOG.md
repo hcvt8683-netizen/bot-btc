@@ -223,3 +223,39 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Chấm: 27 dòng đủ kỳ 26 tuần, 1 dòng đủ kỳ 52 tuần; mỗi khung chỉ 1 đợt → "ít đợt".
 
 **Kết luận:** quy trình đi tới đã sẵn sàng và có test. Phiên bản thật bắt đầu sau Phần I; nhật ký đi tới là phép thử ngoài mẫu thật duy nhất.
+
+## Phần I: Tiêu chí chấp nhận và lần chạy holdout duy nhất (xong 29/10/2026)
+
+**Đăng ký trước** (`config/candidates.yaml` mục `acceptance`, commit `60ddb0a`, trước khi đọc bất kỳ số nào của holdout):
+- định nghĩa chính xác 6 tiêu chí;
+- quyết định bằng hệ số Phần D (thứ sẽ dùng thật); hệ số so sánh 0,5 + thứ hạng chỉ để tham khảo;
+- bên bán "đáng tin" khi đúng hơn mốc ở cả hai chu kỳ 2020–2024 (đỉnh 2021) và 2024–nay (đỉnh 10/2025).
+
+**Diễn tập** trên holdout giả 2022–2023 (dữ liệu đã xem), cùng mã. Bắt được 4 lỗi, đã sửa TRƯỚC lần chạy thật:
+- p hoán vị hiện 0,001 khi không tính được (quyết định vẫn đúng là không đạt);
+- chu kỳ bán không cắt ở cuối dữ liệu;
+- số tuần holdout đếm lệch nhau;
+- số lần bỏ chỉ số đếm theo tuần nhưng ghi là "lần học lại".
+
+**Lần chạy thật:** 29/10/2026 05:32 UTC, mã `af7ccea`, ghi trong `experiments/final_runs.log`. Lệnh từ chối chạy lần hai (có test).
+
+**Kết quả: không đạt cả 6 tiêu chí → giữ mua đều, hệ số 1,0.**
+- Holdout 01/01/2024 → 25/10/2026, 147 tuần. Mô hình lồng nhau có 121 tuần có mô hình.
+- 1–2, 6: hệ số Phần D bằng 1,0 suốt holdout (không khung nào có khoảng tin cậy lợi thế loại trừ 0), nên lợi thế giá vốn đúng bằng 0.
+- 3: p hoán vị đã hiệu chỉnh của mô hình 1,000 (IC 26 tuần +0,169, nhưng mọi độ dịch đều cho IC cao hơn).
+- 4: khung không đơn điệu ở cả 4 kỳ hạn. Mọi tuần có mô hình đều phải bỏ ít nhất một chỉ số sai dấu (MVRV, Fear & Greed).
+- 5: Brier 0,193 so với tỷ lệ gốc 0,189 (95 tuần), tệ hơn.
+- Tham khảo, hệ số so sánh: mô hình −0,3% (−11,3% đến +6,0%), thua quy tắc MVRV (+0,8%) và Giá/MA 200 tuần (+2,7%, KTC −5,5% đến +6,7%).
+- Quy tắc Giá/MA 200 tuần có p hoán vị đã hiệu chỉnh 0,001 cho lợi thế theo hệ số so sánh. Nhưng khoảng tin cậy bootstrap chứa 0 và khung không đơn điệu, nên nó cũng không qua tiêu chí 2 và 4. Chỉ ghi nhận, không đổi gì.
+
+**Bên bán:** 0 tiêu chí đáng tin. Ở chu kỳ 2024–2026 không có lần nào ≥ 3 nhóm bật (không có "Bán phần lớn" ở đỉnh 10/2025). Mức ≥ 1 nhóm đúng 1/2 đợt. Bán 10–30% khi ≥ 1 nhóm: lợi +1,4% đến +3,6% ở 2024–2026, nhưng lỗ ở 2016–2020 và 2020–2024.
+
+**Giới hạn của kiểm định này:**
+- Holdout ngắn: với 121 tuần và độ dịch ≥ 52 tuần, chỉ có khoảng 18 độ dịch khác nhau, nên phép hoán vị thô.
+- Holdout 2024–2026 đã được con người nhìn thấy khi làm bot cũ (lần chạy giai đoạn 7 ngày 28/10/2026), nên đây không hoàn toàn mù.
+
+**Nhật ký đi tới bắt đầu.** Phiên bản thật `v1-f46ea015fc`, đóng băng tại 25/10/2026:
+- bộ S1, MVRV bị bỏ do sai dấu, còn Giá/MA 200 tuần (trọng số 0,52); cổng Phần I: chưa đạt.
+- Dòng đầu: giá 80.039 $, điểm 0,716, thứ hạng 76 → Cân nhắc mua, hệ số dùng thực tế 1,0 (mua đều).
+- Hai quy tắc đều ở Cân nhắc mua; bên bán 0 nhóm → Giữ.
+- Các khung này chỉ để tham khảo: đã kiểm định là **chưa có lợi thế**.
