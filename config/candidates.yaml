@@ -1,0 +1,55 @@
+# Đăng ký trước cho Phần C (cố định TRƯỚC khi chạy; lưu git trước lần chạy đầu tiên). Không sửa sau khi xem kết quả;
+# nếu buộc phải sửa, ghi lý do vào docs/REBUILD_LOG.md.
+#
+# Mô hình: hồi quy logistic L2 trên "độ rẻ" (phân vị 4 năm đã đổi chiều, 1 = rẻ nhất), chuẩn hóa bằng dữ liệu huấn luyện.
+# Nhãn: giá đóng thứ Hai sau 26 tuần cao hơn giá đóng thứ Hai lúc mua. Ràng buộc dấu bên mua: mọi trọng số ≥ 0; chỉ số
+# nào học ra trọng số âm thì bị loại khỏi bộ ở lần học đó (ghi lại), rồi học lại.
+model:
+  target_weeks: 26
+  lambdas: [0.3, 1.0, 3.0]          # độ mạnh L2 (C = 1 / lambda)
+  refit_weeks: 13                   # vòng ngoài: học lại mỗi 13 tuần, cửa sổ mở rộng
+  min_train_weeks: 104              # số tuần có nhãn tối thiểu để học
+  inner_valid_weeks: 52             # vòng trong: 52 tuần có nhãn gần nhất (cách phần học h tuần) để chọn bộ và lambda
+  inner_metric: log_loss            # chọn cấu hình có log-loss thấp nhất; không cấu hình nào hơn tỷ lệ nền → không dùng mô hình
+  rank_min_weeks: 52                # thứ hạng = vị trí của điểm hôm nay trong các điểm ngoài mẫu trước đó (cần ≥ 52 tuần)
+  compare_multiplier: "0.5 + rank"  # chỉ để so sánh công bằng ở Phần C (hệ số thật làm ở Phần D)
+  eval_end: 2023-12-31              # holdout từ 01/01/2024 khóa
+
+sets:
+  S1:
+    features: [mvrv, p_200wma]
+    why: "Giá so với giá vốn on-chain cộng xu hướng 4 năm; các đáy chu kỳ trước nằm quanh MA 200 tuần và MVRV dưới 1."
+  S2:
+    features: [mvrv, pi_ratio]
+    why: "Lõi của bot hiện tại (PA1): định giá on-chain cộng chu kỳ trung bình 111/350 ngày."
+  S3:
+    features: [mvrv, puell]
+    why: "Định giá cộng áp lực thợ đào: doanh thu phát hành thấp (thợ đào đầu hàng) thường trùng vùng đáy."
+  S4:
+    features: [mvrv, dev_ma20w]
+    why: "Định giá cộng tâm lý đo bằng giá so với MA 20 tuần (giống Fear & Greed 0,89, có lịch sử từ 2010)."
+  S5:
+    features: [mvrv, fng]
+    why: "Như S4 nhưng dùng Fear & Greed thật (chỉ có phân vị từ 02/2020, ít dữ liệu)."
+  S6:
+    features: [p_200wma, rsi_14w]
+    why: "Xu hướng dài hạn cộng bán quá đà trên khung tuần."
+  S7:
+    features: [dd_ath, puell, dev_ma20w]
+    why: "Điều kiện đầu hàng: giá giảm sâu từ đỉnh, thợ đào căng thẳng, tâm lý sợ hãi."
+  S8:
+    features: [pi_ratio, mvrv, fng]
+    why: "Bộ bot đang dùng (PA3), để so trực tiếp."
+
+baselines:
+  dca: "Mua đều, hệ số 1,0"
+  rule_mvrv: "Quy tắc 1 chỉ số: độ rẻ MVRV (phân vị 4 năm) làm điểm, không học"
+  rule_p_200wma: "Quy tắc 1 chỉ số: độ rẻ Giá/MA 200 tuần làm điểm, không học"
+
+tests:
+  permutation_n: 1000
+  permutation_min_shift_weeks: 52   # dịch vòng chuỗi tín hiệu so với chuỗi lợi suất, độ lệch ngẫu nhiên ≥ 52 tuần
+  statistics: [ic_26w, cost_basis]  # tương quan thứ hạng với lợi suất 26 tuần; lợi thế giá vốn với hệ số 0,5 + thứ hạng
+  multiple_testing: [max_statistic, holm]
+  loco_cycles: ["2012-11-28/2016-07-08", "2016-07-09/2020-05-10", "2020-05-11/2023-12-31"]
+  zone_order: [phai, cannhac, __baseline__, khong]   # không đơn điệu → gộp khung
