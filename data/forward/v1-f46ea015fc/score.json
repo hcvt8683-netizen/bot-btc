@@ -1,0 +1,192 @@
+{
+ "rows": 1,
+ "from": "2026-10-25",
+ "to": "2026-10-25",
+ "late": 0,
+ "matured": {
+  "26": 0,
+  "52": 0
+ },
+ "zones": {
+  "model": {
+   "horizons": [
+    26,
+    52
+   ],
+   "zones": {
+    "phai": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "cannhac": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "khong": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    }
+   },
+   "baseline": {
+    "26": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    },
+    "52": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    }
+   },
+   "monotone": {
+    "26": true,
+    "52": true
+   }
+  },
+  "mvrv": {
+   "horizons": [
+    26,
+    52
+   ],
+   "zones": {
+    "phai": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "cannhac": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "khong": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    }
+   },
+   "baseline": {
+    "26": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    },
+    "52": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    }
+   },
+   "monotone": {
+    "26": true,
+    "52": true
+   }
+  },
+  "200w": {
+   "horizons": [
+    26,
+    52
+   ],
+   "zones": {
+    "phai": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "cannhac": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    },
+    "khong": {
+     "26": {
+      "weeks": 0,
+      "episodes": 0
+     },
+     "52": {
+      "weeks": 0,
+      "episodes": 0
+     }
+    }
+   },
+   "baseline": {
+    "26": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    },
+    "52": {
+     "weeks": 0,
+     "win": null,
+     "median": null,
+     "q1": null,
+     "q3": null,
+     "mdd_median": null
+    }
+   },
+   "monotone": {
+    "26": true,
+    "52": true
+   }
+  }
+ }
+}

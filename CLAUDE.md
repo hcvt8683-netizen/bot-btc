@@ -20,6 +20,8 @@ Bot chạy trên máy người dùng (Windows và Mac), giao diện tiếng Vi�
 - Dữ liệu và khuyến nghị: `python -m bot.cli fetch`, `python -m bot.cli report`; mốc so sánh: `python -m bot.cli backtest`
 - Giai đoạn kiểm tra cuối (2023 trở đi) bị khóa; chỉ `python -m bot.cli final --final` mở và được ghi vào `experiments/final_runs.log`. Không chỉnh gì theo kết quả này.
 - Cập nhật ảnh chụp chỉ sau khi đã duyệt khác biệt: `UPDATE_SNAPSHOTS=1 python -m pytest` và `node tests/snapshot_report.js --update`
+- Báo cáo tổng bản xây lại: `python -m bot.cli final-report` (sinh `docs/BAO_CAO.md`, `docs/PHU_LUC.md`, `docs/img/`), chạy lại sau khi kết quả đổi.
+- Nhật ký đi tới (`data/forward/`, quy trình Daily tự ghi): không sửa các file trong `CODE` của `bot/models/forward.py` hay các mục `model`, `sets`, `zones`, `multiplier`, `sell` (`config/candidates.yaml`) và `rebuild` (`config/bot.yaml`); sửa thì lệnh ghi dừng, phải `python -m bot.cli forward freeze` thành phiên bản mới.
 - Kiểm tra tính toán (không cần mạng): `node tests/test_engine.js`
 - Kiểm tra giao diện (cần Playwright): `python tests/test_browser.py`
 - Chạy với dữ liệu thật: `python chay_bot_xac_suat.py` rồi mở http://127.0.0.1:8789

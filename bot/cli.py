@@ -11,6 +11,7 @@ final --final   phase 7: the single logged run on the locked holdout + acceptanc
 forward freeze|log|score   part H forward log in data/forward/ (freeze only after the Part I holdout run)
 acceptance rehearsal       part I on a pretend holdout inside already-seen data (no log, no acceptance file)
 acceptance --final         part I: the single logged run on the holdout from 01/01/2024 (refuses a second run)
+final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
 
@@ -77,6 +78,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "forward":
         return forward_cmd(ap, args)
+    if args.command == "final-report":
+        from bot.report import final_report
+        r = final_report.build()
+        print("docs/BAO_CAO.md, docs/PHU_LUC.md,", len(r["charts"]), "biểu đồ hiệu chỉnh; đạt tiêu chí:", r["passed"])
+        return 0
     if args.command == "acceptance":
         from bot.models import part_i
         if args.action == "rehearsal":
@@ -109,13 +115,23 @@ def forward_cmd(ap: argparse.ArgumentParser, args) -> int:
         vid, created = fw.freeze(root, sunday, part_c.table)
         print(("đã đóng băng " if created else "phiên bản đã có: ") + vid)
         return 0
+    if not (root / "current.txt").exists():
+        print("Chưa có phiên bản đóng băng nào (data/forward/current.txt).")
+        return 1
     if args.action == "log":
         vdir = fw.current(root)
         log = fw.read_log(vdir)
         start = pd.Timestamp(log["date"].iloc[-1]) + pd.Timedelta(weeks=1) if len(log) else pd.Timestamp(json.loads((vdir / "model.json").read_text(encoding="utf-8"))["state"]["asof"])
-        for d in pd.date_range(start, sunday, freq="W-SUN"):
-            row = fw.log_week(root, d, part_c.table)
-            print(row and f"{row['date']} {row['zone'] or '—'} hệ số {row['mult_used']} late={row['late']}")
+        weeks = pd.date_range(start, sunday, freq="W-SUN")
+        try:
+            for d in weeks:
+                row = fw.log_week(root, d, part_c.table)
+                print(row and f"{vdir.name}: đã ghi tuần {row['date']}, khung {row['zone'] or '—'}, hệ số dùng {row['mult_used']}, ghi muộn {row['late']}")
+        except fw.ModelChanged as e:
+            print(f"Không ghi: mã hoặc cấu hình đã đổi so với phiên bản {vdir.name} ({e}). Nhật ký cũ giữ nguyên; muốn tiếp tục thì đóng băng phiên bản mới.")
+            return 1
+        if not len(weeks):
+            print(f"{vdir.name}: chưa có giá đóng tuần mới để ghi (tuần cuối đã ghi {log['date'].iloc[-1] if len(log) else '—'}).")
         return 0
     if args.action == "score":
         rb = load_yaml(CONFIG / "bot.yaml")["rebuild"]

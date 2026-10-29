@@ -46,6 +46,40 @@ def read(row: pd.Series, t: pd.DataFrame, se: dict) -> dict:
     return out
 
 
+def state(t: pd.DataFrame, se: dict, zc: dict, md: dict) -> tuple[dict, dict]:
+    """Out-of-sample ranks of the two rules and the reading of the last week of `t`."""
+    asof = t.index[-1]
+    ranks = {n: (wf.oos_rank(t[c].dropna(), md["rank_min_weeks"]) * 100).dropna() for n, c in RULES.items()}
+    g0 = groups_of(t.loc[asof], se)
+    now = {"price": float(t["close"].iloc[-1]), "fng": float(t["raw_fng"].iloc[-1]), "mvrv": float(t["raw_mvrv"].iloc[-1]),
+           "groups": g0, "level": ss.level_of(g0, se["levels"]),
+           **{f"rank_{n}": float(r.iloc[-1]) for n, r in ranks.items()},
+           **{f"zone_{n}": zn.hysteresis_zones(r, zc["thresholds"], zc["hysteresis"]).iloc[-1] for n, r in ranks.items()}}
+    return ranks, now
+
+
+def scenario_rows(t, inp, asof, k, m, rc, f_now, price_changes, se, zc, ranks) -> list[dict]:
+    """One row per price change after k weeks: F&G band, rule ranks and zones (range over the F&G and realized-cap
+    bands), sell groups and levels."""
+    rc_val = {"lo": rc["q"][0], "0": 0.0, "hi": rc["q"][1]}
+    rows = []
+    for d in price_changes:
+        lo, mid, hi = sc.fng_predict(m, f_now, float(np.log(1 + d)))
+        fe = {"lo": lo, "mid": mid, "hi": hi}
+        grid = {f"{a}_{b}": read(sc.scenario_row(inp, asof, d, k, fng_end=fe[a], rc_change=rc_val[b]), t, se) for a in FNG_CASES for b in RC_CASES}
+        res = {"k": k, "delta": d, "fng": [lo, mid, hi], "mid": grid["mid_0"],
+               "fixed": read(sc.scenario_row(inp, asof, d, k, fng_end=f_now), t, se)}
+        for n in RULES:
+            vals = [v["rank_" + n] for v in grid.values() if v["rank_" + n] is not None]
+            res["range_" + n] = [min(vals), max(vals)] if vals else None
+            res["zones_" + n] = sorted({zone_after(ranks[n], v["rank_" + n], zc) for v in grid.values()}, key=lambda z: zn.ORDER.index(z) if z else 9)
+        gs = [v["groups"] for v in grid.values()]
+        res["groups_range"] = [min(gs), max(gs)]
+        res["levels"] = [lv for lv in ("giu", "chot", "ban") if any(v["level"] == lv for v in grid.values())]
+        rows.append(res)
+    return rows
+
+
 def run(write: bool = True) -> dict:
     sp = part_c.spec()
     cfg, se, zc, md = sp["scenarios"], sp["sell"], sp["zones"], sp["model"]
@@ -54,12 +88,7 @@ def run(write: bool = True) -> dict:
     asof = t.index[-1]
     inp = inputs(eval_end)
     band, rcb, chk = tuple(cfg["band"]), cfg["rc_band"], cfg["fng_check"]
-    ranks = {n: (wf.oos_rank(t[c].dropna(), md["rank_min_weeks"]) * 100).dropna() for n, c in RULES.items()}
-    g0 = groups_of(t.loc[asof], se)
-    now = {"price": float(t["close"].iloc[-1]), "fng": float(t["raw_fng"].iloc[-1]), "mvrv": float(t["raw_mvrv"].iloc[-1]),
-           "groups": g0, "level": ss.level_of(g0, se["levels"]),
-           **{f"rank_{n}": float(r.iloc[-1]) for n, r in ranks.items()},
-           **{f"zone_{n}": zn.hysteresis_zones(r, zc["thresholds"], zc["hysteresis"]).iloc[-1] for n, r in ranks.items()}}
+    ranks, now = state(t, se, zc, md)
     out = {"asof": asof.strftime("%Y-%m-%d"), "now": now, "models": {}, "checks": {}, "rc": {}, "rows": []}
     f_now = now["fng"]
     for k in cfg["weeks"]:
@@ -69,21 +98,7 @@ def run(write: bool = True) -> dict:
                                                             tuple(pd.Timestamp(str(x)) for x in chk["test"]), band).items() if kk != "model"}
         rc = sc.rc_drift(inp["cm"], k, asof, rcb["window_weeks"], tuple(rcb["band"]))
         out["rc"][k] = rc
-        rc_val = {"lo": rc["q"][0], "0": 0.0, "hi": rc["q"][1]}
-        for d in cfg["price_changes"]:
-            lo, mid, hi = sc.fng_predict(m, f_now, float(np.log(1 + d)))
-            fe = {"lo": lo, "mid": mid, "hi": hi}
-            grid = {f"{a}_{b}": read(sc.scenario_row(inp, asof, d, k, fng_end=fe[a], rc_change=rc_val[b]), t, se) for a in FNG_CASES for b in RC_CASES}
-            res = {"k": k, "delta": d, "fng": [lo, mid, hi], "mid": grid["mid_0"],
-                   "fixed": read(sc.scenario_row(inp, asof, d, k, fng_end=f_now), t, se)}
-            for n in RULES:
-                vals = [v["rank_" + n] for v in grid.values() if v["rank_" + n] is not None]
-                res["range_" + n] = [min(vals), max(vals)] if vals else None
-                res["zones_" + n] = sorted({zone_after(ranks[n], v["rank_" + n], zc) for v in grid.values()}, key=lambda z: zn.ORDER.index(z) if z else 9)
-            gs = [v["groups"] for v in grid.values()]
-            res["groups_range"] = [min(gs), max(gs)]
-            res["levels"] = [lv for lv in ("giu", "chot", "ban") if any(v["level"] == lv for v in grid.values())]
-            out["rows"].append(res)
+        out["rows"] += scenario_rows(t, inp, asof, k, m, rc, f_now, cfg["price_changes"], se, zc, ranks)
     if write:
         (DATA / "results" / "part_f.json").write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
         (ROOT / "docs" / "SCENARIO_F.md").write_text(markdown(out), encoding="utf-8", newline="\n")

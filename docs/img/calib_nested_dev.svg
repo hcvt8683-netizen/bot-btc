@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 358" width="360" height="358" font-family="system-ui, sans-serif" font-size="11">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="52" y="18" font-size="13" font-weight="600" fill="#1f2328">Lồng nhau, 6 tháng</text>
+<text x="52" y="34" fill="#59636e">đến 31/12/2023: 104 tuần, Brier 0,364 so với tỷ lệ gốc 0,329</text>
+<line x1="52" y1="306" x2="312" y2="306" stroke="#d1d9e0"/>
+<line x1="52" y1="306" x2="52" y2="46" stroke="#d1d9e0"/>
+<text x="46" y="310" text-anchor="end" fill="#59636e">0%</text>
+<text x="52" y="322" text-anchor="middle" fill="#59636e">0%</text>
+<line x1="52" y1="241.0" x2="312" y2="241.0" stroke="#d1d9e0"/>
+<line x1="117.0" y1="306" x2="117.0" y2="46" stroke="#d1d9e0"/>
+<text x="46" y="245.0" text-anchor="end" fill="#59636e">25%</text>
+<text x="117.0" y="322" text-anchor="middle" fill="#59636e">25%</text>
+<line x1="52" y1="176.0" x2="312" y2="176.0" stroke="#d1d9e0"/>
+<line x1="182.0" y1="306" x2="182.0" y2="46" stroke="#d1d9e0"/>
+<text x="46" y="180.0" text-anchor="end" fill="#59636e">50%</text>
+<text x="182.0" y="322" text-anchor="middle" fill="#59636e">50%</text>
+<line x1="52" y1="111.0" x2="312" y2="111.0" stroke="#d1d9e0"/>
+<line x1="247.0" y1="306" x2="247.0" y2="46" stroke="#d1d9e0"/>
+<text x="46" y="115.0" text-anchor="end" fill="#59636e">75%</text>
+<text x="247.0" y="322" text-anchor="middle" fill="#59636e">75%</text>
+<line x1="52" y1="46" x2="312" y2="46" stroke="#d1d9e0"/>
+<line x1="312" y1="306" x2="312" y2="46" stroke="#d1d9e0"/>
+<text x="46" y="50" text-anchor="end" fill="#59636e">100%</text>
+<text x="312" y="322" text-anchor="middle" fill="#59636e">100%</text>
+<line x1="52" y1="306" x2="312" y2="46" stroke="#8c959f" stroke-dasharray="4 4"/>
+<polyline fill="none" stroke="#0969da" stroke-width="1.5" points="200.4,235.1 209.1,103.8 215.0,164.2 219.7,164.2 221.7,98.0 224.8,228.0 233.3,140.5 248.4,280.0 259.3,306.0 279.2,284.3"/>
+<circle cx="200.4" cy="235.1" r="8.7" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="209.1" cy="103.8" r="8.2" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="215.0" cy="164.2" r="8.7" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="219.7" cy="164.2" r="8.7" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="221.7" cy="98.0" r="8.5" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="224.8" cy="228.0" r="8.5" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="233.3" cy="140.5" r="8.7" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="248.4" cy="280.0" r="8.5" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="259.3" cy="306.0" r="8.2" fill="#0969da" fill-opacity="0.55"/>
+<circle cx="279.2" cy="284.3" r="9.0" fill="#0969da" fill-opacity="0.55"/>
+<text x="182.0" y="340" text-anchor="middle" fill="#1f2328">Xác suất mô hình dự báo (theo nhóm 10%)</text>
+<text transform="translate(14 176.0) rotate(-90)" text-anchor="middle" fill="#1f2328">Tỷ lệ giá cao hơn thực tế</text>
+</svg>
