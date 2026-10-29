@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T05:46:46Z",
+ "generated_at": "2026-10-29T01:45:34Z",
  "multiplier": 1.0,
  "mode": "safe",
  "layer": null,
@@ -10,34 +10,34 @@
  "stale_data_days": 3,
  "events": [
   {
-   "type": "fomc",
-   "time": "2026-10-28T18:00Z"
-  },
-  {
    "type": "pce",
    "time": "2026-10-29T12:30Z"
   },
   {
    "type": "opex",
    "time": "2026-10-30T08:00Z"
+  },
+  {
+   "type": "pce",
+   "time": "2026-11-04T13:30Z"
   }
  ],
  "event_delay": false,
  "freshness": {
   "coinmetrics": {
-   "last": "2026-10-27",
+   "last": "2026-10-28",
    "ok": true,
    "age_days": 1,
    "error": ""
   },
   "fng": {
-   "last": "2026-10-28",
+   "last": "2026-10-29",
    "ok": true,
    "age_days": 0,
    "error": ""
   },
   "binance_spot": {
-   "last": "2026-10-27",
+   "last": "2026-10-28",
    "ok": true,
    "age_days": 1,
    "error": ""
@@ -61,7 +61,7 @@
    "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
   },
   "stablecoins": {
-   "last": "2026-10-28",
+   "last": "2026-10-29",
    "ok": true,
    "age_days": 0,
    "error": ""
@@ -69,11 +69,11 @@
   "fred_DTWEXBGS": {
    "last": "2026-10-23",
    "ok": true,
-   "age_days": 5,
+   "age_days": 6,
    "error": ""
   },
   "fred_DFII10": {
-   "last": "2026-10-26",
+   "last": "2026-10-27",
    "ok": true,
    "age_days": 2,
    "error": ""
@@ -81,13 +81,13 @@
   "fred_NASDAQCOM": {
    "last": "2026-10-27",
    "ok": true,
-   "age_days": 1,
+   "age_days": 2,
    "error": ""
   },
   "fred_M2SL": {
    "last": "2026-09-01",
    "ok": true,
-   "age_days": 57,
+   "age_days": 58,
    "error": ""
   }
  },

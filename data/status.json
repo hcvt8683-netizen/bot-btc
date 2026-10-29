@@ -10,9 +10,9 @@
     "mvrv: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
     "iss_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 20/04/2024"
    ],
-   "last": "2026-10-27",
-   "rows": 5946,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-10-28",
+   "rows": 5947,
+   "snapshot": "2026-10-29.parquet"
   },
   "fng": {
    "ok": true,
@@ -22,9 +22,9 @@
     "2 khoảng trống (lớn nhất 4 ngày): 13/04/2018→17/04/2018, 25/10/2024→27/10/2024",
     "fng: 7 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 23/08/2019"
    ],
-   "last": "2026-10-28",
-   "rows": 3188,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-10-29",
+   "rows": 3189,
+   "snapshot": "2026-10-29.parquet"
   },
   "binance_spot": {
    "ok": true,
@@ -34,9 +34,9 @@
     "close: 5 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/02/2021",
     "quote_volume: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/02/2018"
    ],
-   "last": "2026-10-27",
-   "rows": 3359,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-10-28",
+   "rows": 3360,
+   "snapshot": "2026-10-29.parquet"
   },
   "binance_funding": {
    "ok": false,
@@ -66,9 +66,9 @@
    "warnings": [
     "stable_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 31/07/2018"
    ],
-   "last": "2026-10-28",
-   "rows": 3256,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-10-29",
+   "rows": 3257,
+   "snapshot": "2026-10-29.parquet"
   },
   "fred_DTWEXBGS": {
    "ok": true,
@@ -80,7 +80,7 @@
    ],
    "last": "2026-10-23",
    "rows": 5217,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-10-29.parquet"
   },
   "fred_DFII10": {
    "ok": true,
@@ -89,9 +89,9 @@
    "warnings": [
     "real_yield_10y: 10 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
    ],
-   "last": "2026-10-26",
-   "rows": 5958,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-10-27",
+   "rows": 5959,
+   "snapshot": "2026-10-29.parquet"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -103,7 +103,7 @@
    ],
    "last": "2026-10-27",
    "rows": 14050,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-10-29.parquet"
   },
   "fred_M2SL": {
    "ok": true,
@@ -114,8 +114,8 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-10-29.parquet"
   }
  },
- "fetched_at": "2026-10-28T05:46:39Z"
+ "fetched_at": "2026-10-29T01:45:27Z"
 }
