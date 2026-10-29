@@ -38,6 +38,8 @@ const every = Number(everyArg || 4), autoFrom = fromArg || '2021-01-03';
     auto.push({ date: S.dates[i], option: top ? top.id : rec && rec.ids.length ? 'pa6' : 'all', ids, rec: rec ? rec.ids : [] });
     if (k % (every * 10) === 0) console.error(`auto ${S.dates[i]} -> ${top ? top.id : '-'} [${ids}] (${Math.round((Date.now() - t0) / 1000)} s)`);
   }
-  fs.writeFileSync(outp, JSON.stringify({ last: S.dates[last], fixed, auto, sets: [...cache.values()] }));
+  // per-horizon walk-forward probabilities of the set the bot uses today (PA3), for calibration checks
+  const wp = B3.walkPreds(S, last, B3.OPTIONS.find((o) => o.id === 'pa3').ids.filter((id) => S.avail.includes(id)));
+  fs.writeFileSync(outp, JSON.stringify({ last: S.dates[last], fixed, auto, sets: [...cache.values()], wp }));
   console.error(`done: ${Object.keys(fixed).length} fixed, ${auto.length} auto choices, ${cache.size} distinct sets`);
 })();

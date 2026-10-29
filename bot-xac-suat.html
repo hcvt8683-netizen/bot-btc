@@ -1110,7 +1110,9 @@ const B3 = (() => {
     return csv(head, rows);
   }
 
-  return { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, TP, NHOM_TP, SELL_VERDICT, LV, zoneOf, analyze, search, report, compareOptions, csvWeekly, csvOptions, sellSide, csvSell, scoreAtPrice, findLevel, priceLevels, levelText, levelNotes };
+  // research access for the rebuild (bot/report/measure_b.py): walk-forward predictions per horizon
+  const walkPreds = (S, asOf, ids) => { const smp = weekly(S, asOf), R = featRows(S, smp, ids); return HZ.map((h) => ({ h: h.w, preds: walk(S, smp, R, h.w, (r) => (r > 0 ? 1 : 0), 4).preds.map((x) => [x.date, x.p, x.p0]) })); };
+  return { HZ, SELL_HZ, BUY_Z, SELL_Z, PRESETS, OPTIONS, TP, NHOM_TP, SELL_VERDICT, LV, zoneOf, analyze, search, report, walkPreds, compareOptions, csvWeekly, csvOptions, sellSide, csvSell, scoreAtPrice, findLevel, priceLevels, levelText, levelNotes };
 })();
 // ===== B3 END =====
 

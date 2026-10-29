@@ -63,3 +63,15 @@ model:
   layer_b: []
   layer_c: []
   sell: advisory        # giai đoạn 6: chưa đạt 3/4 chu kỳ, chỉ là lời khuyên dạng chữ (docs/SELL_SIDE.md)
+# Bản xây lại kiểm định (docs/REBUILD_LOG.md). Cố định trước khi chạy, không đổi sau khi xem kết quả.
+rebuild:
+  signal: sunday_close         # tín hiệu tính trên giá đóng Chủ nhật
+  execution: monday_close      # chấm điểm: mua ở giá đóng thứ Hai (số liệu Coin Metrics có vào sáng thứ Hai)
+  holdout_start: 2024-01-01    # không xem, không tinh chỉnh; chạy một lần ở bước cuối
+  horizons_weeks: [4, 13, 26, 52]
+  episode_gap_weeks: 4         # các tuần cùng khung cách nhau ≤ 4 tuần gộp một đợt
+  bootstrap_n: 2000            # bootstrap khối dừng, độ dài khối trung bình = kỳ hạn
+  cost_block_weeks: 26         # độ dài khối trung bình khi bootstrap lợi thế giá vốn
+  multiplier_min: 0.5
+  multiplier_max: 1.5
+  seed: 20261029

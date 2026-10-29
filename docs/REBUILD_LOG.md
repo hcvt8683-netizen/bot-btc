@@ -39,3 +39,33 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
    - (a) giá đóng Chủ nhật, đúng chữ trong bản kế hoạch, hơi lạc quan khoảng 1 ngày;
    - (b) giá đóng thứ Hai, thận trọng hơn; tôi đề xuất cách này.
 2. Holdout mới bắt đầu từ 01/01/2024, theo bản kế hoạch. Như bản kế hoạch đã nói, giai đoạn này con người đã từng xem (giai đoạn 7 trước dùng 2023 trở đi). Nên chỉ nhật ký đi tới (Phần H) mới là kiểm định ngoài mẫu thật.
+
+**Quyết định của bạn (29/10/2026):** chấm điểm bằng **giá đóng thứ Hai**. Tín hiệu vẫn tính ở giá đóng Chủ nhật. Ghi trong `config/bot.yaml`, mục `rebuild.execution: monday_close`.
+
+## Phần B: Thước đo (xong 29/10/2026, chờ xác nhận)
+
+**Đã làm** (`bot/backtest/measure.py`, cấu hình cố định ở `config/bot.yaml` mục `rebuild`)
+- **Lợi thế giá vốn so với mua đều, cùng tổng tiền nạp.** Có quỹ dự trữ: tuần mua ít thì phần dư vào quỹ, tuần mua nhiều thì rút từ quỹ, không bao giờ vay. Tiền dư cuối kỳ tính theo giá cuối kỳ. Khi đó lợi thế giá vốn đúng bằng (tỷ số tài sản − 1); bài kiểm tra chứng minh đẳng thức này. Hệ số giới hạn 0,5–1,5.
+- **Đợt** = các tuần liên tiếp cùng khung; khoảng ngắt ≤ 4 tuần thì gộp. Mọi bảng ghi cả số tuần lẫn số đợt.
+- **Khoảng tin cậy thống nhất cho mọi bảng.** Bootstrap khối dừng (stationary), độ dài khối trung bình bằng kỳ hạn tính theo tuần, 2.000 lần, tính cho **mức chênh so với mốc của cùng các tuần đó**. Kèm Wilson theo đợt để đối chiếu. Lợi thế giá vốn dùng khối trung bình 26 tuần.
+- **Mốc so sánh** luôn là mọi tuần của cùng bảng, cùng giai đoạn. Sửa lỗi 9: các bảng không còn dùng mốc khác nhau (33%, 37%, 40%).
+- Thước đo phụ: tỷ lệ thắng 1 tháng, 3 tháng, 6 tháng, 1 năm; chênh so với mốc; lãi trung vị và tứ phân vị; sụt giảm trung vị trong kỳ giữ.
+- **Hiệu chỉnh xác suất:** Brier so với tỷ lệ nền của cửa sổ huấn luyện, có khoảng tin cậy bootstrap; bảng độ tin cậy theo thập phân vị. Không tốt hơn mốc thì chỉ hiển thị thứ hạng.
+- Kết luận cho mỗi ô: "hơn mốc" / "kém mốc" khi khoảng tin cậy của mức chênh không chứa 0; "chưa có lợi thế" khi chứa 0; **"ít đợt, chưa kết luận" khi dưới 3 đợt** (xem thay đổi thiết kế bên dưới).
+- Đo lại bot hiện tại bằng thước đo mới, dữ liệu đến 31/12/2023: `docs/MEASURE_B.md`, `data/results/measure_b.json`. Lệnh: `python -c "from bot.report import measure_b; measure_b.run()"`.
+
+**Kết quả đo lại bot hiện tại (đến 31/12/2023)**
+| | PA3 cố định | Chế độ Tự động |
+|---|---|---|
+| Số tuần có điểm / từ | 179 / 02/08/2020 | 161 / 06/12/2020 |
+| Số đợt "Phải mua" | **1** (70 tuần liền) | 6 |
+| Ô nào "hơn mốc" có đủ đợt? | không ô nào | không ô nào |
+| Khung xếp đúng thứ tự ở kỳ hạn nào? | không kỳ hạn nào | không kỳ hạn nào |
+| Lợi thế giá vốn khi dùng khung làm hệ số | +2,5% (khoảng tin cậy −35,6% đến +33,4%): chưa có lợi thế | +2,8% (−20,7% đến +10,3%): chưa có lợi thế |
+| Xác suất của mô hình (Brier so với mốc) | kém hơn hoặc không hơn mốc ở cả 4 kỳ hạn → **không hiển thị xác suất** | — |
+
+- Bảng độ tin cậy của mô hình 6 tháng: khi mô hình báo 1–13% thì thực tế thắng 56–89%, khi báo 49–59% thì thực tế 6–17%. Xác suất hiện tại không có nghĩa.
+- Đúng như lỗi 2: "Phải mua" của PA3 trông như 70 tuần nhưng chỉ là 1 đợt; Wilson theo đợt là 0–79%.
+
+**Thay đổi thiết kế sau khi xem kết quả (ghi theo yêu cầu)**
+- Thêm quy tắc **dưới 3 đợt → "ít đợt, chưa kết luận"**. Lý do: với PA3, ô "Phải mua, 1 năm" có bootstrap 0,15 đến 0,77 (sẽ ghi "hơn mốc"), nhưng cả 31 tuần là một đợt duy nhất. Bootstrap theo tuần không đo được bất định của một sự kiện chỉ xảy ra một lần. Quy tắc này chỉ làm kết luận **khắt khe hơn**, không làm kết quả đẹp hơn.

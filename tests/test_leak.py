@@ -10,6 +10,7 @@ import pytest
 from bot.features import weekly_close as wc
 
 T = pd.Timestamp("2019-06-30")  # a Sunday
+EXEC = ["exec_monday"]  # execution price: the Monday after the signal, by design never a signal input
 
 
 def synth(n_days: int = 4200, seed: int = 7) -> dict:
@@ -45,9 +46,11 @@ def test_weekly_table_ignores_the_future(how):
     s = synth()
     base = wc.build(**s)
     changed = wc.build(**{k: after(v, how, rng) for k, v in s.items()})
-    a, b = base.loc[:T], changed.loc[:T]
+    a, b = base.loc[:T].drop(columns=EXEC), changed.loc[:T].drop(columns=EXEC)
     assert len(a) == len(b) > 300
     pd.testing.assert_frame_equal(a, b, check_exact=True)
+    # the execution price of week t uses only day t + 1
+    pd.testing.assert_series_equal(base["exec_monday"].loc[:T - pd.Timedelta(weeks=1)], changed["exec_monday"].loc[:T - pd.Timedelta(weeks=1)])
 
 
 def test_end_parameter_cuts_inputs():
@@ -55,7 +58,8 @@ def test_end_parameter_cuts_inputs():
     full = wc.build(**s)
     cut = wc.build(**s, end=T)
     assert cut.index.max() == T
-    pd.testing.assert_frame_equal(full.loc[:T], cut, check_exact=True)
+    pd.testing.assert_frame_equal(full.loc[:T].drop(columns=EXEC), cut.drop(columns=EXEC), check_exact=True)
+    assert np.isnan(cut["exec_monday"].iloc[-1])  # Monday after T not known yet
 
 
 def test_rows_are_sunday_closes_and_percentiles_need_history():

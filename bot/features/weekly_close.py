@@ -79,6 +79,8 @@ def build(cm: pd.DataFrame, ext: pd.DataFrame | None = None, fng: pd.DataFrame |
     out = pd.DataFrame(index=sundays)
     out.index.name = "date"
     out["close"] = w["price"]
+    # execution price for scoring (config rebuild.execution = monday_close): the close of the Monday after the Sunday
+    out["exec_monday"] = d["price"].reindex(sundays + pd.Timedelta(days=1)).to_numpy()
     for f in FEATURES:
         out["raw_" + f] = w[f]
         pct = normalize.pit_percentile(w[f], window=PCT_WINDOW, min_hist=PCT_MIN)
