@@ -187,3 +187,15 @@ forecast_search:
   confirm_from: 2022-01-01                       # đến ngày cuối đã biết kết quả 30 ngày
   rule: "chọn cấu hình có điểm thấp nhất ở giai đoạn chọn. Chỉ thay cách đang dùng nếu ở giai đoạn xác nhận nó vẫn có điểm thấp hơn với khoảng tin cậy 95% của chênh lệch (bootstrap khối 30 ngày, 2000 lần) nằm hẳn dưới 0, và dải 80% phủ 75–85%. Không thì giữ nguyên"
   log: experiments/forecast_configs.csv
+
+# Xác suất có lãi đã hiệu chỉnh (1, 3, 6 tháng). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
+calib:
+  horizons_weeks: [4, 13, 26]          # 1 tháng, 3 tháng, 6 tháng; có lãi = giá đóng thứ Hai sau h tuần cao hơn lúc mua
+  methods:
+    base: "tỷ lệ gốc: tỷ lệ tuần có lãi trong 208 tuần trước (chỉ những tuần đã biết kết quả)"
+    bins: "5 nhóm theo thứ hạng ngoài mẫu của chỉ số rẻ Giá/MA 200 tuần; xác suất = (số tuần có lãi trong nhóm + 20 × tỷ lệ gốc) / (số tuần trong nhóm + 20), chỉ dùng tuần đã biết kết quả"
+    logit: "hồi quy logistic L2 (λ = 1) trên cheap_mvrv, cheap_p_200wma, cheap_dev_ma20w; học lại mỗi 13 tuần, cửa sổ mở rộng, purge h tuần, tối thiểu 104 tuần"
+  eval_from: 2016-01-01                # chấm đi tới từ đây đến tuần cuối đã biết kết quả (dữ liệu này đã được xem trước: không phải kiểm định ngoài mẫu mới)
+  rule: "mỗi kỳ hạn: chọn cách có Brier thấp nhất trong bins/logit; chỉ dùng nó để 'chọn điểm mua' nếu mức cải thiện Brier so với base có khoảng tin cậy 95% (bootstrap khối h tuần, 2000 lần) nằm hẳn trên 0; không thì hiển thị base và ghi 'chưa chọn được điểm mua tốt hơn mua bất kỳ lúc nào'"
+  also_report: "độ tin cậy hiệu chỉnh (10 nhóm), tỷ lệ có lãi ở 20% tuần có xác suất cao nhất so với mọi tuần theo đợt độc lập"
+  forward: "xác suất của từng tuần mới được ghi vào nhật ký đi tới riêng để kiểm chứng từ nay"
