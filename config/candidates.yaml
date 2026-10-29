@@ -190,7 +190,7 @@ forecast_search:
 
 # Xác suất có lãi đã hiệu chỉnh (1, 3, 6 tháng). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
 calib:
-  horizons_weeks: [4, 13, 26]          # 1 tháng, 3 tháng, 6 tháng; có lãi = giá đóng thứ Hai sau h tuần cao hơn lúc mua
+  horizons_weeks: [4, 13, 26, 52]      # 1 tháng, 3 tháng, 6 tháng, 1 năm (52 tuần thêm 29/10/2026, trước khi chạy); có lãi = giá đóng thứ Hai sau h tuần cao hơn lúc mua
   methods:
     base: "tỷ lệ gốc: tỷ lệ tuần có lãi trong 208 tuần trước (chỉ những tuần đã biết kết quả)"
     bins: "5 nhóm theo thứ hạng ngoài mẫu của chỉ số rẻ Giá/MA 200 tuần; xác suất = (số tuần có lãi trong nhóm + 20 × tỷ lệ gốc) / (số tuần trong nhóm + 20), chỉ dùng tuần đã biết kết quả"
@@ -198,4 +198,14 @@ calib:
   eval_from: 2016-01-01                # chấm đi tới từ đây đến tuần cuối đã biết kết quả (dữ liệu này đã được xem trước: không phải kiểm định ngoài mẫu mới)
   rule: "mỗi kỳ hạn: chọn cách có Brier thấp nhất trong bins/logit; chỉ dùng nó để 'chọn điểm mua' nếu mức cải thiện Brier so với base có khoảng tin cậy 95% (bootstrap khối h tuần, 2000 lần) nằm hẳn trên 0; không thì hiển thị base và ghi 'chưa chọn được điểm mua tốt hơn mua bất kỳ lúc nào'"
   also_report: "độ tin cậy hiệu chỉnh (10 nhóm), tỷ lệ có lãi ở 20% tuần có xác suất cao nhất so với mọi tuần theo đợt độc lập"
-  forward: "xác suất của từng tuần mới được ghi vào nhật ký đi tới riêng để kiểm chứng từ nay"
+  said80: "thêm sau lần chạy đầu (chỉ mô tả, không dùng để chọn): những tuần bins/logit nói ≥ 80%, thực tế có lãi bao nhiêu lần, theo đợt độc lập"
+  returns:                             # thêm 29/10/2026, trước khi chạy: lợi nhuận dự đoán nếu giữ h tuần
+    quantiles: [0.1, 0.5, 0.9]
+    methods:
+      base: "phân vị lợi nhuận h tuần của 208 tuần trước (chỉ tuần đã biết kết quả, tối thiểu 52)"
+      bins: "phân vị lợi nhuận của mọi tuần đã biết kết quả cùng nhóm Giá/MA 200 tuần (5 nhóm như trên); dưới 52 tuần thì dùng base"
+    score: "điểm phân vị (pinball) trên log(1 + lợi nhuận), trung bình 3 phân vị; cùng các tuần chấm như xác suất"
+    rule: "chỉ dùng bins nếu mức giảm điểm so với base có khoảng tin cậy 95% (bootstrap khối h tuần, 2000 lần) nằm hẳn trên 0; luôn báo tỷ lệ tuần kết quả thật nằm trong dải 10–90% (mục tiêu 80%)"
+    live: "trang web nhân phân vị với giá lúc tra để ra giá dự kiến; phân vị và xác suất chỉ đổi theo tuần"
+  sell_side: "mặt kia của cùng phép đo: xác suất giá sau h tuần thấp hơn = 1 − xác suất có lãi (Brier như nhau nên quy tắc chọn như nhau). Báo thêm (mô tả): những tuần bins/logit nói xác suất có lãi ≤ 20%, thực tế giá thấp hơn bao nhiêu lần; 20% tuần có xác suất thấp nhất so với mọi tuần theo đợt"
+  forward: "xác suất của từng tuần mới được ghi vào nhật ký đi tới riêng để kiểm chứng từ nay (data/calib/calib_log.csv); lợi nhuận dự đoán ghi vào data/calib/ret_log.csv"

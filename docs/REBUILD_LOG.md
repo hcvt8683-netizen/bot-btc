@@ -345,3 +345,19 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Cách không chuẩn hóa theo độ dao động với toàn bộ lịch sử có dải quá rộng: trúng hơn 90%, điểm kém nhất.
 
 **Trang web:** thêm một dòng ghi chú ở mục dự báo. Không sửa `price_forecast.py`, nên phiên bản dự báo và nhật ký kiểm chứng giữ nguyên.
+
+## Xác suất có lãi đã hiệu chỉnh (29/10/2026)
+
+**Yêu cầu:** xác suất có lãi nếu mua và giữ 1, 3, 6 tháng, để chọn điểm mua tốt nhất.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `calib`, commit `7b2ca74`, trước khi tính):
+- 3 cách: tỷ lệ gốc 208 tuần; 5 nhóm theo thứ hạng Giá / MA 200 tuần co về tỷ lệ gốc; hồi quy logistic trên 3 chỉ số rẻ;
+- chấm bằng sai số Brier từ 2016; chỉ dùng mô hình để chọn điểm mua khi khoảng tin cậy của mức cải thiện so với tỷ lệ gốc nằm hẳn trên 0.
+
+**Thêm sau lần chạy đầu (chỉ mô tả):** bảng "khi mô hình báo ≥ 80%, thực tế có lãi bao nhiêu" (`said80`). Không dùng để chọn cách tính.
+
+**Mở rộng, đăng ký trước khi chạy** (cùng mục, commit này):
+- thêm kỳ hạn 1 năm (52 tuần);
+- lợi nhuận dự đoán: phân vị 10/50/90% của lợi nhuận h tuần, tỷ lệ gốc 208 tuần so với 5 nhóm Giá / MA 200 tuần, chấm bằng điểm phân vị; chỉ dùng nhóm khi khoảng tin cậy nằm hẳn trên 0; báo tỷ lệ trúng dải 10–90%;
+- trang web nhân phân vị với giá lúc tra để ra giá dự kiến;
+- bên bán: xác suất giá thấp hơn = 1 − xác suất có lãi; báo thêm những tuần mô hình nói ≤ 20% và 20% tuần có xác suất thấp nhất (mô tả).
