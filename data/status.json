@@ -10,9 +10,9 @@
     "mvrv: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
     "iss_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 20/04/2024"
    ],
-   "last": "2026-10-29",
-   "rows": 5948,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-30",
+   "rows": 5949,
+   "snapshot": "2026-10-31.parquet"
   },
   "fng": {
    "ok": true,
@@ -22,9 +22,9 @@
     "2 khoảng trống (lớn nhất 4 ngày): 13/04/2018→17/04/2018, 25/10/2024→27/10/2024",
     "fng: 7 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 23/08/2019"
    ],
-   "last": "2026-10-30",
-   "rows": 3190,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-31",
+   "rows": 3191,
+   "snapshot": "2026-10-31.parquet"
   },
   "binance_spot": {
    "ok": true,
@@ -34,9 +34,9 @@
     "close: 5 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/02/2021",
     "quote_volume: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/02/2018"
    ],
-   "last": "2026-10-29",
-   "rows": 3361,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-30",
+   "rows": 3362,
+   "snapshot": "2026-10-31.parquet"
   },
   "binance_funding": {
    "ok": false,
@@ -66,21 +66,22 @@
    "warnings": [
     "stable_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 31/07/2018"
    ],
-   "last": "2026-10-30",
-   "rows": 3258,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-31",
+   "rows": 3259,
+   "snapshot": "2026-10-31.parquet"
   },
   "fred_DTWEXBGS": {
-   "ok": true,
+   "ok": false,
    "source": "fred_DTWEXBGS",
-   "errors": [],
+   "errors": [
+    "dữ liệu cũ: dòng mới nhất 23/10/2026, đã 8 ngày"
+   ],
    "warnings": [
     "2 khoảng trống (lớn nhất 7 ngày): 05/02/2010→12/02/2010, 21/01/2016→27/01/2016",
     "usd_broad: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 26/03/2020"
    ],
    "last": "2026-10-23",
-   "rows": 5217,
-   "snapshot": "2026-10-30.parquet"
+   "rows": 5217
   },
   "fred_DFII10": {
    "ok": true,
@@ -89,9 +90,9 @@
    "warnings": [
     "real_yield_10y: 10 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
    ],
-   "last": "2026-10-28",
-   "rows": 5960,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-29",
+   "rows": 5961,
+   "snapshot": "2026-10-31.parquet"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -101,9 +102,9 @@
     "1 khoảng trống (lớn nhất 7 ngày): 10/09/2001→17/09/2001",
     "nasdaq: 43 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/04/2025"
    ],
-   "last": "2026-10-28",
-   "rows": 14051,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-29",
+   "rows": 14052,
+   "snapshot": "2026-10-31.parquet"
   },
   "fred_M2SL": {
    "ok": true,
@@ -114,7 +115,7 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "2026-10-30.parquet"
+   "snapshot": "2026-10-31.parquet"
   },
   "coinmetrics_ext": {
    "ok": true,
@@ -125,9 +126,9 @@
     "volume_spot_usd: 11 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 14/11/2011",
     "supply: 36 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 18/11/2010"
    ],
-   "last": "2026-10-29",
-   "rows": 5948,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-30",
+   "rows": 5949,
+   "snapshot": "2026-10-31.parquet"
   },
   "bitstamp": {
    "ok": true,
@@ -136,9 +137,9 @@
    "warnings": [
     "close: 22 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020"
    ],
-   "last": "2026-10-29",
-   "rows": 5552,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-30",
+   "rows": 5553,
+   "snapshot": "2026-10-31.parquet"
   },
   "coingecko": {
    "ok": true,
@@ -147,9 +148,9 @@
    "warnings": [
     "price: 1 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 05/02/2026"
    ],
-   "last": "2026-10-29",
+   "last": "2026-10-30",
    "rows": 365,
-   "snapshot": "2026-10-30.parquet"
+   "snapshot": "2026-10-31.parquet"
   },
   "fred_DFEDTARU": {
    "ok": true,
@@ -158,10 +159,10 @@
    "warnings": [
     "fed_upper: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 03/11/2022"
    ],
-   "last": "2026-10-29",
-   "rows": 6527,
-   "snapshot": "2026-10-30.parquet"
+   "last": "2026-10-30",
+   "rows": 6528,
+   "snapshot": "2026-10-31.parquet"
   }
  },
- "fetched_at": "2026-10-30T01:45:37Z"
+ "fetched_at": "2026-10-31T01:43:58Z"
 }
