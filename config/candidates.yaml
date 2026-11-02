@@ -317,3 +317,48 @@ perp:
   live: "trình duyệt tải nến giờ, nến ngày, funding mới nhất từ fapi.binance.com lúc bấm Chạy để xác định trạng thái; ngưỡng phân vị lấy từ lần chạy Daily gần nhất. Không tải được thì dùng trạng thái lúc chạy Daily và ghi rõ"
   log: "mỗi ngày ghi một lần, tại nến ngày cuối đã đóng (00:00 UTC), mỗi kỳ hạn: các ô khớp, khả năng có lãi long/short, kết luận, vào data/perp/perp_log.csv (chỉ thêm dòng, không ghi bù); chấm khi đủ kỳ hạn; đổi phương pháp = phiên bản mới. Giai đoạn kiểm tra cuối mới = nhật ký này từ 03/11/2026, chấm lần đầu khi đủ 1 năm"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư; với đòn bẩy, một lần đi ngược có thể mất hết ký quỹ"
+
+# Long/Short có giá vào, cắt lỗ, chốt lời (bổ sung mục perp; không sửa mục perp, module perp_signal.py hay nhật ký data/perp/).
+# Đăng ký trước khi tính bất kỳ con số nào (02/11/2026).
+perp_trade:
+  why: "người dùng muốn thẻ Long/Short cho biết giá vào lệnh, giá cắt lỗ, giá chốt lời và xác suất thắng, theo bộ quy tắc tốt nhất tìm được từ dữ liệu cũ. Mục perp chỉ đo lệnh giữ đúng một kỳ hạn, không có cắt lỗ. Mục này thử một họ quy tắc cố định trước; 'tốt nhất' được chọn lại mỗi tháng chỉ bằng các lệnh đã đóng trước tháng đó, và chính cách chọn này được chấm trên các tháng sau (đi tới), nên con số trên trang không phải kết quả dò trên chính dữ liệu chấm"
+  known_before: "trước khi đăng ký đã xem kết quả mục perp (02/11/2026): không ô nào có lợi thế; cao nhất là long sau khi vừa giảm mạnh (khoảng 54% có lãi ở 24 giờ, chưa có ý nghĩa). Họ quy tắc dưới đây có tín hiệu quá đà và funding nên không hoàn toàn mù với dữ liệu 2020–2026; nhật ký từ 03/11/2026 mới là kiểm tra sạch"
+  data: "như mục perp: nến giờ BTCUSDT vĩnh cửu (binance_perp_1h) từ 01/01/2020, đánh số theo giờ đóng nến t; funding 8 giờ (binance_funding)"
+  decision: "mỗi lần nến giờ đóng (t). Một tài khoản, mỗi lúc tối đa một lệnh (kể cả lệnh chờ chưa khớp): đang bận thì bỏ qua tín hiệu mới; lệnh đóng ở nến j thì từ giờ đóng nến j được nhận tín hiệu mới"
+  atr: "ATR = trung bình của 14 biên độ 24 giờ liền nhau kết thúc ở t (mỗi biên độ = giá cao nhất − giá thấp nhất của 24 nến giờ), chia cho giá đóng t"
+  thresholds: "phân vị lấy trên 365 ngày trước t (không gồm t), cần ít nhất 180 ngày, như mục perp"
+  signals:   # mỗi tín hiệu có phía long và phía short; tính ở giờ đóng t chỉ bằng dữ liệu đến t
+    moc: "mốc: mọi giờ (long luôn / short luôn)"
+    xu_huong: "theo xu hướng: long khi giá đóng t > trung bình 480 giá đóng gần nhất (20 ngày, gồm t); short khi thấp hơn hoặc bằng"
+    pha_vo: "phá vỡ: long khi giá đóng t > giá cao nhất của 480 nến trước t (không gồm t); short khi giá đóng t < giá thấp nhất của 480 nến đó"
+    qua_da: "quá đà, đánh ngược: biến động 24 giờ (giá đóng t / giá đóng t−24 − 1) ≤ phân vị 10% → long; ≥ phân vị 90% → short"
+    funding_nguoc: "funding ngược: trung bình funding 24 giờ (như mục perp) ≤ phân vị 20% → long; ≥ phân vị 80% → short"
+    hoi_xu_huong: "điều chỉnh trong xu hướng: giá trên trung bình 20 ngày và biến động 24 giờ ≤ phân vị 20% → long; giá dưới hoặc bằng trung bình 20 ngày và biến động 24 giờ ≥ phân vị 80% → short"
+  entries:
+    ngay: "vào ngay ở giá đóng t"
+    cho: "đặt lệnh chờ cách giá đóng t 0,5 × ATR (long thấp hơn, short cao hơn), hiệu lực 6 nến (t+1..t+6); khớp ở đúng giá lệnh ở nến đầu tiên có giá thấp nhất ≤ giá lệnh (long) hoặc giá cao nhất ≥ giá lệnh (short); không khớp thì hủy, tài khoản rảnh từ giờ đóng nến t+6"
+  limit_atr: 0.5
+  limit_bars: 6
+  stop_atr: [0.5, 1, 1.5, 2]       # cắt lỗ cách giá vào k × ATR(t)
+  target_r: [1, 1.5, 2, 3]         # chốt lời cách giá vào R × khoảng cắt lỗ
+  max_hold_hours: [24, 72, 168]    # không chạm gì thì đóng ở giá đóng nến thứ H sau nến vào lệnh
+  exit_rule: "xét từng nến sau nến vào lệnh: chạm cắt lỗ (long: giá thấp nhất ≤ giá cắt lỗ; short: giá cao nhất ≥) thì ra đúng giá cắt lỗ; chạm chốt lời thì ra đúng giá chốt lời; một nến chạm cả hai thì tính cắt lỗ (bảo thủ). Lệnh chờ: nến khớp lệnh chỉ xét cắt lỗ (bảo thủ), chốt lời xét từ nến sau. Thiếu nến hoặc chưa đủ nến thì lệnh chưa biết kết quả, bỏ qua"
+  costs: {fee: 0.0005, slippage: 0.0002}   # mỗi chiều, cả vào và ra, kể cả lệnh chờ (bảo thủ), như mục perp
+  funding_rule: "long trả, short nhận tổng funding có mốc trong (giờ mở nến vào lệnh, giờ đóng nến ra lệnh]; lệnh vào ngay coi nến vào lệnh là nến t+1"
+  outcome: "lãi ròng (đòn bẩy 1x, theo % giá vào) và R = lãi ròng / khoảng cắt lỗ (%). Thắng = lãi ròng > 0"
+  rules: "mỗi quy tắc = tín hiệu × phía × cách vào × cắt lỗ × chốt lời × giữ tối đa = 6 × 2 × 2 × 4 × 4 × 3 = 1152 quy tắc; mỗi quy tắc chạy riêng một tài khoản theo mục decision"
+  select:
+    first: 2021-07-01
+    every: "đầu mỗi tháng, 00:00 UTC ngày 1"
+    train: "mọi lệnh của từng quy tắc (chạy riêng) đã đóng trước thời điểm chọn, từ đầu dữ liệu (cửa sổ mở rộng)"
+    min_trades: 30
+    score: "t = R trung bình / (độ lệch chuẩn R / √n)"
+    gate_t: 2.0
+    pick: "quy tắc có t cao nhất trong các quy tắc đủ số lệnh; t cao nhất < gate_t thì tháng đó đứng ngoài. Hòa thì lấy quy tắc đứng trước theo thứ tự liệt kê (tín hiệu, phía, cách vào, cắt lỗ, chốt lời, giữ tối đa)"
+  walk_forward: "một tài khoản đi qua từng tháng từ select.first: trong tháng chỉ nhận tín hiệu của quy tắc đã chọn cho tháng đó; lệnh chưa đóng từ tháng trước giữ đến khi đóng (tài khoản bận tới lúc đó). Lệnh tính vào tháng của giờ có tín hiệu"
+  baseline: "cùng cách chọn và đi tới nhưng chỉ trong 96 quy tắc mốc (long luôn / short luôn): để biết tín hiệu có thêm gì so với chỉ chọn một phía"
+  stats: "số lệnh, tỷ lệ thắng (Wilson 95% theo số lệnh; các lệnh không chồng thời gian), tỷ lệ chạm chốt lời / cắt lỗ / hết giờ, lãi ròng trung bình, R trung bình, tổng R, mức sụt lớn nhất của đường tổng R; khoảng tin cậy 95% của R trung bình bằng bootstrap khối theo tháng (10000 lần, hạt giống 0); hai nửa chia ở tháng giữa giai đoạn đi tới"
+  verdict: "'có lợi thế' khi đi tới (họ đầy đủ) có ít nhất 100 lệnh, cận dưới bootstrap 95% của R trung bình > 0, và R trung bình > 0 ở cả hai nửa. Không thì 'chưa có lợi thế' và trang ghi 'Không nên vào lệnh'"
+  page: "quy tắc của tháng hiện tại (chọn đúng cách trên); lúc bấm Chạy, trình duyệt tải nến giờ và funding mới nhất từ fapi.binance.com để biết tín hiệu có đang bật, ngưỡng phân vị lấy từ lần chạy Daily gần nhất. Hiện giá vào (hoặc giá lệnh chờ), giá cắt lỗ, giá chốt lời, giữ tối đa; xác suất thắng của quy tắc đó trên mọi lệnh lịch sử (Wilson 95%, ghi rõ đã chọn trong 1152 quy tắc nên có thể cao hơn thực tế) và của cách chọn khi đi tới; tỷ lệ thắng cần để hòa vốn; lãi kỳ vọng; giá thanh lý theo đòn bẩy người dùng nhập và cảnh báo khi thanh lý đến trước cắt lỗ"
+  log: "mỗi lần chạy, nếu lựa chọn của tháng hiện tại (theo phiên bản) chưa có trong data/perp_trade/select_log.csv thì thêm một dòng (chỉ thêm dòng, không ghi bù tháng đã qua). Chấm: lệnh của các quy tắc đã ghi, có giờ tín hiệu từ 03/11/2026 và đã đóng, tính lại từ dữ liệu cùng phiên bản. Đổi phương pháp = phiên bản mới. Giai đoạn kiểm tra cuối mới = nhật ký này, chấm lần đầu khi đủ 1 năm"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư; với đòn bẩy, một lần đi ngược có thể mất hết ký quỹ"
