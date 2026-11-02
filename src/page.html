@@ -268,6 +268,17 @@
     table.heat.stack td:first-child { grid-column: 1 / -1; text-align: left; padding: 7px 12px; border-top: 0; }
     #t-pa.stack td:first-child::before { content: attr(data-label) " "; font-weight: 500; color: var(--muted); }
   }
+
+  /* Long/Short: chế độ riêng (src/ls.js). Chỉ ẩn phần mua / bán khi đang xem, không đổi kiểu nào của chúng */
+  #mode-ls[aria-pressed="true"] { background: #3556A8; }
+  body.ls-view #tabs, body.ls-view #app > .tabp, body.ls-view #stale { display: none !important; }
+  body:not(.ls-view) #ls-app { display: none; }
+  #ls-app .verdict { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 2px 0 6px; }
+  #ls-app .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+  #ls-app .box .field select, #ls-app .box .field input { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 7px 10px; font-size: 15px; }
+  #ls-app .box .btn.main { margin-top: 6px; width: 100%; }
+  #ls-app .answer p { margin: 0 0 8px; }
+  #ls-app .lev { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
 </style>
 </head>
 <body>
@@ -284,6 +295,7 @@
     <div class="modes" role="group" aria-label="{{web.page.che_do}}">
       <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>{{web.page.ben_mua}}</b><span>{{web.page.toi_muon_mua_them_btc}}</span></button>
       <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>{{web.page.ben_ban}}</b><span>{{web.page.toi_dang_giu_btc_ngan}}</span></button>
+      <button type="button" class="mode" id="mode-ls" aria-pressed="false"><b>{{web.page.ben_ls}}</b><span>{{web.page.ls_sub}}</span></button>
     </div>
   </div>
 </header>
@@ -602,6 +614,42 @@
       </section>
     </div>
 
+    <!-- ================= LONG/SHORT (chế độ riêng, src/ls.js) ================= -->
+    <div id="ls-app">
+      <p class="warn" id="ls-none" hidden>{{web.ls.none}}</p>
+      <section class="panel" id="ls-run">
+        <h2><span class="ic" aria-hidden="true">⇅</span>{{web.ls.title}}</h2>
+        <p class="lead">{{web.ls.lead}}</p>
+        <div class="calc">
+          <div class="box">
+            <p class="kicker">{{web.ls.unit_label}}</p>
+            <div class="seg" id="ls-unit" role="group" aria-label="{{web.ls.unit_label}}">
+              <button type="button" data-u="h" aria-pressed="true">{{web.ls.unit_h}}</button>
+              <button type="button" data-u="d" aria-pressed="false">{{web.ls.unit_d}}</button>
+            </div>
+            <label class="field" style="margin-top:10px">{{web.ls.h_label}}<select id="ls-h"></select></label>
+            <label class="field">{{web.ls.lev_label}}<input type="text" inputmode="decimal" id="ls-lev" value="1" autocomplete="off"></label>
+            <label class="field">{{web.ls.amt_label}}<input type="text" inputmode="decimal" id="ls-amt" placeholder="{{web.ls.amt_ph}}" autocomplete="off"></label>
+            <button type="button" class="btn main" id="ls-go">{{web.ls.run}}</button>
+            <p class="progress" id="ls-status"></p>
+          </div>
+          <div class="answer" id="ls-answer"></div>
+        </div>
+      </section>
+      <section class="panel" id="ls-table-sec">
+        <h2><span class="ic" aria-hidden="true">▤</span><span id="ls-table-title"></span></h2>
+        <p class="lead" id="ls-table-lead"></p>
+        <div class="scroll"><table id="t-ls"></table></div>
+        <ul class="crit" id="ls-notes"></ul>
+      </section>
+      <section class="panel" id="ls-method">
+        <h2><span class="ic" aria-hidden="true">✓</span>{{web.ls.method_title}}</h2>
+        <ul class="crit" id="ls-method-list"></ul>
+        <p class="lead" id="ls-log" style="margin-top:12px"></p>
+        <p class="warn">{{web.ls.disclaimer}}</p>
+      </section>
+    </div>
+
     <p class="foot">{{web.page.ket_qua_trong_qua_khu_khong}}</p>
   </div>
 </main>
@@ -616,6 +664,9 @@
 </script>
 <script>
 /*UI*/
+</script>
+<script>
+/*LS*/
 </script>
 </body>
 </html>

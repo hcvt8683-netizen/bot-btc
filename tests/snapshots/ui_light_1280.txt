@@ -9,6 +9,8 @@ Bên mua
 Tôi muốn mua thêm BTC
 Bên bán
 Tôi đang giữ BTC
+Long/Short
+Hợp đồng tương lai
 --- home ---
 Khuyến nghị tuần này
 Mua đều
@@ -1041,6 +1043,8 @@ Bên mua
 Tôi muốn mua thêm BTC
 Bên bán
 Tôi đang giữ BTC
+Long/Short
+Hợp đồng tương lai
 --- home ---
 Bên bán tuần này
 Giữ

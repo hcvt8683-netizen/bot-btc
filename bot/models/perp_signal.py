@@ -307,11 +307,16 @@ def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
     out["log"] = score_log(b, cfg)
     if write:
         (DATA / "results").mkdir(exist_ok=True)
-        (DATA / "results" / "perp.json").write_text(json.dumps(_round(out), ensure_ascii=False, separators=(",", ":"), default=str), encoding="utf-8")
+        (DATA / "results" / "perp.json").write_text(json.dumps(compact(out), ensure_ascii=False, separators=(",", ":"), default=str), encoding="utf-8")
     return out
 
 
-def _round(x, nd: int = 5):
+def compact(out: dict) -> dict:
+    """What the page embeds: 4 decimals (0,01%), thresholds 8 (funding rates are around 0,0001)."""
+    return {**_round({k: v for k, v in out.items() if k != "thresholds"}), "thresholds": _round(out["thresholds"], 8)}
+
+
+def _round(x, nd: int = 4):
     if isinstance(x, float):
         return None if not np.isfinite(x) else round(x, nd)
     if isinstance(x, dict):

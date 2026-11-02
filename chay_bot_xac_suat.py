@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, "du_lieu_tam")
 PAGE = "bot-xac-suat.html"
 ALLOWED = {"api.alternative.me", "community-api.coinmetrics.io", "api.binance.com",
-           "data-api.binance.vision", "api.coingecko.com"}
+           "data-api.binance.vision", "api.coingecko.com", "fapi.binance.com"}
 UA = {"User-Agent": "Mozilla/5.0 bot-xac-suat-btc"}
 
 

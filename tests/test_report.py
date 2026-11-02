@@ -70,9 +70,12 @@ def test_every_text_key_exists_and_vi_json_is_in_sync():
             node = node[k]
         return True
     used = set()
-    for f in ("engine.js", "analysis.js", "ui.js"):
+    for f in ("engine.js", "analysis.js", "ui.js", "ls.js"):
         used |= set(re.findall(r"tx\('((?:web|sources)\.[a-z0-9_.]+)'(?!\s*\+)", (ROOT / "src" / f).read_text(encoding="utf-8")))
     used |= {f"web.kn.ev_{e}" for e in ("fomc", "cpi", "pce", "opex")} | {f"web.kn.layer_{x}" for x in "ABC"}  # keys built at run time
+    ls = (ROOT / "src" / "ls.js").read_text(encoding="utf-8")
+    used |= set(re.findall(r"'(web\.ls\.[a-z0-9_]*[a-z0-9])'", ls)) |{f"web.ls.c_{c}" for c in re.findall(r"'([a-z_]+)'", ls.split("const CELLS = [")[1].split("]")[0])}
+    used |= {f"web.ls.{k}" for k in re.findall(r"'(th_[a-z_]+)'", ls)}  # tx('web.ls.' + k) for the table header
     used |= set(re.findall(r"\{\{(web\.[a-z0-9_.]+)\}\}", (ROOT / "src" / "page.html").read_text(encoding="utf-8")))
     missing = sorted(k for k in used if not has(k))
     assert not missing, missing

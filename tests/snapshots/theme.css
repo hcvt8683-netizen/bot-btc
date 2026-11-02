@@ -256,3 +256,14 @@
     table.heat.stack td:first-child { grid-column: 1 / -1; text-align: left; padding: 7px 12px; border-top: 0; }
     #t-pa.stack td:first-child::before { content: attr(data-label) " "; font-weight: 500; color: var(--muted); }
   }
+
+  /* Long/Short: chế độ riêng (src/ls.js). Chỉ ẩn phần mua / bán khi đang xem, không đổi kiểu nào của chúng */
+  #mode-ls[aria-pressed="true"] { background: #3556A8; }
+  body.ls-view #tabs, body.ls-view #app > .tabp, body.ls-view #stale { display: none !important; }
+  body:not(.ls-view) #ls-app { display: none; }
+  #ls-app .verdict { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 2px 0 6px; }
+  #ls-app .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+  #ls-app .box .field select, #ls-app .box .field input { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 7px 10px; font-size: 15px; }
+  #ls-app .box .btn.main { margin-top: 6px; width: 100%; }
+  #ls-app .answer p { margin: 0 0 8px; }
+  #ls-app .lev { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
