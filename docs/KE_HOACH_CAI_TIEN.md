@@ -2,6 +2,8 @@
 
 Viết ngày 29/10/2026, sau khi bot đạt 0/6 tiêu chí chấp nhận (`docs/ACCEPTANCE_I.md`). Kết luận hiện tại: **mua đều**. Khuyết điểm gốc: tín hiệu không chọn được thời điểm tốt hơn mua đều. Phần đáng tin: dải giá dự báo trúng đúng tỷ lệ, quy trình kiểm định trung thực.
 
+Rà soát toàn bộ ngày 02/11/2026 (lỗi đã thấy và công cụ nên thêm, có câu lệnh từng mục): `docs/DE_XUAT_NANG_CAP.md`.
+
 ## Cách dùng file này
 
 1. Mở Claude Code trong thư mục dự án (`D:\Claude_bot_bit`).

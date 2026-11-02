@@ -3,15 +3,15 @@
   "configurations": [
     {
       "name": "bot-btc",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["chay_bot_xac_suat.py"],
       "env": { "BOT_NO_BROWSER": "1", "PYTHONIOENCODING": "utf-8" },
       "port": 8789,
       "url": "http://127.0.0.1:8789"
     },
     {
-      "name": "bot-btc-mac",
-      "runtimeExecutable": "python3",
+      "name": "bot-btc-windows",
+      "runtimeExecutable": "python",
       "runtimeArgs": ["chay_bot_xac_suat.py"],
       "env": { "BOT_NO_BROWSER": "1", "PYTHONIOENCODING": "utf-8" },
       "port": 8789,
