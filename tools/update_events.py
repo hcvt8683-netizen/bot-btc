@@ -17,6 +17,10 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / "config" / "events.yaml"
 
 def main() -> None:
     ev = events.fetch_all()
+    # BEA only lists upcoming PCE releases: keep the past ones already in the file
+    from bot.config import load_yaml
+    old = load_yaml(OUT).get("pce") or [] if OUT.exists() else []
+    ev["pce"] = sorted(set(ev["pce"]) | {str(x) for x in old})
     lines = [
         "# Lịch sự kiện vĩ mô, giờ UTC (hiển thị đổi sang giờ Việt Nam).",
         f"# Tạo bằng tools/update_events.py ngày {dt.date.today():%d/%m/%Y} từ federalreserve.gov, bls.gov, bea.gov; sửa tay khi lịch đổi.",

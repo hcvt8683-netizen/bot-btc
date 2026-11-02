@@ -159,6 +159,16 @@ def _plan() -> dict | None:
         return None
 
 
+def _sell_plan() -> dict | None:
+    """Selling a quantity of BTC in stages (bot/models/sell_plan.py); None when the data are missing, so the page says so."""
+    try:
+        from bot.models import sell_plan
+        out = sell_plan.for_report()
+        return out if out.get("options") else None
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
+
+
 def _calib(now: dt.datetime) -> dict | None:
     """Calibrated probability of profit and predicted return for 1/3/6/12 months, buy and sell side (bot/models/calib_prob.py); logs this week's values. None on failure."""
     try:
@@ -176,6 +186,7 @@ def _forecast() -> dict | None:
     try:
         from bot.models import price_forecast
         out = price_forecast.for_report()
+        out["log"] = (out.get("log") or {}) | {"indep": _forecast_indep(price_forecast, out.get("version"))}
         srch = DATA / "results" / "forecast_search.json"
         if srch.exists():  # summary of the method search (bot/models/forecast_search.py), shown as a note on the page
             o = json.loads(srch.read_text(encoding="utf-8"))
@@ -184,6 +195,27 @@ def _forecast() -> dict | None:
         return out
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None
+
+
+def _forecast_indep(pf, version: str | None) -> dict | None:
+    """Live check of the price bands counted by independent anchor days (the horizons of one anchor overlap in time):
+    share inside the 80% / 50% bands with a Wilson interval on the number of anchor days; `few` below 30 of them."""
+    import numpy as np
+    import pandas as pd
+    from bot.backtest.metrics import wilson
+    p = pf.daily_prices()
+    done = []
+    for r in pf.read_log():
+        t = pd.Timestamp(r["target"])
+        if (version and r["version"] != version) or t not in p.index or not np.isfinite(p.loc[t]):
+            continue
+        a = float(p.loc[t])
+        done.append((r["issued"], float(r["q10"]) <= a <= float(r["q90"]), float(r["q25"]) <= a <= float(r["q75"])))
+    if not done:
+        return None
+    n = len({d[0] for d in done})
+    p80, p50 = float(np.mean([d[1] for d in done])), float(np.mean([d[2] for d in done]))
+    return {"anchors": n, "p80": p80, "p50": p50, "ci80": list(wilson(round(p80 * n), n)), "ci50": list(wilson(round(p50 * n), n)), "few": n < 30}
 
 
 def _entry() -> dict | None:
@@ -228,7 +260,7 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
            "events": events, "events_meta": events_meta, "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild(), "calib": _calib(now), "entry": _entry(), "exit": _exit()}
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "sell_plan": _sell_plan(), "forecast": _forecast(), "rebuild": _rebuild(), "calib": _calib(now), "entry": _entry(), "exit": _exit()}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec

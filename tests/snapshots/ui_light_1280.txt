@@ -11,6 +11,8 @@ Bên bán
 Tôi đang giữ BTC
 Long/Short
 Hợp đồng tương lai
+Xu hướng
+Tăng hay giảm
 --- home ---
 Khuyến nghị tuần này
 Mua đều
@@ -213,8 +215,6 @@ USD
 Bắt đầu từ ngày
 
 Nhập số tiền để xem đề xuất và lịch giải ngân.
-
-Đây cũng là cách có ROI trung vị cao nhất.
 
 Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất −64% thay vì −82%.
 
@@ -1045,6 +1045,8 @@ Bên bán
 Tôi đang giữ BTC
 Long/Short
 Hợp đồng tương lai
+Xu hướng
+Tăng hay giảm
 --- home ---
 Bên bán tuần này
 Giữ
@@ -1236,7 +1238,57 @@ Bỏ qua phí vì hai cách cùng chịu phí. Giả định lệnh khớp đún
 
 Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
 --- plan ---
-Kế hoạch giải ngân dành cho bên mua. Bấm "Bên mua" ở đầu trang để dùng.
+₿Kế hoạch chốt lời từng đợt
+
+Nhập số BTC bạn muốn bán. Bot so các cách bán trên giá thật trong quá khứ: bán hết một lần, hoặc chia đều bán mỗi thứ Hai trong 4, 13, 26, 52 tuần (giá đóng thứ Hai, có tính phí), rồi lập lịch bán theo ngày.
+
+Số BTC muốn bán
+Bắt đầu từ ngày
+
+Nhập số BTC để xem đề xuất và lịch bán.
+
+Vì sao bán chậm thường thu nhiều hơn: BTC tăng giá trong phần lớn lịch sử, nên những đợt bán sau thường được giá cao hơn. Đổi lại, nếu giá giảm thì bán chậm thiệt hơn: 10% lần xấu nhất của cách này thu ít hơn bán ngay −30%.
+
+Nếu bạn bán để giảm rủi ro (sợ giá giảm), chia ngắn hơn an toàn hơn: Chia đều 4 tuần có 10% lần xấu nhất là −9%.
+
+Cách bán	Trung vị	10% xấu nhất	Xấu nhất	Thu ít hơn bán ngay	Giảm sâu nhất	Thu nhiều hơn bán một lần	Ước tính theo giá lúc này
+Bán hết một lần
+	−0%	−0%	−0%	100%	0%	—	—
+Chia đều 4 tuần
+mỗi tuần bán 1/4 số BTC · kém cách tốt nhất rõ rệt
+	+1%	−9%	−26%	43%	−2%	57%
+Wilson 27%–81%
+	—
+Chia đều 13 tuần
+mỗi tuần bán 1/13 số BTC · kém cách tốt nhất rõ rệt
+	+6%	−17%	−38%	39%	−10%	61%
+Wilson 27%–81%
+	—
+Chia đều 26 tuần
+mỗi tuần bán 1/26 số BTC · kém cách tốt nhất rõ rệt
+	+12%	−25%	−48%	37%	−15%	63%
+Wilson 35%–88%
+	—
+Chia đều 52 tuầnThu nhiều nhấtĐề xuất
+mỗi tuần bán 1/52 số BTC
+	+30%	−30%	−57%	31%	−26%	70%
+Wilson 35%–88%
+	—
+Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Bán ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần bán, tiền đã thu không tính lãi.
+Cách chọn, định trước khi tính: đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không thu ít hơn cách tốt nhất một cách đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
+"Thu ước tính" nhân số BTC với giá lúc này: giá thật lúc bán sẽ khác.
+Không nghiêng theo tín hiệu: kiểm định 6 tiêu chí chưa đạt, nên mọi cách chia đều theo thời gian.
+Kết quả trong quá khứ không bảo đảm cho tương lai; công cụ tham khảo, không phải lời khuyên đầu tư.
+
+Lịch bán theo ngày
+
+Bán hết một lần
+Chia đều 4 tuần
+Chia đều 13 tuần
+Chia đều 26 tuần
+Chia đều 52 tuần
+Đợt	Ngày	Bán (BTC)	Đã bán (BTC)	Đã bán (%)	Thu ước tính
+Nhập số BTC để xem đề xuất và lịch bán.
 
 Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
 --- fc ---

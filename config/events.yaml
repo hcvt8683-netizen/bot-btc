@@ -1,5 +1,5 @@
 # Lịch sự kiện vĩ mô, giờ UTC (hiển thị đổi sang giờ Việt Nam).
-# Tạo bằng tools/update_events.py ngày 28/10/2026 từ federalreserve.gov, bls.gov, bea.gov; sửa tay khi lịch đổi.
+# Tạo bằng tools/update_events.py ngày 02/11/2026 từ federalreserve.gov, bls.gov, bea.gov; sửa tay khi lịch đổi.
 # PCE chỉ có lịch sắp tới (BEA không có trang lưu trữ lịch phát hành dễ đọc), nên kiểm tra lịch sử chỉ dùng FOMC, CPI và đáo hạn quyền chọn.
 options_expiry: {rule: last_friday, time_utc: "08:00"}   # đáo hạn quyền chọn BTC hằng tháng (Deribit)
 window_hours: 48
@@ -139,7 +139,7 @@ fomc:   # Quyết định lãi suất FOMC (14:00 giờ New York), 135 lần
   - "2027-09-15T18:00Z"
   - "2027-10-27T18:00Z"
   - "2027-12-08T19:00Z"
-cpi:   # Chỉ số giá tiêu dùng CPI (8:30 giờ New York), 189 lần
+cpi:   # Chỉ số giá tiêu dùng CPI (8:30 giờ New York), 203 lần
   - "2011-01-14T13:30Z"
   - "2011-02-17T13:30Z"
   - "2011-03-17T12:30Z"
@@ -329,6 +329,20 @@ cpi:   # Chỉ số giá tiêu dùng CPI (8:30 giờ New York), 189 lần
   - "2026-08-12T12:30Z"
   - "2026-09-11T12:30Z"
   - "2026-10-14T12:30Z"
+  - "2026-11-10T13:30Z"
+  - "2026-12-10T13:30Z"
+  - "2027-01-13T13:30Z"
+  - "2027-02-11T13:30Z"
+  - "2027-03-10T13:30Z"
+  - "2027-04-13T12:30Z"
+  - "2027-05-12T12:30Z"
+  - "2027-06-10T12:30Z"
+  - "2027-07-14T12:30Z"
+  - "2027-08-11T12:30Z"
+  - "2027-09-14T12:30Z"
+  - "2027-10-14T12:30Z"
+  - "2027-11-10T13:30Z"
+  - "2027-12-10T13:30Z"
 pce:   # Chỉ số giá chi tiêu PCE (8:30 giờ New York), 3 lần
   - "2026-10-29T12:30Z"
   - "2026-11-04T13:30Z"

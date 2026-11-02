@@ -38,14 +38,16 @@ async def main():
                 if 'coinmetrics' in u: await r.fulfill(status=200, content_type='application/json', body=json.dumps({"data": cm}), headers=H)
                 elif 'alternative.me' in u: await r.fulfill(status=200, content_type='application/json', body=json.dumps({"data": fng}), headers=H)
                 elif 'klines' in u:
-                    s_ = int(re.search(r'startTime=(\d+)', u).group(1)); await r.fulfill(status=200, content_type='application/json', body=json.dumps([k for k in kl if k[0] >= s_][:1000]), headers=H)
+                    m_ = re.search(r'startTime=(\d+)', u); s_ = int(m_.group(1)) if m_ else kl[-1][0] - 86400000  # nến 24 giờ ở đầu trang không có startTime
+                    await r.fulfill(status=200, content_type='application/json', body=json.dumps([k for k in kl if k[0] >= s_][:1000]), headers=H)
                 elif 'ticker/price' in u: await r.fulfill(status=200, content_type='application/json', body=json.dumps({"price": str(p)}), headers=H)
                 elif u.startswith('file://'): await r.continue_()
                 else: await r.abort()
             await pg.route('**/*', route)
+            await pg.add_init_script('window.BOT_NO_WS = true;')  # không mở luồng giá trực tiếp, số liệu cố định
             t0 = datetime.datetime.now()
             await pg.goto(PAGE)
-            await pg.wait_for_selector('#old-body:not([hidden])', timeout=150000)
+            await pg.wait_for_selector('#old-body:not([hidden])', state='attached', timeout=150000)  # thẻ Phân tích cũ đang ẩn: chỉ cần tải xong
             await pg.wait_for_function("document.querySelectorAll('#t-pa tbody tr').length > 0", timeout=120000); await pg.wait_for_timeout(800)
             print('  home cards:', await pg.locator('#h-kpis .kpi').count(), '| entry answer:', (await pg.text_content('#en-answer'))[:120])
             await pg.click('[data-tab=old]'); await pg.wait_for_timeout(400)

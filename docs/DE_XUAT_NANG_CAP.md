@@ -50,6 +50,13 @@ Cách dùng: giống `KE_HOACH_CAI_TIEN.md`, mỗi mục một phiên, sao chép
 
 ---
 
+### L7. Đưa `tests/test_browser.py` vào kiểm tra tự động
+- **Thấy gì:** bài kiểm tra trình duyệt cho Bên mua / Bên bán đã sửa và chạy qua (03/11/2026), nhưng vẫn chạy riêng nên lỗi có thể lại không ai thấy. Đưa vào `python -m pytest` thì quy trình Daily chậm thêm khoảng 1 phút.
+- **Câu lệnh:**
+```
+Đọc docs/DE_XUAT_NANG_CAP.md mục L7. Bọc tests/test_browser.py thành một bài pytest (chạy main(), hỏng khi có lỗi trang hoặc trượt ngang), chạy được trên máy chủ GitHub; đo thời gian thêm vào make test và báo tôi trước khi bật trong quy trình Daily.
+```
+
 ## Ưu tiên 2: thiếu sót về dự báo giá
 
 ### F1. Dải giá neo giá đóng hôm trước, không neo giá lúc xem
@@ -81,6 +88,13 @@ Cách dùng: giống `KE_HOACH_CAI_TIEN.md`, mỗi mục một phiên, sao chép
 ```
 
 ---
+
+### R1. Giá chờ bán: bot đánh giá thấp khả năng chạm trong 2024–2026 (từ hồi cứu)
+- **Thấy gì:** `docs/HOI_CUU.md`: tại 24 thời điểm 11/2024 → 10/2026, bot nói giá chạm +3% trong 7 ngày trung bình 55%, thực tế chạm 79% (Wilson 60–91%). Kiểm chứng dài hạn trước đó cũng thấy bên bán hơi thận trọng (+2%: nói 73%, thực tế 76%). 24 thời điểm là ít và đây là 1 trong khoảng 10 phép kiểm tra của lần hồi cứu, nên chưa đủ để đổi phương pháp.
+- **Câu lệnh:**
+```
+Đọc docs/DE_XUAT_NANG_CAP.md mục R1. Đăng ký trước rồi kiểm tra độ hiệu chỉnh của xác suất chạm giá bán (bot/models/exit_timing.py) theo từng năm từ 2016 và theo trạng thái thị trường (trên / dưới MA 200 ngày): bot nói x%, thực tế bao nhiêu, Wilson theo cửa sổ độc lập. Chỉ báo cáo; nếu lệch có ý nghĩa ở cả hai nửa giai đoạn, đề xuất cách sửa và chờ tôi duyệt. Không sửa exit_timing.py trong phiên này.
+```
 
 ## Ưu tiên 3: công cụ nên thêm
 
@@ -123,21 +137,23 @@ Cách dùng: giống `KE_HOACH_CAI_TIEN.md`, mỗi mục một phiên, sao chép
 
 | Mục | Ưu tiên | Trạng thái | Ghi chú |
 |---|---|---|---|
-| L1 Câu thừa ở Giải ngân | 1 | [ ] | |
-| L2 Chữ bên mua ở Bên bán | 1 | [ ] | cần bạn chọn cách xử lý thẻ Giải ngân |
-| L3 Test ghi đè số liệu | 1 | [ ] | |
-| L4 Lịch CPI (A1) | 1 | [ ] | |
-| L5 Kiểm chứng dải giá trực tiếp | 1 | [ ] | |
-| L6 test_browser.py kẹt | 1 | [ ] | |
+| L1 Câu thừa ở Giải ngân | 1 | [x] 03/11/2026 | |
+| L2 Chữ bên mua ở Bên bán | 1 | [x] 03/11/2026 | thẻ thành "Chốt lời dần" (công cụ bán theo đợt, có nghiên cứu) |
+| L3 Test ghi đè số liệu | 1 | [x] 03/11/2026 | |
+| L4 Lịch CPI (A1) | 1 | [x] 03/11/2026 | thêm bộ đọc lịch phát hành BLS, CPI tới 12/2027 |
+| L5 Kiểm chứng dải giá trực tiếp | 1 | [x] 03/11/2026 | |
+| L6 test_browser.py kẹt | 1 | [x] 03/11/2026 | chạy qua; chưa đưa vào pytest (chạy lâu, xem L7) |
+| L7 Đưa test_browser.py vào kiểm tra tự động | 1 | [ ] | chạy khoảng 1 phút, cần tránh làm chậm Daily |
+| R1 Giá chờ bán đánh giá thấp gần đây | 2 | [ ] | xem mục R1 |
 | F1 Dải giá theo giá trực tiếp | 2 | [ ] | |
 | F2 Xác suất chạm giá theo giờ | 2 | [ ] | phiên dài |
 | F3 Dao động kỳ vọng (DVOL) | 2 | [ ] | dữ liệu mới |
 | F4 Dải giá ngày sự kiện | 2 | [ ] | sau L4 |
 | T1 Khối lượng lệnh theo rủi ro | 3 | [ ] | |
 | T2 Telegram (A3) | 3 | [ ] | |
-| T3 Bán dần | 3 | [ ] | |
+| T3 Bán dần | 3 | [x] 03/11/2026 | = L2 |
 | U1 Long/Short tự lấy giá | 4 | [ ] | |
 | U2 Gỡ Phân tích cũ (A2) | 4 | [ ] | |
 | U3 Chú giải | 4 | [ ] | |
 
-Thứ tự khuyên dùng: L1 → L3 → L5 → L6 → L4 → T1 → U1 → F1 → F2; sau đó theo lịch của `KE_HOACH_CAI_TIEN.md`.
+Đã xong 03/11/2026: L1–L6, T3 (Chốt lời dần), thẻ Xu hướng mới. Thứ tự khuyên dùng tiếp: T1 → U1 → R1 → L7 → F1 → F2; sau đó theo lịch của `KE_HOACH_CAI_TIEN.md`.

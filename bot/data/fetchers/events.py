@@ -18,6 +18,7 @@ MONTHS = {m: i + 1 for i, m in enumerate(["January", "February", "March", "April
 FED_CAL = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 FED_HIST = "https://www.federalreserve.gov/monetarypolicy/fomchistorical{year}.htm"
 BLS_CPI = "https://www.bls.gov/bls/news-release/cpi.htm"
+BLS_CPI_SCHEDULE = "https://www.bls.gov/schedule/news_release/cpi.htm"   # upcoming releases (the archive above only has past ones)
 BEA_SCHEDULE = "https://www.bea.gov/news/schedule"
 
 
@@ -70,6 +71,17 @@ def parse_cpi_archive(html: str) -> list[dt.date]:
     return sorted(set(out))
 
 
+def parse_cpi_schedule(html: str) -> list[dt.date]:
+    """BLS CPI release schedule table: 'Nov. 10, 2026  08:30 AM' release dates (upcoming releases)."""
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    i, j = text.find("Release Date"), text.find("Subscribe")
+    text = text[i:j if j > i else None] if i >= 0 else ""
+    out = []
+    for mon, day, year in re.findall(r"\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? (\d{1,2}), (\d{4}) \d{2}:\d{2} [AP]M", text):
+        out.append(dt.date(int(year), ABBR[mon], int(day)))
+    return sorted(set(out))
+
+
 def parse_bea_pce(html: str) -> list[dt.date]:
     """BEA release schedule: 'Personal Income and Outlays, <Month> <Year>' rows with a release date without year."""
     out = []
@@ -97,7 +109,9 @@ def fetch_all(first_year: int = 2011) -> dict[str, list[str]]:
     fomc = set(parse_fomc_calendar(http.get(FED_CAL, ua=http.UA_PAGE).decode("utf-8", "replace")))
     for y in range(first_year, min(fomc).year if fomc else dt.date.today().year):
         fomc |= set(parse_fomc_historical(http.get(FED_HIST.format(year=y), ua=http.UA_PAGE).decode("utf-8", "replace")))
-    cpi = [d for d in parse_cpi_archive(http.get(BLS_CPI, ua=http.UA_PAGE).decode("utf-8", "replace")) if d.year >= first_year]
+    cpi = set(parse_cpi_archive(http.get(BLS_CPI, ua=http.UA_PAGE).decode("utf-8", "replace")))
+    cpi |= set(parse_cpi_schedule(http.get(BLS_CPI_SCHEDULE, ua=http.UA_PAGE).decode("utf-8", "replace")))
+    cpi = sorted(d for d in cpi if d.year >= first_year)
     pce = parse_bea_pce(http.get(BEA_SCHEDULE, ua=http.UA_PAGE).decode("utf-8", "replace"))
     return {"fomc": [et_to_utc(d, 14, 0) for d in sorted(fomc)], "cpi": [et_to_utc(d, 8, 30) for d in cpi],
             "pce": [et_to_utc(d, 8, 30) for d in pce]}

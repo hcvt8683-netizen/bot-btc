@@ -15,6 +15,7 @@ forecast                   append today's daily price bands to data/forecast/for
 entry                      buying price / day tools: append today's band of the lowest price to data/entry/entry_log.csv, write data/results/entry.json
 exit                       selling price / day tools: append today's band of the highest price to data/exit/exit_log.csv, write data/results/exit.json
 perp                       long/short on the BTCUSDT perpetual: write data/results/perp.json, append today's calls to data/perp/perp_log.csv
+trend                      trend forecast 1–7 days, 1–4 weeks, 1–6 months: write data/results/trend.json, append today's forecasts to data/trend/trend_log.csv
 perp-trade                 long/short with entry, stop-loss, take-profit: write data/results/perp_trade.json, append the month's pick to data/perp_trade/select_log.csv
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
@@ -112,6 +113,14 @@ def main(argv: list[str] | None = None) -> int:
         calls = sum(r["verdict"] != "khong" for r in rows)
         print(f"Long/Short: đã ghi {len(rows)} kỳ hạn (gốc {rows[0]['issued']} UTC, phiên bản {rows[0]['version']}), {calls} kỳ hạn có kết luận vào lệnh."
               if rows else "Long/Short: ngày gốc mới nhất đã được ghi, không ghi thêm.")
+        return 0
+    if args.command == "trend":
+        from bot.models import trend as tr
+        res = tr.run(write=True)
+        rows = tr.log_today(res, tr.utc_now())
+        edge = [r["k"] for r in res["now"] if r["dir_model"] != "goc"]
+        print(f"Dự báo xu hướng: gốc {res['anchor']}, {len(res['now'])} kỳ hạn; mô hình thắng tỷ lệ gốc về hướng ở: {edge or 'không kỳ hạn nào'}. "
+              + (f"Đã ghi {len(rows)} dòng (phiên bản {res['version']})." if rows else "Ngày gốc đã được ghi, không ghi thêm."))
         return 0
     if args.command == "perp-trade":
         from bot.models import perp_trade as pt

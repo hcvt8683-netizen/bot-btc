@@ -22,6 +22,12 @@ def _setup(tmp_path: pathlib.Path, monkeypatch, passed: bool, cm_last: str) -> N
     monkeypatch.setattr(vi_report, "DATA", tmp_path)
     monkeypatch.setattr(vi_report, "SUMMARY", tmp_path / "results" / "final_summary.json")
     monkeypatch.setattr(vi_report, "OUT", tmp_path / "recommendation.json")
+    # the calibrated-probability block writes its result file and appends to its forward log: keep both in tmp_path
+    from bot.models import calib_prob
+    real_run = calib_prob.run
+    monkeypatch.setattr(calib_prob, "run", lambda write=True: real_run(write=False))
+    monkeypatch.setattr(calib_prob, "LOG", tmp_path / "calib_log.csv")
+    monkeypatch.setattr(calib_prob, "RET_LOG", tmp_path / "ret_log.csv")
 
 
 def test_failed_model_falls_back_to_dca(tmp_path, monkeypatch):

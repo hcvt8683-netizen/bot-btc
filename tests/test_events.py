@@ -38,3 +38,15 @@ def test_no_gap_means_no_rerun_and_stale_calendars_are_named():
     assert set(out["stale"]) == {"pce"}  # CPI's last entry (01/11 13:30) is after the window end (31/10 23:59:59)
     late = ev.listing(ev.cutoff_of(SUNDAY), NOW, 7, CAL, types=("fomc", "cpi", "pce"))
     assert set(late["stale"]) == {"cpi", "pce"} and late["stale"]["cpi"] == T("2026-11-01 13:30")
+
+
+def test_cpi_schedule_page_gives_upcoming_release_dates():
+    """BLS schedule table (upcoming CPI releases), parsed between 'Release Date' and 'Subscribe'."""
+    from bot.data.fetchers import events
+    html = ("<table><tr><th>Reference Month</th><th>Release Date</th><th>Release Time</th></tr>"
+            "<tr><td>October 2026</td><td>Nov. 10, 2026</td><td>08:30 AM</td></tr>"
+            "<tr><td>May 2027</td><td>Jun. 10, 2027</td><td>08:30 AM</td></tr>"
+            "<tr><td>April 2027</td><td>May 12, 2027</td><td>08:30 AM</td></tr></table><p>Subscribe</p><p>Dec. 1, 2030 08:30 AM</p>")
+    got = events.parse_cpi_schedule(html)
+    assert [d.isoformat() for d in got] == ["2026-11-10", "2027-05-12", "2027-06-10"]
+    assert events.et_to_utc(got[0], 8, 30) == "2026-11-10T13:30Z"

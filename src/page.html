@@ -67,6 +67,7 @@
   @media (max-width: 680px) {
     .quote { justify-items: start; } .qline { justify-content: flex-start; }
     .hdr .price { font-size: 28px; } .hdr .mode span { display: none; } #spark { width: 110px; }
+    .hdr .modes { width: 100%; } .hdr .mode { flex: 1 1 0; padding: 7px 6px; text-align: center; justify-items: center; }
   }
 
   /* thẻ */
@@ -331,6 +332,65 @@
   #t-lt .lt-view { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; padding: 2px 11px; font-size: 13px; cursor: pointer; }
   #t-lt .lt-view[aria-pressed="true"] { border-color: var(--brand); color: var(--brand-ink); font-weight: 600; }
   #ls-old > summary { color: var(--muted); }
+  /* Xu hướng: chế độ riêng (src/trend.js). Chỉ ẩn phần khác khi đang xem */
+  #mode-tr[aria-pressed="true"] { background: #6B4FD6; }
+  body.tr-view #tabs, body.tr-view #app > .tabp, body.tr-view #stale, body.tr-view #ls-app { display: none !important; }
+  body:not(.tr-view) #tr-app { display: none; }
+  .tr-hero { background: linear-gradient(180deg, color-mix(in srgb, #6B4FD6 7%, var(--panel)) 0%, var(--panel) 210px); }
+  .tr-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; align-items: flex-start; }
+  .tr-top > div:first-child { flex: 1 1 420px; min-width: 0; }
+  .tr-now { display: grid; justify-items: end; text-align: right; }
+  .tr-now b { font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .tr-now .muted { font-size: 12.5px; }
+  @media (max-width: 700px) { .tr-now { justify-items: start; text-align: left; } .tr-now b { font-size: 30px; } }
+  .tr-honest { border-left: 4px solid #6B4FD6; background: color-mix(in srgb, #6B4FD6 9%, var(--panel)); border-radius: 0 12px 12px 0; padding: 10px 14px; margin: 6px 0 14px; font-size: 14px; }
+  .tr-honest p { margin: 0 0 4px; } .tr-honest p:last-child { margin: 0; }
+  .tr-groups { margin-bottom: 14px; }
+  .tr-groups button[aria-pressed="true"] { background: #6B4FD6; border-color: #6B4FD6; color: #fff; }
+  .tr-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 168px), 1fr)); gap: 12px; }
+  @media (max-width: 560px) { .tr-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .tr-card { padding: 10px; } .tr-card .pu b { font-size: 22px; }
+    .tr-card .dir { font-size: 13px; } .tr-card .arrow { width: 24px; height: 24px; font-size: 15px; } .tr-card .med { font-size: 13px; } }
+  .tr-card { --tc: var(--muted); position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 12px; box-shadow: var(--shadow); display: grid; gap: 4px; overflow: hidden; }
+  .tr-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--tc); }
+  .tr-card.up { --tc: var(--jade); } .tr-card.down { --tc: var(--cinnabar); } .tr-card.flat { --tc: var(--brass); }
+  .tr-card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 14px; }
+  .tr-card .hd span { font-size: 12px; }
+  .tr-card .dir { display: flex; align-items: center; gap: 8px; color: var(--tc); font-weight: 700; font-size: 14px; }
+  .tr-card .arrow { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; background: color-mix(in srgb, var(--tc) 14%, transparent); }
+  .tr-card .pu { display: flex; align-items: baseline; gap: 6px; } .tr-card .pu b { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tr-card .pu span { font-size: 12.5px; }
+  .tr-card .meter { position: relative; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--cinnabar) 30%, transparent); overflow: hidden; }
+  .tr-card .meter i { position: absolute; inset: 0 auto 0 0; background: var(--jade); border-radius: 3px 0 0 3px; }
+  .tr-card .meter s { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--panel); }
+  .tr-card .med { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .tr-card .rbar { position: relative; height: 10px; margin: 2px 0; border-radius: 5px; background: color-mix(in srgb, var(--muted) 14%, transparent); }
+  .tr-card .rbar i { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: linear-gradient(90deg, color-mix(in srgb, var(--cinnabar) 55%, transparent), color-mix(in srgb, var(--muted) 25%, transparent) 50%, color-mix(in srgb, var(--jade) 55%, transparent)); }
+  .tr-card .rbar s { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--ink); opacity: .45; }
+  .tr-card .rbar b { position: absolute; top: -2px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px; background: var(--ink); }
+  .tr-card .band { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .tr-card .src { font-size: 11.5px; color: var(--muted); }
+  .tr-card .dots { display: flex; gap: 4px; margin-top: 2px; } .tr-card .dots i { width: 9px; height: 9px; border-radius: 50%; background: color-mix(in srgb, var(--muted) 30%, transparent); }
+  .tr-card .dots i.up { background: var(--jade); } .tr-card .dots i.down { background: var(--cinnabar); }
+  #tr-fan, #tr-hits { min-height: 200px; }
+  #tr-fan svg, #tr-hits svg { display: block; }
+  #tr-fan .grid, #tr-hits .grid { stroke: var(--line); }
+  #tr-hits .half { stroke: var(--muted); stroke-dasharray: 4 4; }
+  #tr-fan .ax, #tr-hits .ax { fill: var(--muted); font-size: 11.5px; font-family: var(--font); }
+  #tr-fan .band { fill: color-mix(in srgb, #6B4FD6 18%, transparent); stroke: color-mix(in srgb, #6B4FD6 40%, transparent); stroke-width: 1; }
+  #tr-fan .midline { fill: none; stroke: #6B4FD6; stroke-width: 2.5; stroke-linejoin: round; }
+  #tr-fan .now { stroke: var(--ink); stroke-dasharray: 5 5; opacity: .55; }
+  #tr-fan .pt0 { fill: var(--ink); } #tr-fan .pt { stroke: var(--panel); stroke-width: 2; } #tr-fan .pt.up { fill: var(--jade); } #tr-fan .pt.down { fill: var(--cinnabar); }
+  #tr-hits .b-goc { fill: color-mix(in srgb, var(--muted) 55%, transparent); } #tr-hits .b-best { fill: #6B4FD6; }
+  .legend .fan-band { background: color-mix(in srgb, #6B4FD6 22%, transparent); } .legend .fan-mid { background: #6B4FD6; height: 3px; }
+  .legend .fan-now { background: var(--ink); height: 2px; opacity: .55; } .legend .b-goc { background: color-mix(in srgb, var(--muted) 55%, transparent); } .legend .b-best { background: #6B4FD6; }
+  #t-tr-models td { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+  #t-tr-models td:first-child, #t-tr-models th:first-child { text-align: left; }
+  #t-tr-models th { text-align: center; }
+  #t-tr-models td.hi-up { background: color-mix(in srgb, var(--jade) 16%, transparent); color: var(--jade); }
+  #t-tr-models td.hi-down { background: color-mix(in srgb, var(--cinnabar) 15%, transparent); color: var(--cinnabar); }
+  #t-tr-models td.use { box-shadow: inset 0 0 0 2px #6B4FD6; border-radius: 6px; }
+  #t-tr-bt td.r, #t-tr-cross td.num, #t-tr-bt td:first-child, #t-tr-models td:first-child { white-space: nowrap; }
+  @media (min-width: 701px) { #t-tr-bt td:last-child { min-width: 150px; } }
   #ls-app .box .field select#lt-hold { width: 100%; }
   .lt-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 4px; }
   @media (max-width: 560px) { .lt-sides { grid-template-columns: 1fr; } }
@@ -370,6 +430,7 @@
       <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>{{web.page.ben_mua}}</b><span>{{web.page.toi_muon_mua_them_btc}}</span></button>
       <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>{{web.page.ben_ban}}</b><span>{{web.page.toi_dang_giu_btc_ngan}}</span></button>
       <button type="button" class="mode" id="mode-ls" aria-pressed="false"><b>{{web.page.ben_ls}}</b><span>{{web.page.ls_sub}}</span></button>
+      <button type="button" class="mode" id="mode-tr" aria-pressed="false"><b>{{web.page.ben_tr}}</b><span>{{web.page.tr_sub}}</span></button>
     </div>
   </div>
 </header>
@@ -464,7 +525,20 @@
         <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
         <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
       </section>
-      <p class="warn" id="plan-sell" hidden>{{web.page.plan_sell_note}}</p>
+      <section class="panel" id="sp-sec" hidden>
+        <h2><span class="ic" aria-hidden="true">₿</span>{{web.sp.title}}</h2>
+        <p class="lead">{{web.sp.lead}}</p>
+        <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
+          <label>{{web.sp.amount}}<input type="text" inputmode="decimal" id="sp-amount" placeholder="{{web.sp.amount_ph}}" autocomplete="off"></label>
+          <label>{{web.sp.start}}<input type="date" id="sp-start"></label>
+        </div>
+        <div class="cons" id="sp-sum" style="margin-top:12px"></div>
+        <div class="scroll"><table id="t-sp"></table></div>
+        <ul class="crit" id="sp-notes"></ul>
+        <p class="sm" style="margin-top:16px">{{web.sp.sched_title}}</p>
+        <div class="seg" id="sp-opts" style="margin-bottom:8px"></div>
+        <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-sp-sched"></table></div>
+      </section>
     </div>
 
     <!-- ================= DỰ BÁO ================= -->
@@ -762,6 +836,55 @@
       </section>
     </div>
 
+    <!-- ================= XU HƯỚNG (chế độ riêng, src/trend.js) ================= -->
+    <div id="tr-app">
+      <p class="warn" id="tr-none" hidden>{{web.tr.none}}</p>
+      <section class="panel tr-hero" id="tr-sec">
+        <div class="tr-top">
+          <div>
+            <h2><span class="ic" aria-hidden="true">↗</span>{{web.tr.title}}</h2>
+            <p class="lead">{{web.tr.lead}}</p>
+          </div>
+          <div class="tr-now">
+            <span class="kicker">{{web.tr.now_label}}</span>
+            <b class="num" id="tr-price">—</b>
+            <span class="muted" id="tr-price-sub"></span>
+          </div>
+        </div>
+        <div class="chips" id="tr-states" aria-label="{{web.tr.state_title}}"></div>
+        <div class="tr-honest" id="tr-honest"></div>
+        <div class="seg tr-groups" id="tr-groups" role="group" aria-label="{{web.tr.groups_label}}">
+          <button type="button" data-g="day" aria-pressed="true">{{web.tr.g_day}}</button>
+          <button type="button" data-g="week" aria-pressed="false">{{web.tr.g_week}}</button>
+          <button type="button" data-g="month" aria-pressed="false">{{web.tr.g_month}}</button>
+        </div>
+        <div class="tr-cards" id="tr-cards"></div>
+        <p class="sm" style="margin-top:18px">{{web.tr.fan_title}}</p>
+        <div class="chart" id="tr-fan"></div>
+        <div class="legend"><span><i class="fan-band"></i>{{web.tr.fan_band}}</span><span><i class="fan-mid"></i>{{web.tr.fan_mid}}</span><span><i class="fan-now"></i>{{web.tr.fan_now}}</span></div>
+      </section>
+      <section class="panel" id="tr-models-sec">
+        <h2><span class="ic" aria-hidden="true">▦</span>{{web.tr.models_title}}</h2>
+        <p class="lead">{{web.tr.models_lead}}</p>
+        <div class="scroll"><table class="heat" id="t-tr-models"></table></div>
+        <p class="sm" style="margin-top:18px">{{web.tr.cross_title}}</p>
+        <p class="lead">{{web.tr.cross_lead}}</p>
+        <div class="scroll"><table id="t-tr-cross"></table></div>
+      </section>
+      <section class="panel" id="tr-bt-sec">
+        <h2><span class="ic" aria-hidden="true">↺</span>{{web.tr.bt_title}}</h2>
+        <p class="lead" id="tr-bt-lead"></p>
+        <p class="sm">{{web.tr.bt_chart}}</p>
+        <div class="chart" id="tr-hits"></div>
+        <div class="legend"><span><i class="b-goc"></i>{{web.tr.lg_goc}}</span><span><i class="b-best"></i>{{web.tr.lg_best}}</span></div>
+        <div class="scroll" style="margin-top:12px"><table id="t-tr-bt"></table></div>
+        <p class="sm" style="margin-top:18px">{{web.tr.method_title}}</p>
+        <ul class="crit" id="tr-method-list"></ul>
+        <p class="lead" id="tr-log" style="margin-top:12px"></p>
+        <p class="warn">{{web.tr.disclaimer}}</p>
+      </section>
+    </div>
+
     <p class="foot">{{web.page.ket_qua_trong_qua_khu_khong}}</p>
   </div>
 </main>
@@ -779,6 +902,9 @@
 </script>
 <script>
 /*LS*/
+</script>
+<script>
+/*TR*/
 </script>
 </body>
 </html>

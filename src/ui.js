@@ -488,7 +488,9 @@
   function applyMode() {
     const sell = st.mode === 'sell';
     $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
-    $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell; $('plan-sell').hidden = !sell;
+    $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell; $('sp-sec').hidden = !sell;
+    document.querySelector('#tabs [data-tab=plan]').textContent = tx(sell ? 'web.sp.tab' : 'web.page.tab_plan');
+    if (sell) renderSellPlan();
     if ($('cp-sec')) renderCalib();
     renderEntry();
     renderHome();
@@ -1071,7 +1073,8 @@
         ' ', tx('web.plan.sum_hist', spc(rec.median), approx(amount * (1 + rec.median)), spc(rec.p10), approx(amount * (1 + rec.p10)), spc(rec.worst), pc(rec.loss_share)));
       sum.push(p1);
     }
-    sum.push(el('p', null, rec === best ? tx('web.plan.sum_best_same') : tx('web.plan.sum_best_diff', planName(best.weeks), spc(best.median))));
+    if (rec !== best) sum.push(el('p', null, tx('web.plan.sum_best_diff', planName(best.weeks), spc(best.median))));
+    else if (ok) sum.push(el('p', null, tx('web.plan.sum_best_same')));   // "đây cũng là…" chỉ có nghĩa khi đã có câu đề xuất phía trước
     const safer = PLAN.options.filter((o) => o.not_worse && o !== rec && o.worst > rec.worst).sort((a, b) => b.worst - a.worst)[0];
     if (safer) sum.push(el('p', null, tx('web.plan.safer', planName(safer.weeks), spc(safer.median), spc(safer.worst), spc(rec.worst))));
     $('plan-sum').replaceChildren(...sum);
@@ -1148,7 +1151,9 @@
     $('fc-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
     const lg = F.log || { matured: 0, versions: {}, recent: [] }, v = (lg.versions || {})[F.version];
     $('fc-verify-sum').textContent = !lg.matured ? tx('web.fc.verify_none', lg.first_due ? fmtDate(lg.first_due) : '—')
-      : tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null));
+      : tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null))
+        + (lg.indep ? ' ' + tx('web.fc.verify_ci', lg.indep.anchors, pc(lg.indep.ci80[0]), pc(lg.indep.ci80[1]), pc(lg.indep.ci50[0]), pc(lg.indep.ci50[1]))
+          + (lg.indep.few ? ' ' + tx('web.fc.verify_few') : '') : '');
     $('fc-verify-box').hidden = !lg.matured;
     if (lg.matured) {
       const vh = el('tr');
@@ -1180,6 +1185,89 @@
       download(`lich-giai-ngan-bot-btc-${start}.csv`, '﻿' + [head, ...rows].map((r) => r.map(cell).join(',')).join('\n'), 'text/csv;charset=utf-8');
     });
     renderPlan();
+  }
+
+  // ----- Chốt lời dần (bên bán): bán một lượng BTC theo từng đợt; số liệu lịch sử từ báo cáo tuần (KN.sell_plan, bot/models/sell_plan.py) -----
+  const SP = KN && KN.sell_plan && KN.sell_plan.options && KN.sell_plan.options.length ? KN.sell_plan : null;
+  const sp = { pick: SP ? SP.recommended : null };
+  const spName = (n) => (n === 1 ? tx('web.sp.opt_1') : tx('web.sp.opt_n', n));
+  const btc = (x) => (x == null || !isFinite(x) ? '—' : new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 8 }).format(x));
+  function spSchedule(amount, n, start) {  // phần nhỏ nhất 1 satoshi; đợt cuối bán phần còn lại
+    const total = Math.round(amount * 1e8), base = Math.floor(total / n), d0 = new Date(start + 'T12:00:00'), rows = [];
+    let cum = 0;
+    for (let k = 0; k < n; k++) {
+      const part = k === n - 1 ? total - base * (n - 1) : base, d = new Date(d0);
+      cum += part; d.setDate(d0.getDate() + 7 * k);
+      rows.push({ k: k + 1, date: isoDay(d), amount: part / 1e8, cum: cum / 1e8, share: cum / total });
+    }
+    return rows;
+  }
+  function renderSellPlan() {
+    if (!$('sp-sec')) return;
+    if (!SP) {
+      $('sp-sum').replaceChildren(el('span', 'warn', tx('web.sp.none')));
+      for (const id of ['t-sp', 't-sp-sched', 'sp-notes', 'sp-opts']) $(id).replaceChildren();
+      return;
+    }
+    const opt = (n) => SP.options.find((o) => o.weeks === n), rec = opt(SP.recommended), best = opt(SP.best);
+    const amount = parseAmount($('sp-amount').value), ok = amount != null && isFinite(amount) && amount > 0, start = $('sp-start').value || nextMonday();
+    const ref = KN && (KN.exit || KN.entry), px = st.raw && st.raw.live ? st.raw.live.price : (ref && ref.price) || null;
+    const usdOf = (b, r) => (px ? usd(b * px * (1 + r)) : '—');
+    const sum = [];
+    if (amount != null && !ok) sum.push(el('p', 'warn', tx('web.sp.bad_amount')));
+    else if (!ok) sum.push(el('p', null, tx('web.sp.enter')));
+    else {
+      const rows = spSchedule(amount, rec.weeks, start), last = rows[rows.length - 1], p1 = el('p');
+      p1.append(el('b', null, rec.weeks === 1 ? tx('web.sp.sum_rec_1', btc(amount), fmtDate(start)) : tx('web.sp.sum_rec', spName(rec.weeks), btc(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
+        ' ', tx('web.sp.sum_hist', spc(rec.median), spc(rec.p10), spc(rec.worst), usdOf(amount, rec.median), usdOf(amount, rec.p10)));
+      sum.push(p1);
+    }
+    if (rec.weeks > 1) sum.push(el('p', null, tx('web.sp.sum_why', spc(rec.p10))));
+    const safer = SP.options.filter((o) => o.weeks > 1 && o.weeks < rec.weeks).sort((a, b) => b.p10 - a.p10)[0];
+    if (safer) sum.push(el('p', 'muted', tx('web.sp.sum_risk', spName(safer.weeks), spc(safer.p10))));
+    $('sp-sum').replaceChildren(...sum);
+    const h = el('tr');
+    ['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_below', 'col_mdd', 'col_beat', 'col_value'].forEach((k, i) => h.append(el('th', i ? 'r' : '', tx('web.sp.' + k))));
+    const tb = el('tbody');
+    for (const o of SP.options) {
+      const tr = el('tr', o === rec ? 'here' : ''), n = el('td');
+      n.append(el('b', 'nowrap', spName(o.weeks)));
+      if (o === best) n.append(el('span', 'tag', tx('web.sp.tag_best')));
+      if (o === rec) n.append(el('span', 'tag', tx('web.sp.tag_rec')));
+      n.append(el('span', 'sub', o.weeks === 1 ? '' : tx('web.sp.opt_n_sub', o.weeks) + (o.not_worse ? '' : ' · ' + tx('web.sp.worse'))));
+      const beat = el('td', 'r num'), val = el('td', 'r num nowrap', ok ? usdOf(amount, o.median) : '—');
+      if (ok) val.append(el('span', 'sub', tx('web.sp.value_sub', usdOf(amount, o.p10))));
+      beat.append(o.beat_once == null ? '—' : pc(o.beat_once));
+      if (o.beat_once != null && o.beat_once_ci) beat.append(el('span', 'sub', tx('web.sp.beat_sub', pc(o.beat_once_ci[0]), pc(o.beat_once_ci[1]))));
+      tr.append(n, el('td', 'r num ' + (o.median >= 0 ? 'good' : 'bad'), spc(o.median)), el('td', 'r num ' + (o.p10 >= 0 ? 'good' : 'bad'), spc(o.p10)),
+        el('td', 'r num ' + (o.worst >= 0 ? 'good' : 'bad'), spc(o.worst)), el('td', 'r num', pc(o.below_start)), el('td', 'r num', spc(o.mdd_median)), beat, val);
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-sp').replaceChildren(th, tb);
+    const notes = [tx('web.sp.note_data', SP.starts, fmtDate(SP.from), fmtDate(SP.to), SP.episodes, pc(SP.cost, 2)), tx('web.sp.note_rule'), tx('web.sp.note_value')];
+    if (!SP.signals_passed) notes.push(tx('web.sp.note_signals'));
+    notes.push(tx('web.sp.note_past'));
+    $('sp-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+    $('sp-opts').replaceChildren(...SP.options.map((o) => { const b = el('button', null, spName(o.weeks)); b.type = 'button'; b.setAttribute('aria-pressed', String(sp.pick === o.weeks));
+      b.addEventListener('click', () => { sp.pick = o.weeks; renderSellPlan(); }); return b; }));
+    const sh = el('tr');
+    ['col_n', 'col_date', 'col_btc', 'col_cum', 'col_share', 'col_usd'].forEach((k, i) => sh.append(el('th', i > 1 ? 'r' : '', tx('web.sp.' + k))));
+    const sb = el('tbody');
+    if (ok) for (const r of spSchedule(amount, sp.pick, start)) {
+      const tr = el('tr'), dc = el('td', 'nowrap');
+      dc.append(fmtDate(r.date), el('span', 'sub', weekday(r.date)));
+      tr.append(el('td', 'num', String(r.k)), dc, el('td', 'r num nowrap', btc(r.amount)), el('td', 'r num nowrap', btc(r.cum)), el('td', 'r num', pc(r.share)), el('td', 'r num nowrap', usdOf(r.amount, 0)));
+      sb.append(tr);
+    }
+    else { const tr = el('tr'), td = el('td', 'muted', tx('web.sp.enter')); td.colSpan = 6; tr.append(td); sb.append(tr); }
+    const sth = el('thead'); sth.append(sh); $('t-sp-sched').replaceChildren(sth, sb);
+  }
+  function initSellPlan() {
+    if (!$('sp-sec')) return;
+    $('sp-start').value = nextMonday();
+    $('sp-amount').addEventListener('input', renderSellPlan);
+    $('sp-start').addEventListener('change', renderSellPlan);
+    renderSellPlan();
   }
 
   // ================================================================ GIÁ & NGÀY MUA / BÁN (KN.entry: bot/models/entry_timing.py, KN.exit: bot/models/exit_timing.py)
@@ -1608,6 +1696,7 @@
 
 
   initPlan();
+  initSellPlan();
   if ($('fc-sec')) renderForecast();
   if ($('rb-sec')) renderRebuild();
   renderKN();
