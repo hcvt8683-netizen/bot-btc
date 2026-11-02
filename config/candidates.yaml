@@ -363,5 +363,18 @@ perp_trade:
   hold_view:   # thêm 02/11/2026 theo yêu cầu người dùng, trước khi tính; chỉ để hiển thị
     hours: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 48, 72, 96, 120, 144, 168]
     what: "người dùng chọn thời gian giữ tối đa (1–24 giờ hoặc 1–7 ngày). Với công thức đang xem, giữ nguyên tín hiệu, phía, cách vào, cắt lỗ, chốt lời, chỉ thay thời gian giữ: chạy riêng một tài khoản như mục decision và hiện tỷ lệ thắng (Wilson 95% theo số lệnh), tỷ lệ chạm chốt lời, chạm cắt lỗ, hết giờ có lãi, hết giờ lỗ, lãi trung bình. Đây là thống kê lịch sử trong mẫu: không vào bước chọn công thức, không vào kết luận, không chấm đi tới; trang ghi rõ khi thời gian chọn khác thời gian của công thức"
+  sides:   # thêm 02/11/2026 theo yêu cầu người dùng, SAU khi đã thấy kết quả đi tới của cách chọn chung (chưa có lợi thế); ghi trước khi tính phần này
+    why: "người dùng muốn lúc kiểm tra có đề xuất long hay short và biết phải đạt bao nhiêu tiêu chí mới vào lệnh. Cách chọn chung gần như tháng nào cũng chọn long, nên không nói được gì về short"
+    select: "như mục select (t cao nhất, ít nhất 30 lệnh, t ≥ 2, cửa sổ mở rộng, từ 01/07/2021) nhưng riêng trong 576 công thức long và riêng trong 576 công thức short; mỗi phía một tài khoản đi tới như mục walk_forward"
+    verdict: "mỗi phía tính như mục verdict (ít nhất 100 lệnh, cận dưới bootstrap 95% > 0, lãi trung bình dương ở cả hai nửa), cùng mốc hai nửa và cùng bootstrap"
+  checklist:
+    rule: "lúc kiểm tra, mỗi phía chấm 6 tiêu chí dưới đây. Chỉ đề xuất vào lệnh phía nào đạt đủ 6/6 mà phía kia không đạt đủ 6/6; còn lại 'Không nên vào lệnh'. Trang hiện số tiêu chí đạt của cả hai phía và lý do từng tiêu chí. Thay cho kết luận của cách chọn chung (cách chọn chung vẫn báo cáo)"
+    items:
+      c1: "có công thức của tháng cho phía này: t ≥ 2 trên ít nhất 30 lệnh đã đóng trước đầu tháng"
+      c2: "chấm đi tới của phía này có ít nhất 100 lệnh"
+      c3: "chấm đi tới của phía này: cận dưới khoảng tin cậy 95% (bootstrap theo tháng) của lãi trung bình (R) > 0"
+      c4: "chấm đi tới của phía này: lãi trung bình > 0 ở cả hai nửa"
+      c5: "tín hiệu của công thức tháng này (phía này) đang bật ở nến giờ vừa đóng lúc kiểm tra"
+      c6: "với đòn bẩy người dùng nhập, giá thanh lý xa giá vào hơn giá cắt lỗ"
   log: "mỗi lần chạy, nếu lựa chọn của tháng hiện tại (theo phiên bản) chưa có trong data/perp_trade/select_log.csv thì thêm một dòng (chỉ thêm dòng, không ghi bù tháng đã qua). Chấm: lệnh của các quy tắc đã ghi, có giờ tín hiệu từ 03/11/2026 và đã đóng, tính lại từ dữ liệu cùng phiên bản. Đổi phương pháp = phiên bản mới. Giai đoạn kiểm tra cuối mới = nhật ký này, chấm lần đầu khi đủ 1 năm"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư; với đòn bẩy, một lần đi ngược có thể mất hết ký quỹ"
