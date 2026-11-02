@@ -1385,7 +1385,7 @@
       g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillStyle = on ? c('--brand-ink') : c('--muted');
       g.font = `${on ? 700 : 500} ${mini ? 11 : 12}px ${c('--font')}`;
       if (!mini || on) g.fillText(pc(x.share), bx + bw / 2, y(x.share) - 3);
-      g.textBaseline = 'top'; g.fillStyle = x.date === today ? c('--brand-ink') : c('--muted'); g.font = `${x.date === today ? 700 : 500} ${mini ? 10.5 : 12}px ${c('--font')}`;
+      g.textBaseline = 'top'; g.fillStyle = x.date === today ? c('--brand-ink') : c('--muted'); g.font = `${x.date === today ? 700 : 500} ${mini || cw < 56 ? 10.5 : 12}px ${c('--font')}`;
       if (mini) g.fillText(wdOf(x.date), bx + bw / 2, H - PB + 3);
       else { g.fillText(x.date === today ? tx('web.en.today') : wdOf(x.date), bx + bw / 2, H - PB + 8); g.fillText(dm(x.date), bx + bw / 2, H - PB + 23); }
     });
@@ -1442,6 +1442,30 @@
     if (EN) { const ch = L / EN.price - 1, c = $('chg'); c.hidden = !(Math.abs(ch) < 0.25); c.className = 'chg num ' + (ch >= 0 ? 'up' : 'down'); c.textContent = tx('web.home.chg', spc(ch, 1), dm(EN.anchor)); }
     renderEntry(); renderHome(); requestAnimationFrame(redraw);
   }
+
+  // ----- điện thoại: mỗi dòng bảng hiện thành một thẻ, mỗi ô kèm tên cột (data-label từ dòng tiêu đề; CSS table.stack ở page.html) -----
+  function labelTable(t) {
+    const r0 = t.rows[0], hr = t.tHead ? t.tHead.rows[0] : r0 && [...r0.cells].every((c) => c.tagName === 'TH') ? r0 : null;
+    if (!hr) return;
+    if (!t.tHead) hr.classList.add('hd');  // bảng trong câu trả lời của Claude: dòng đầu là tiêu đề
+    const names = [];
+    for (const th of hr.cells) {
+      const n = [...th.childNodes].filter((x) => !(x.classList && x.classList.contains('sub'))).map((x) => x.textContent).join('').trim();
+      for (let k = 0; k < th.colSpan; k++) names.push(n);
+    }
+    for (const tr of t.rows) {
+      if (tr === hr) continue;
+      let j = 0;
+      for (const td of tr.cells) { if (td.colSpan > 1) td.classList.add('wide'); else td.dataset.label = names[j] || ''; j += td.colSpan; }
+    }
+    t.classList.add('stack');
+  }
+  let labelQueued = false;
+  new MutationObserver(() => {
+    if (labelQueued) return;
+    labelQueued = true;
+    requestAnimationFrame(() => { labelQueued = false; document.querySelectorAll('#app table').forEach(labelTable); });
+  }).observe($('app'), { childList: true, subtree: true });
 
   // ----- thẻ (tab) và nền sáng / tối -----
   const TABS = [...document.querySelectorAll('#tabs [role=tab]')], TAB_IDS = TABS.map((b) => b.dataset.tab);

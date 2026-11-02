@@ -122,6 +122,9 @@ async def _render(page_path: pathlib.Path, data: dict, vw: int, scheme: str) -> 
                 await pg.click(f"#tabs [data-tab={t}]")
                 await pg.wait_for_timeout(150)
                 out.append(f"--- {t} ---\n" + await pg.evaluate("document.getElementById('app').innerText"))
+                # anything that scrolls sideways inside the page (tables, the tab bar), in pixels
+                res["inner_overflow"] = max(res.get("inner_overflow", 0), await pg.evaluate(
+                    "Math.max(0, ...[...document.querySelectorAll('.tabp:not([hidden]) .scroll, .tabp:not([hidden]) table, #tabs')].map((e) => e.scrollWidth - e.clientWidth))"))
             return "\n".join(out)
 
         res["buy_text"] = await all_tabs()
@@ -163,6 +166,8 @@ def test_ui_snapshot(built_page: pathlib.Path, synth: dict, vw: int, scheme: str
     res = asyncio.run(_render(built_page, synth, vw, scheme))
     assert res["errors"] == []
     assert res["scroll_width"] <= vw, "page scrolls horizontally"
+    if vw < 700:
+        assert res["inner_overflow"] <= 1, "a table or the tab bar scrolls sideways on a phone"
     check(f"ui_{scheme}_{vw}.txt", "=== BÊN MUA ===\n" + res["buy_text"].strip() + "\n\n=== BÊN BÁN ===\n" + res["sell_text"].strip() + "\n")
     if vw == 1280:
         check(f"ui_styles_{scheme}.json", json.dumps(res["styles"], ensure_ascii=False, indent=1, sort_keys=True) + "\n")

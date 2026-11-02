@@ -188,7 +188,6 @@
   td.r, th.r { text-align: right; }
   td .sub { display: block; font-size: 12px; color: var(--muted); }
   @media (min-width: 700px) { #cp-sec th { white-space: normal; } }
-  @media (max-width: 699px) { #cp-sec td { white-space: nowrap; } }
   tr.base td { color: var(--muted); }
   tr.here td { background: color-mix(in srgb, var(--brand) 9%, transparent); }
   tr.here td:first-child { font-weight: 700; box-shadow: inset 3px 0 0 var(--brand); }
@@ -236,6 +235,31 @@
   .status li.ok::before { background: var(--jade); } .status li.err::before { background: var(--cinnabar); }
   .loading { padding: 30px 0; color: var(--muted); }
   .foot { margin-top: 26px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+
+  /* điện thoại: thẻ xuống dòng; mỗi dòng bảng thành một thẻ xếp dọc, mỗi ô "tên cột: giá trị" (tên cột do labelTable trong ui.js gắn) */
+  @media (max-width: 700px) {
+    .tabs { flex-wrap: wrap; overflow: visible; padding: 8px 0; }
+    .tabs button { padding: 6px 10px; font-size: 13px; }
+    .tabrow { align-items: flex-start; } .tabrow .icon-btn { margin-top: 8px; }
+    .panel { padding: 16px 14px; }
+    .scroll { overflow: visible; border: 0; border-radius: 0; max-height: none !important; }
+    table.stack, table.stack tbody { display: grid; gap: 10px; }
+    table.stack thead, table.stack tr.hd { display: none; }
+    table.stack tr { display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+    table.stack td { display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr); column-gap: 12px; align-items: baseline; text-align: right;
+      padding: 7px 12px; white-space: normal; min-width: 0 !important; overflow-wrap: anywhere; }
+    table.stack td::before { content: attr(data-label); grid-column: 1; grid-row: 1 / span 9; text-align: left; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+    table.stack td:first-child, table.stack td.wide { display: block; text-align: left; font-weight: 700; background: var(--soft); }
+    table.stack td:first-child::before, table.stack td.wide::before { content: none; }
+    table.stack tr.here { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+    table.stack tr.here td:first-child { background: color-mix(in srgb, var(--brand) 14%, var(--panel)); box-shadow: none; }
+    /* bảng nhiệt: các ô của một dòng thành lưới 4 cột (tên cột ở trên, số ở dưới) cho ngắn */
+    table.heat.stack tr { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    table.heat.stack td { display: block; text-align: center; padding: 6px 4px 7px; border-bottom: 0; border-top: 1px solid var(--line); }
+    table.heat.stack td::before { display: block; font-size: 11px; line-height: 1.3; text-align: center; margin-bottom: 2px; }
+    table.heat.stack td:first-child { grid-column: 1 / -1; text-align: left; padding: 7px 12px; border-top: 0; }
+    #t-pa.stack td:first-child::before { content: attr(data-label) " "; font-weight: 500; color: var(--muted); }
+  }
 </style>
 </head>
 <body>

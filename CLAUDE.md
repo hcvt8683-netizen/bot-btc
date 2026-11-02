@@ -47,6 +47,7 @@ Kế hoạch cải tiến cho các phiên sau, kèm câu lệnh từng bước v
 7. Luôn có câu: công cụ tham khảo, không phải lời khuyên đầu tư.
 
 ## Lỗi đã gặp, đừng lặp lại
+- Trên điện thoại (≤ 700px) không được có bảng trượt ngang: `labelTable` (`src/ui.js`) gắn tên cột (`data-label`) từ dòng tiêu đề, CSS `table.stack` biến mỗi dòng thành một thẻ (`table.heat` thành lưới 4 cột). Bảng mới phải có `<thead>` một dòng; `tests/test_ui_snapshot.py` kiểm tra ở bề rộng 390.
 - Thẻ đang ẩn có `clientWidth = 0`: hàm vẽ phải bỏ qua và vẽ lại khi thẻ hiện (`showTab` gọi `redraw`; biểu đồ cũ vẽ lại nhờ `ResizeObserver`). Bài kiểm tra Playwright phải bấm thẻ trước khi điền ô nằm trong thẻ đó.
 - Canvas: đọc chiều cao gốc qua `baseH(cv)`; không đọc `getAttribute('height')` sau khi đã gán `cv.height = H * dpr` (biểu đồ phình to khi trình duyệt phóng khác 100%). Thử ở `device_scale_factor` 1,25 và 2.
 - `Mo-Bot-BTC.bat` phải là ASCII, xuống dòng CRLF; HUONG_DAN cho Windows lưu UTF-8 có BOM.
