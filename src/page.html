@@ -7,38 +7,121 @@
 <meta name="description" content="{{web.page.meta_description}}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try { var t = localStorage.getItem('btc-bot3-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <style>
   :root {
     color-scheme: light;
-    --bg: #EEF1F4; --panel: #FFFFFF; --ink: #17212C; --muted: #5C6773; --line: #D5DCE2; --soft: #F4F6F8;
-    --jade: #1E7B57; --brass: #9A6B12; --cinnabar: #B23A27; --blue: #2B5BA8;
+    --bg: #F1F3F7; --panel: #FFFFFF; --ink: #111827; --muted: #5A6475; --line: #E1E6EE; --soft: #F5F7FA;
+    --jade: #0E7A56; --brass: #996300; --cinnabar: #BD3A26; --blue: #2B5AC6; --brand: #F7931A; --brand-ink: #A65800;
+    --hdr: #121A27; --hdr2: #2B1C08; --hdr-ink: #F3F5F9; --hdr-muted: #A9B3C2;
+    --shadow: 0 1px 2px rgba(17, 24, 39, .05), 0 6px 22px rgba(17, 24, 39, .06);
     --font: "Be Vietnam Pro", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { color-scheme: dark; --bg: #0F151C; --panel: #18212B; --ink: #E5EAEF; --muted: #98A4B0; --line: #2C3946; --soft: #1F2a35;
-      --jade: #5BC496; --brass: #DDB160; --cinnabar: #EB8570; --blue: #84A9EC; }
+    :root:not([data-theme="light"]) { color-scheme: dark; --bg: #090E15; --panel: #111925; --ink: #E7ECF3; --muted: #95A2B4; --line: #243044; --soft: #172131;
+      --jade: #4FC99B; --brass: #E2B15A; --cinnabar: #F0866E; --blue: #88A9F2; --brand: #F7931A; --brand-ink: #FFB45E;
+      --hdr: #0D141F; --hdr2: #2A1B07; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 26px rgba(0, 0, 0, .28); }
   }
+  :root[data-theme="dark"] { color-scheme: dark; --bg: #090E15; --panel: #111925; --ink: #E7ECF3; --muted: #95A2B4; --line: #243044; --soft: #172131;
+    --jade: #4FC99B; --brass: #E2B15A; --cinnabar: #F0866E; --blue: #88A9F2; --brand: #F7931A; --brand-ink: #FFB45E;
+    --hdr: #0D141F; --hdr2: #2A1B07; --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 26px rgba(0, 0, 0, .28); }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 18px 18px 70px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+  main.wrap { padding-top: 18px; padding-bottom: 70px; }
   button, input, select, textarea { font: inherit; color: inherit; }
-  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .num { font-variant-numeric: tabular-nums; }
   .good { color: var(--jade); } .mid { color: var(--brass); } .bad { color: var(--cinnabar); } .muted { color: var(--muted); }
   [hidden] { display: none !important; }
 
-  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-bottom: 14px; }
-  .top h1 { margin: 0 auto 0 0; font-size: 18px; font-weight: 700; }
-  .top .price { font-size: 24px; font-weight: 700; }
-  .top .when { color: var(--muted); font-size: 14px; }
+  /* đầu trang */
+  .hdr { background: radial-gradient(120% 140% at 100% 0%, var(--hdr2) 0%, var(--hdr) 55%); color: var(--hdr-ink); }
+  .hdr-in { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; padding-top: 18px; padding-bottom: 18px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+  .logo { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; font-weight: 800; font-size: 24px; box-shadow: 0 0 0 4px rgba(247, 147, 26, .18); }
+  .hdr h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .tagline { display: block; font-size: 12.5px; color: var(--hdr-muted); }
+  .quote { display: grid; justify-items: end; gap: 0; }
+  .hdr .price { font-size: 34px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+  .qline { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: flex-end; align-items: center; }
+  .hdr .when { color: var(--hdr-muted); font-size: 12.5px; }
+  .chg { font-size: 12.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); }
+  .chg.up { color: #5FD3A5; } .chg.down { color: #FF9C86; }
+  .hdr .modes { display: flex; gap: 6px; padding: 4px; border-radius: 12px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); }
+  .hdr .mode { border: 0; background: transparent; color: var(--hdr-muted); border-radius: 9px; padding: 6px 14px; cursor: pointer; text-align: left; display: grid; gap: 0; }
+  .hdr .mode b { font-size: 14px; color: var(--hdr-ink); } .hdr .mode span { font-size: 11.5px; }
+  #mode-buy[aria-pressed="true"] { background: #1B7F5B; } #mode-sell[aria-pressed="true"] { background: #B23F2A; }
+  .hdr .mode[aria-pressed="true"] span { color: rgba(255, 255, 255, .85); }
+  .icon-btn { flex: none; border: 1px solid var(--line); background: var(--soft); color: var(--ink); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 17px; }
+  .icon-btn:hover { border-color: var(--muted); }
+  @media (max-width: 680px) {
+    .quote { justify-items: start; } .qline { justify-content: flex-start; }
+    .hdr .price { font-size: 28px; } .hdr .mode span { display: none; }
+  }
 
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
-  .panel + .panel, section + section, .panel + section, section + .panel { margin-top: 16px; }
-  h2 { margin: 0 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
-  .lead { margin: 0 0 14px; color: var(--muted); max-width: 52em; font-size: 14px; }
+  /* thẻ */
+  .tabbar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .tabrow { display: flex; align-items: center; gap: 10px; }
+  .tabs { flex: 1; min-width: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 8px 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs button { flex: none; border: 0; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .tabs button:hover { background: var(--soft); color: var(--ink); }
+  .tabs button[aria-selected="true"] { background: color-mix(in srgb, var(--brand) 14%, var(--panel)); color: var(--brand-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 40%, transparent); }
+  .tabs button .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); margin-left: 6px; vertical-align: 2px; }
 
-  /* điều khiển */
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow); }
+  .panel + .panel, section + section, .panel + section, section + .panel, .tabp > * + * { margin-top: 16px; }
+  h2 { margin: 0 0 4px; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+  h2 .ic { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; margin-right: 10px; vertical-align: -6px; font-size: 15px;
+    background: color-mix(in srgb, var(--brand) 16%, transparent); color: var(--brand-ink); }
+  .lead { margin: 0 0 14px; color: var(--muted); max-width: 56em; font-size: 14px; }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+
+  /* tổng quan */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+  .kpi { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px 14px; box-shadow: var(--shadow); overflow: hidden; display: grid; align-content: start; gap: 2px; }
+  .kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--kc, var(--brand)); }
+  .kpi.good { --kc: var(--jade); } .kpi.mid { --kc: var(--brass); } .kpi.bad { --kc: var(--cinnabar); } .kpi.info { --kc: var(--blue); }
+  .kpi, .kpi.good, .kpi.mid, .kpi.bad { color: var(--ink); }
+  .kpi .lab { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .kpi .val { font-size: 27px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; }
+  .kpi .val small { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .kpi .sub { font-size: 13px; color: var(--muted); }
+  .kpi .go { margin-top: 6px; justify-self: start; border: 0; background: none; padding: 0; color: var(--brand-ink); font-weight: 600; font-size: 13px; cursor: pointer; }
+  .kpi canvas { display: block; width: 100%; margin-top: 6px; }
+  .hero-note { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--muted); margin: 14px 2px 0; }
+
+  /* công cụ giá chờ mua */
+  .calc { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 820px) { .calc { grid-template-columns: 1fr; } }
+  .calc .box { background: var(--soft); border-radius: 14px; padding: 16px; }
+  .bigin { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); background: var(--panel); border-radius: 12px; padding: 4px 12px; }
+  .bigin:focus-within { border-color: var(--brand); }
+  .bigin input { border: 0; outline: 0; background: transparent; font-size: 24px; font-weight: 700; width: 100%; min-width: 0; padding: 6px 0; }
+  .bigin span { color: var(--muted); font-weight: 600; }
+  .quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .quick button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; }
+  .quick button[aria-pressed="true"] { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 14%, var(--panel)); color: var(--brand-ink); font-weight: 600; }
+  .answer { margin-top: 14px; font-size: 14px; }
+  .answer .big { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; color: var(--brand-ink); }
+  .bars { display: grid; gap: 7px; }
+  .bar { display: grid; grid-template-columns: 92px 1fr 52px; gap: 10px; align-items: center; font-size: 13.5px; }
+  .bar .tr { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--muted) 16%, transparent); overflow: hidden; }
+  .bar .tr i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 70%, transparent), var(--brand)); }
+  .bar b { text-align: right; font-variant-numeric: tabular-nums; }
+  table.heat td, table.heat th { text-align: center; }
+  table.heat td:first-child, table.heat th:first-child { text-align: left; }
+  table.heat td { font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.heat td .sub { font-weight: 400; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+  .pill.good { background: color-mix(in srgb, var(--jade) 15%, transparent); }
+  .pill.bad { background: color-mix(in srgb, var(--cinnabar) 14%, transparent); }
+  .pill.mid { background: color-mix(in srgb, var(--brass) 15%, transparent); }
+  .pill.muted { background: color-mix(in srgb, var(--muted) 14%, transparent); }
+
+  /* điều khiển (phân tích cũ) */
   .ctrl { display: grid; gap: 14px; }
   .row { display: grid; grid-template-columns: 128px 1fr; gap: 10px; align-items: start; }
   .row > .lab { font-weight: 600; padding-top: 7px; font-size: 14px; }
@@ -46,9 +129,10 @@
   @media (max-width: 680px) { .row { grid-template-columns: 1fr; } .row > .lab { padding-top: 0; } }
   .inline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   input[type=date] { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 10px; }
-  .btn { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
+  .btn { border: 1px solid var(--line); background: var(--soft); border-radius: 10px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
   .btn:hover { border-color: var(--muted); }
-  .btn.main { background: var(--ink); color: var(--panel); border-color: var(--ink); font-weight: 600; padding: 9px 20px; }
+  .btn.main { background: var(--brand); color: #1A1204; border-color: var(--brand); font-weight: 700; padding: 9px 20px; }
+  .btn.main:hover { filter: brightness(1.05); }
   .btn:disabled { opacity: .5; cursor: wait; }
   .seg { display: flex; flex-wrap: wrap; gap: 6px; }
   .seg button { border: 1px solid var(--line); background: var(--soft); border-radius: 999px; padding: 6px 13px; cursor: pointer; font-size: 14px; }
@@ -60,19 +144,20 @@
   .inds input { accent-color: var(--ink); }
   .using { font-size: 14px; margin-top: 8px; }
   .progress { color: var(--muted); font-size: 14px; }
-  .warn { background: color-mix(in srgb, var(--brass) 14%, var(--panel)); border: 1px solid color-mix(in srgb, var(--brass) 40%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+  .warn { background: color-mix(in srgb, var(--brass) 13%, var(--panel)); border: 1px solid color-mix(in srgb, var(--brass) 40%, var(--line)); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
 
-  /* mua / bán */
+  /* mua / bán (phân tích cũ) */
   .duo { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
   .duo > .panel { margin-top: 0; }
-  .cons { background: var(--soft); border-radius: 10px; padding: 10px 14px; font-size: 14px; margin: 0 0 12px; }
-  .sm { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+  .cons { background: var(--soft); border-radius: 12px; padding: 12px 16px; font-size: 14px; margin: 0 0 12px; }
+  .cons p { margin: 0 0 6px; } .cons p:last-child { margin-bottom: 0; }
+  .sm { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
   .nowrap { white-space: nowrap; }
   .zlab b { font-weight: 600; color: var(--ink); }
   .gauge h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--muted); }
   .gauge .big { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 2px 0 10px; }
-  .gauge .big b { font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
-  .gauge .big span { font-size: 26px; font-weight: 700; }
+  .gauge .big b { font-size: 52px; line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+  .gauge .big span { font-size: 24px; font-weight: 700; }
   .zbar { position: relative; display: flex; height: 14px; border-radius: 7px; overflow: hidden; margin: 4px 0 4px; }
   .zbar i { display: block; height: 100%; }
   .zmark { position: relative; height: 0; }
@@ -83,9 +168,9 @@
 
   /* xác suất theo kỳ giữ */
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
-  .tile { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+  .tile { background: var(--soft); border-radius: 14px; padding: 14px 16px; }
   .tile .h { font-size: 14px; font-weight: 600; }
-  .tile .p { font-size: 40px; font-weight: 700; line-height: 1.1; margin: 4px 0 2px; }
+  .tile .p { font-size: 38px; font-weight: 800; line-height: 1.1; margin: 4px 0 2px; }
   .tile .c { font-size: 13px; color: var(--muted); }
   .rng { position: relative; height: 8px; background: color-mix(in srgb, var(--muted) 18%, transparent); border-radius: 4px; margin: 8px 0 6px; }
   .rng i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: currentColor; opacity: .35; }
@@ -97,33 +182,29 @@
   .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-weight: 500; font-size: 13px; color: var(--muted); background: var(--soft); white-space: nowrap; }
+  th { font-weight: 600; font-size: 12.5px; color: var(--muted); background: var(--soft); white-space: nowrap; }
   tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: color-mix(in srgb, var(--soft) 70%, transparent); }
   td.r, th.r { text-align: right; }
   td .sub { display: block; font-size: 12px; color: var(--muted); }
   @media (min-width: 700px) { #cp-sec th { white-space: normal; } }
   @media (max-width: 699px) { #cp-sec td { white-space: nowrap; } }
   tr.base td { color: var(--muted); }
-  tr.here td { background: color-mix(in srgb, var(--blue) 10%, transparent); }
-  tr.here td:first-child { font-weight: 700; }
+  tr.here td { background: color-mix(in srgb, var(--brand) 9%, transparent); }
+  tr.here td:first-child { font-weight: 700; box-shadow: inset 3px 0 0 var(--brand); }
   .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-left: 6px; background: color-mix(in srgb, var(--blue) 16%, transparent); color: var(--blue); }
   .zdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 8px; vertical-align: 0; }
-  ul.crit { margin: 14px 0 0; padding-left: 20px; font-size: 14px; max-width: 60em; } ul.crit li { margin-bottom: 4px; }
+  ul.crit { margin: 14px 0 0; padding-left: 20px; font-size: 14px; max-width: 62em; } ul.crit li { margin-bottom: 4px; }
 
   .chart { position: relative; }
   #t-pa td:nth-child(2), #t-pa th:nth-child(2) { min-width: 250px; }
   #t-pa td:nth-child(2) .sub { max-width: 34em; }
   #t-pa td, #t-pa th { padding-left: 10px; padding-right: 10px; }
-  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
-  .mode { text-align: left; border: 1.5px solid var(--line); background: var(--soft); border-radius: 12px; padding: 10px 14px; cursor: pointer; display: grid; gap: 2px; }
-  .mode b { font-size: 16px; } .mode span { font-size: 13px; color: var(--muted); }
-  #mode-buy[aria-pressed="true"] { border-color: var(--jade); background: color-mix(in srgb, var(--jade) 12%, var(--panel)); }
-  #mode-sell[aria-pressed="true"] { border-color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); }
-  .verdict-big { font-size: 52px; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; margin: 4px 0 6px; }
+  .verdict-big { font-size: 50px; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; margin: 4px 0 6px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .chip { font-size: 13px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); }
   .chip.on { border-color: var(--cinnabar); color: var(--cinnabar); background: color-mix(in srgb, var(--cinnabar) 10%, var(--panel)); font-weight: 600; }
   .pl { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: end; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-  .pl label { display: grid; gap: 3px; font-size: 13px; color: var(--muted); } .pl input { width: 150px; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 6px 9px; color: var(--ink); }
+  .pl label { display: grid; gap: 3px; font-size: 13px; color: var(--muted); } .pl input { width: 160px; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 7px 10px; color: var(--ink); }
   #t-tp td:first-child, #t-tp th:first-child, #t-tplv td:first-child { min-width: 260px; }
   #t-tp td, #t-tp th { padding-left: 10px; padding-right: 10px; }
   .ind-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 14px; }
@@ -153,261 +234,343 @@
   .status { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 13.5px; }
   .status li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; background: var(--muted); vertical-align: middle; }
   .status li.ok::before { background: var(--jade); } .status li.err::before { background: var(--cinnabar); }
-  .loading { padding: 50px 0; color: var(--muted); }
-  .foot { margin-top: 26px; font-size: 13px; color: var(--muted); }
+  .loading { padding: 30px 0; color: var(--muted); }
+  .foot { margin-top: 26px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <h1>{{web.page.bot_mua_ban_btc}}</h1>
-    <span class="price num" id="price">—</span>
-    <span class="when" id="when"></span>
-    <span class="when" id="updated" hidden></span>
+<header class="hdr">
+  <div class="wrap hdr-in">
+    <div class="brand"><span class="logo" aria-hidden="true">₿</span>
+      <div><h1>{{web.page.bot_mua_ban_btc}}</h1><span class="tagline">{{web.page.tagline}}</span></div></div>
+    <div class="quote">
+      <span class="price num" id="price">—</span>
+      <div class="qline"><span class="chg num" id="chg" hidden></span><span class="when" id="when"></span></div>
+      <span class="when" id="updated" hidden></span>
+    </div>
+    <div class="modes" role="group" aria-label="{{web.page.che_do}}">
+      <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>{{web.page.ben_mua}}</b><span>{{web.page.toi_muon_mua_them_btc}}</span></button>
+      <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>{{web.page.ben_ban}}</b><span>{{web.page.toi_dang_giu_btc_ngan}}</span></button>
+    </div>
   </div>
+</header>
+<div class="tabbar">
+  <div class="wrap tabrow"><nav class="tabs" role="tablist" id="tabs" aria-label="{{web.page.tabs_label}}">
+    <button type="button" role="tab" data-tab="home" aria-selected="true">{{web.page.tab_home}}</button>
+    <button type="button" role="tab" data-tab="entry" aria-selected="false">{{web.page.tab_entry}}<span class="dot" aria-hidden="true"></span></button>
+    <button type="button" role="tab" data-tab="plan" aria-selected="false">{{web.page.tab_plan}}</button>
+    <button type="button" role="tab" data-tab="fc" aria-selected="false">{{web.page.tab_fc}}</button>
+    <button type="button" role="tab" data-tab="check" aria-selected="false">{{web.page.tab_check}}</button>
+    <button type="button" role="tab" data-tab="old" aria-selected="false">{{web.page.tab_old}}</button>
+    <button type="button" role="tab" data-tab="ai" aria-selected="false">{{web.page.tab_ai}}</button>
+  </nav><button type="button" class="icon-btn" id="theme" title="{{web.page.theme}}" aria-label="{{web.page.theme}}">◐</button></div>
+</div>
 
-  <div class="panel ctrl">
-    <div class="row"><span class="lab">{{web.page.ban_dang}}</span>
-      <div class="modes" role="group" aria-label="{{web.page.che_do}}">
-        <button type="button" class="mode" id="mode-buy" aria-pressed="true"><b>{{web.page.ben_mua}}</b><span>{{web.page.toi_muon_mua_them_btc}}</span></button>
-        <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>{{web.page.ben_ban}}</b><span>{{web.page.toi_dang_giu_btc_nen_giu}}</span></button>
-      </div></div>
-    <div class="row"><span class="lab">{{web.page.ngay_phan_tich}}</span>
-      <div><div class="inline"><input type="date" id="date"><button class="btn" type="button" id="today">{{web.page.hom_nay}}</button></div>
-        <span class="help">{{web.page.chon_ngay_trong_qua_khu_hoac}}</span></div></div>
-    <div class="row"><span class="lab">{{web.page.bo_chi_so}}</span>
-      <div><div class="seg" id="sets"></div>
-        <div class="inds" id="inds"></div>
-        <div class="using" id="using"></div></div></div>
-    <div class="row"><span class="lab"></span>
-      <div class="inline"><button class="btn main" type="button" id="run" disabled>{{web.page.chay_bot}}</button>
-        <button class="btn" type="button" id="research" disabled>{{web.page.tim_lai_bo_co_ty_le}}</button>
-        <span class="progress" id="progress">{{web.page.dang_tai_du_lieu_that_tu}}</span></div></div>
-  </div>
-
-  <div class="loading" id="loading">{{web.page.dang_tai_gia_btc_fear_amp}}</div>
-
-  <div id="app" hidden>
-    <p class="warn" id="lookahead" hidden></p>
+<main class="wrap">
+  <div id="app">
     <p class="warn" id="stale" hidden></p>
 
-    <section class="panel" id="kn-sec" style="margin:16px 0">
-      <h2>{{web.kn.title}}</h2>
-      <p class="lead">{{web.kn.lead}}</p>
-      <p class="cons" id="kn-sum"></p>
-      <div id="kn-notes"></div>
-      <p class="sm" style="margin-top:16px" id="kn-cmp-title">{{web.kn.cmp_title}}</p>
-      <div class="scroll"><table id="t-kn"></table></div>
-      <ul class="crit" id="kn-ev"></ul>
-      <div class="two" style="margin-top:16px">
-        <div><p class="sm">{{web.kn.events_title}}</p><ul class="status" id="kn-events"></ul></div>
-        <div><p class="sm">{{web.kn.fresh_title}}</p><ul class="status" id="kn-fresh"></ul></div>
-      </div>
-    </section>
-
-    <section class="panel" id="rb-sec" style="margin:16px 0">
-      <h2>{{web.rb.title}}</h2>
-      <p class="lead">{{web.rb.lead}}</p>
-      <div class="cons" id="rb-sum"></div>
-      <p class="sm" style="margin-top:16px">{{web.rb.zones_title}}</p>
-      <div class="scroll"><table id="t-rb-zones"></table></div>
-      <p class="sm" style="margin-top:16px" id="rb-scn-title"></p>
-      <div class="scroll"><table id="t-rb-scn"></table></div>
-      <ul class="crit" id="rb-notes"></ul>
-    </section>
-
-    <section class="panel" id="cp-sec" style="margin:16px 0">
-      <h2 id="cp-title">{{web.cp.title}}</h2>
-      <p class="lead" id="cp-lead">{{web.cp.lead}}</p>
-      <div class="cons" id="cp-sum"></div>
-      <div class="scroll"><table id="t-cp"></table></div>
-      <p class="lead" style="margin:18px 0 8px"><b id="cp-check-title">{{web.cp.check_title}}</b></p>
-      <div class="scroll"><table id="t-cp2"></table></div>
-      <ul class="crit" id="cp-notes"></ul>
-    </section>
-
-    <section class="panel" id="fc-sec" style="margin:16px 0">
-      <h2>{{web.fc.title}}</h2>
-      <p class="lead">{{web.fc.lead}}</p>
-      <div class="cons" id="fc-sum"></div>
-      <div class="scroll"><table id="t-fc"></table></div>
-      <ul class="crit" id="fc-notes"></ul>
-      <p class="sm" style="margin-top:16px">{{web.fc.verify_title}}</p>
-      <p class="lead" id="fc-verify-sum"></p>
-      <div class="scroll" id="fc-verify-box"><table id="t-fc-verify"></table></div>
-    </section>
-
-    <section class="panel" id="plan-sec" style="margin:16px 0">
-      <h2>{{web.plan.title}}</h2>
-      <p class="lead">{{web.plan.lead}}</p>
-      <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
-        <label>{{web.plan.amount}}<input type="text" inputmode="decimal" id="plan-amount" placeholder="{{web.plan.amount_ph}}" autocomplete="off"></label>
-        <label>{{web.plan.unit}}<span class="seg" id="plan-unit"></span></label>
-        <label>{{web.plan.start}}<input type="date" id="plan-start"></label>
-      </div>
-      <div class="cons" id="plan-sum" style="margin-top:12px"></div>
-      <p class="sm" style="margin-top:16px">{{web.plan.cmp_title}}</p>
-      <div class="scroll"><table id="t-plan"></table></div>
-      <ul class="crit" id="plan-notes"></ul>
-      <p class="sm" style="margin-top:16px">{{web.plan.sched_title}}</p>
-      <div class="seg" id="plan-opts" style="margin-bottom:8px"></div>
-      <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
-      <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
-    </section>
-
-    <p class="warn" id="legacy-note" style="margin:16px 0">{{web.rb.legacy}}</p>
-
-    <div id="sell-view" hidden>
-      <section class="panel" id="s-hero"></section>
-
-      <section class="panel">
-        <h2 id="s-hold-title">{{web.page.giu_tiep_co_loi_khong}}</h2>
-        <p class="lead">{{web.page.ty_le_gia_cao_hon_hom}}</p>
-        <div class="tiles" id="s-tiles"></div>
+    <!-- ================= TỔNG QUAN ================= -->
+    <div class="tabp" data-panel="home" role="tabpanel">
+      <div class="kpis" id="h-kpis"></div>
+      <section class="panel" id="h-fan-sec">
+        <h2><span class="ic" aria-hidden="true">↧</span><span id="h-fan-title">{{web.en.fan_title}}</span></h2>
+        <p class="lead" id="h-fan-lead">{{web.en.fan_lead}}</p>
+        <div class="chart"><canvas id="h-fan" height="300"></canvas></div>
+        <div class="legend" id="h-fan-legend"></div>
       </section>
-
-      <section class="panel">
-        <h2>{{web.page.bo_tieu_chi_chot_loi_xep}}</h2>
-        <p class="lead" id="s-tp-lead"></p>
-        <div class="scroll"><table id="t-tp"></table></div>
-        <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-tp">{{web.page.tai_bo_tieu_chi_chot_loi}}</button></div>
-      </section>
-
-      <section class="panel">
-        <h2>{{web.page.moc_gia_chot_loi}}</h2>
-        <p class="lead">{{web.page.gia_btc_can_dat_de_tung}}</p>
-        <div class="scroll"><table id="t-tplv"></table></div>
-      </section>
-
-      <section class="panel">
-        <h2>{{web.page.cac_lan_tieu_chi_chot_loi}}</h2>
-        <p class="lead">{{web.page.moi_vach_mau_la_mot_tuan}}</p>
-        <div class="chart" id="s-chart-box"><canvas id="s-chart" height="360"></canvas><div class="tip" id="s-tip"></div></div>
-        <div class="legend" id="s-legend"></div>
-      </section>
-
-      <section class="panel">
-        <h2>{{web.page.neu_da_giu_1_btc_va}}</h2>
-        <p class="lead">{{web.page.quy_tac_1_nhom_bat_thi}}</p>
-        <div class="scroll"><table id="t-sim"></table></div>
-      </section>
-    </div>
-
-    <div class="duo" style="margin-top:16px">
-      <div class="panel gauge" id="g-buy"></div>
-      <div class="panel gauge" id="g-sell"></div>
-    </div>
-
-    <section class="panel" id="lv-sec" style="margin:16px 0">
-      <h2>{{web.page.gia_de_xuat_mua_va_ban}}</h2>
-      <p class="lead" id="lv-lead"></p>
-      <p class="cons" id="lv-sum"></p>
-      <div class="scroll"><table id="t-lv"></table></div>
-      <div id="lv-notes"></div>
-      <p class="sm" style="margin-top:16px">{{web.page.neu_gia_ngay_phan_tich_la}}</p>
-      <div class="scroll"><table id="t-lvl"></table></div>
-    </section>
-
-    <div id="buy-view">
-    <section class="panel" id="pa-sec">
-      <h2>{{web.page.so_sanh_cac_phuong_an}}</h2>
-      <p class="lead" id="pa-lead"></p>
-      <p class="cons" id="pa-cons"></p>
-      <div class="scroll"><table id="t-pa"></table></div>
-      <div class="two" style="margin-top:16px">
-        <div><p class="sm">{{web.page.ty_le_thang_o_khung_phai}}</p><div class="chart"><canvas id="c-pa-win" height="300"></canvas></div><div class="legend" id="l-pa-win"></div></div>
-        <div><p class="sm">{{web.page.ty_le_nen_mua_va_nen}}</p><div class="chart"><canvas id="c-pa-today" height="300"></canvas></div><div class="legend" id="l-pa-today"></div></div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2 id="hold-title">{{web.page.xac_suat_thang_neu_mua_va}}</h2>
-      <p class="lead">{{web.page.thang_la_gia_sau_ky_giu}}</p>
-      <div class="tiles" id="tiles"></div>
-    </section>
-
-    <section class="panel">
-      <h2>{{web.page.bo_tieu_chi_danh_gia_ty}}</h2>
-      <p class="lead" id="crit-lead"></p>
-      <div class="scroll"><table id="t-buy"></table></div>
-      <div class="scroll" style="margin-top:12px"><table id="t-sell"></table></div>
-      <ul class="crit">
-        <li><b>{{web.page.ty_le_nen_mua}}</b>{{web.page.dieu_kien_ngay_phan_tich_thuan}} <b>{{web.page.phai_mua}}</b>{{web.page.s_60_80_la}} <b>{{web.page.can_nhac_mua}}</b>{{web.page.duoi_60_la}} <b>{{web.page.khong_nen_mua}}</b>.</li>
-        <li><b>{{web.page.ty_le_nen_ban}}</b>{{web.page.nguy_co_gia_giam_hon_10}} <b>{{web.page.nen_ban}}</b>{{web.page.s_70_85_la}} <b>{{web.page.can_nhac_ban}}</b>{{web.page.duoi_70_la}} <b>{{web.page.khong_nen_ban}}</b>.</li>
-        <li>{{web.page.mo_hinh_hoc_lai_moi_4}}</li>
-        <li>{{web.page.mot_khung_dang_tin_khi_ty}}</li>
-      </ul>
-    </section>
-
-    <section class="panel">
-      <h2>{{web.page.bo_chi_so_khuyen_cao_ty}}</h2>
-      <p class="lead" id="rec-lead"></p>
-      <div class="scroll"><table id="t-rec"></table></div>
-      <p class="lead" id="rec-weak" style="margin:10px 0 0"></p>
-    </section>
-
-    <section class="panel">
-      <h2>{{web.page.ty_le_nen_mua_nen_ban}}</h2>
-      <p class="lead">{{web.page.nen_mau_la_khung_mua_moi}}</p>
-      <div class="chart" id="chart-box"><canvas id="chart" height="340"></canvas><div class="tip" id="tip"></div></div>
-      <div class="legend" id="legend"></div>
-    </section>
-    </div>
-
-
-
-    <section class="panel">
-      <h2>{{web.page.gia_tri_cac_chi_so_tai}}</h2>
-      <p class="lead">{{web.page.trong_so_lay_tu_mo_hinh}}</p>
-      <div class="scroll"><table id="t-feat"></table></div>
-      <p class="lead" id="vol-line" style="margin:12px 0 0"></p>
-    </section>
-
-    <section class="panel">
-      <h2>{{web.page.bieu_do_tung_chi_so_trong}}</h2>
-      <p class="lead">{{web.page.gia_tri_theo_tuan_tu_2014}}</p>
-      <div class="ind-grid" id="ind-charts"></div>
-    </section>
-
-    <section class="panel">
-      <h2>{{web.page.hoi_claude_ve_nhan_dinh_cua}}</h2>
-      <p class="lead">{{web.page.bot_chi_lam_thong_ke_claude}}</p>
       <div class="two">
-        <div>
-          <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_1_xuat_file_keo_vao}}</p>
-          <div class="inline"><button class="btn main" type="button" id="dl-md">{{web.page.tai_bao_cao_md}}</button><button class="btn" type="button" id="dl-csv">{{web.page.du_lieu_tung_tuan_csv}}</button><button class="btn" type="button" id="dl-pa">{{web.page.so_sanh_phuong_an_csv}}</button><button class="btn" type="button" id="copy-md">{{web.page.sao_chep_bao_cao}}</button><button class="btn" type="button" id="dl-pkg">{{web.page.tai_goi_claude_ai}}</button></div>
-          <p class="muted" style="font-size:13px;margin:8px 0 0">{{web.page.gui_ca_bao_cao_va_hai}}</p>
-          <p class="muted" id="copy-msg" style="font-size:13px"></p>
-        </div>
-        <div>
-          <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_2_goi_claude_api_ngay}}</p>
-          <label class="field">{{web.page.khoa_api_console_anthropic_com}}<input type="password" id="ck" placeholder="sk-ant-…" autocomplete="off"></label>
-          <label class="check"><input type="checkbox" id="ck-remember">{{web.page.ghi_nho_khoa_tren_may_nay}}</label>
-          <label class="field">{{web.page.mo_hinh}}<select id="cmodel"><option value="claude-opus-5-5">{{web.page.claude_opus_khuyen_dung}}</option><option value="claude-sonnet-5-5">{{web.page.claude_sonnet_nhanh}}</option><option value="claude-haiku-5-5">{{web.page.claude_haiku_5_5_nhanh_re}}</option></select></label>
-          <label class="check"><input type="checkbox" id="cweb" checked>{{web.page.cho_claude_tim_tin_tuc_hien}}</label>
-          <label class="field">{{web.page.do_sau}}<select id="ceffort"><option value="high">{{web.page.do_sau_high}}</option><option value="medium">{{web.page.do_sau_medium}}</option><option value="low">{{web.page.do_sau_low}}</option></select></label>
-          <p class="muted" style="font-size:13px;margin:4px 0 0">{{web.page.claude_gui_gi}}</p>
-        </div>
+        <section class="panel"><h2><span class="ic" aria-hidden="true">⚑</span>{{web.kn.events_title}}</h2><ul class="status" id="kn-events"></ul></section>
+        <section class="panel"><h2><span class="ic" aria-hidden="true">✓</span>{{web.kn.fresh_title}}</h2><ul class="status" id="kn-fresh"></ul></section>
       </div>
-      <p style="margin:16px 0 6px;font-weight:600">{{web.page.ho_so_title}}</p>
-      <div class="profile" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px">
-        <label class="field">{{web.page.ho_so_horizon}}<select id="cp-horizon"><option value="">{{web.page.ho_so_none}}</option><option value="h1">{{web.page.ho_so_h1}}</option><option value="h2">{{web.page.ho_so_h2}}</option><option value="h3">{{web.page.ho_so_h3}}</option></select></label>
-        <label class="field">{{web.page.ho_so_drawdown}}<select id="cp-drawdown"><option value="">{{web.page.ho_so_none}}</option><option value="d1">{{web.page.ho_so_d1}}</option><option value="d2">{{web.page.ho_so_d2}}</option><option value="d3">{{web.page.ho_so_d3}}</option></select></label>
-        <label class="field">{{web.page.ho_so_share}}<select id="cp-share"><option value="">{{web.page.ho_so_none}}</option><option value="s1">{{web.page.ho_so_s1}}</option><option value="s2">{{web.page.ho_so_s2}}</option><option value="s3">{{web.page.ho_so_s3}}</option></select></label>
-      </div>
-      <div class="chat" id="chat"></div>
-      <label class="field">{{web.page.cau_hoi_them}}<textarea id="ai-q" rows="2" placeholder="{{web.page.vi_du_voi_ket_qua_nay}}"></textarea></label>
-      <div class="inline"><button class="btn main" type="button" id="ai-first">{{web.page.nho_claude_nhan_dinh}}</button><button class="btn" type="button" id="ai-send">{{web.page.gui_cau_hoi}}</button><button class="btn" type="button" id="ai-stop" hidden>{{web.page.dung_claude}}</button><span class="progress" id="ai-busy" hidden>{{web.page.claude_dang_doc_bao_cao}}</span></div>
-      <p class="err" id="ai-err" hidden></p>
-    </section>
+    </div>
 
-    <section class="panel">
-      <h2>{{web.page.nguon_du_lieu}}</h2>
-      <ul class="status" id="status"></ul>
-    </section>
+    <!-- ================= GIÁ & NGÀY MUA ================= -->
+    <div class="tabp" data-panel="entry" role="tabpanel" hidden>
+      <p class="warn" id="en-none" hidden>{{web.en.none}}</p>
+      <section class="panel" id="en-a">
+        <h2><span class="ic" aria-hidden="true">◎</span>{{web.en.a_title}}</h2>
+        <p class="lead">{{web.en.a_lead}}</p>
+        <div class="calc">
+          <div class="box">
+            <label class="kicker" for="en-target">{{web.en.target_label}}</label>
+            <div class="bigin"><input type="text" inputmode="decimal" id="en-target" autocomplete="off"><span>$</span></div>
+            <div class="quick" id="en-quick" role="group" aria-label="{{web.en.quick_label}}"></div>
+            <div class="answer" id="en-answer"></div>
+          </div>
+          <div><p class="sm" id="en-bars-title"></p><div class="bars" id="en-bars"></div></div>
+        </div>
+        <p class="sm" style="margin-top:20px">{{web.en.heat_title}}</p>
+        <div class="scroll"><table class="heat" id="t-en-heat"></table></div>
+        <ul class="crit" id="en-a-notes"></ul>
+        <details><summary>{{web.en.check_title}}</summary>
+          <p id="en-check-sum"></p>
+          <div class="scroll"><table id="t-en-check"></table></div>
+          <p id="en-log"></p>
+        </details>
+      </section>
+      <section class="panel" id="en-c">
+        <h2><span class="ic" aria-hidden="true">▤</span>{{web.en.c_title}}</h2>
+        <p class="lead">{{web.en.c_lead}}</p>
+        <div class="cons" id="en-c-sum"></div>
+        <div class="chart"><canvas id="en-days" height="260"></canvas></div>
+        <div class="legend" id="en-days-legend"></div>
+        <details><summary>{{web.en.c_check_title}}</summary><div class="scroll" style="margin-top:8px"><table id="t-en-days"></table></div></details>
+      </section>
+      <section class="panel" id="en-b">
+        <h2><span class="ic" aria-hidden="true">⇄</span>{{web.en.b_title}}</h2>
+        <p class="lead">{{web.en.b_lead}}</p>
+        <div class="cons" id="en-b-sum"></div>
+        <div class="scroll"><table class="heat" id="t-en-wait"></table></div>
+        <ul class="crit" id="en-b-notes"></ul>
+      </section>
+    </div>
+
+    <!-- ================= GIẢI NGÂN ================= -->
+    <div class="tabp" data-panel="plan" role="tabpanel" hidden>
+      <section class="panel" id="plan-sec">
+        <h2><span class="ic" aria-hidden="true">₫</span>{{web.plan.title}}</h2>
+        <p class="lead">{{web.plan.lead}}</p>
+        <div class="pl" style="border-top:0;padding-top:0;margin-top:0">
+          <label>{{web.plan.amount}}<input type="text" inputmode="decimal" id="plan-amount" placeholder="{{web.plan.amount_ph}}" autocomplete="off"></label>
+          <label>{{web.plan.unit}}<span class="seg" id="plan-unit"></span></label>
+          <label>{{web.plan.start}}<input type="date" id="plan-start"></label>
+        </div>
+        <div class="cons" id="plan-sum" style="margin-top:12px"></div>
+        <p class="sm" style="margin-top:16px">{{web.plan.cmp_title}}</p>
+        <div class="scroll"><table id="t-plan"></table></div>
+        <ul class="crit" id="plan-notes"></ul>
+        <p class="sm" style="margin-top:16px">{{web.plan.sched_title}}</p>
+        <div class="seg" id="plan-opts" style="margin-bottom:8px"></div>
+        <div class="scroll" style="max-height:380px;overflow-y:auto"><table id="t-plan-sched"></table></div>
+        <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-plan">{{web.plan.download}}</button></div>
+      </section>
+      <p class="warn" id="plan-sell" hidden>{{web.page.plan_sell_note}}</p>
+    </div>
+
+    <!-- ================= DỰ BÁO ================= -->
+    <div class="tabp" data-panel="fc" role="tabpanel" hidden>
+      <section class="panel" id="cp-sec">
+        <h2><span class="ic" aria-hidden="true">%</span><span id="cp-title">{{web.cp.title}}</span></h2>
+        <p class="lead" id="cp-lead">{{web.cp.lead}}</p>
+        <div class="cons" id="cp-sum"></div>
+        <div class="scroll"><table id="t-cp"></table></div>
+        <p class="lead" style="margin:18px 0 8px"><b id="cp-check-title">{{web.cp.check_title}}</b></p>
+        <div class="scroll"><table id="t-cp2"></table></div>
+        <ul class="crit" id="cp-notes"></ul>
+      </section>
+      <section class="panel" id="fc-sec">
+        <h2><span class="ic" aria-hidden="true">≈</span>{{web.fc.title}}</h2>
+        <p class="lead">{{web.fc.lead}}</p>
+        <div class="cons" id="fc-sum"></div>
+        <div class="scroll"><table id="t-fc"></table></div>
+        <ul class="crit" id="fc-notes"></ul>
+        <p class="sm" style="margin-top:16px">{{web.fc.verify_title}}</p>
+        <p class="lead" id="fc-verify-sum"></p>
+        <div class="scroll" id="fc-verify-box"><table id="t-fc-verify"></table></div>
+      </section>
+    </div>
+
+    <!-- ================= KIỂM ĐỊNH ================= -->
+    <div class="tabp" data-panel="check" role="tabpanel" hidden>
+      <section class="panel" id="kn-sec">
+        <h2><span class="ic" aria-hidden="true">✓</span>{{web.kn.title}}</h2>
+        <p class="lead">{{web.kn.lead}}</p>
+        <div class="cons" id="kn-sum"></div>
+        <div id="kn-notes"></div>
+        <p class="sm" style="margin-top:16px" id="kn-cmp-title">{{web.kn.cmp_title}}</p>
+        <div class="scroll"><table id="t-kn"></table></div>
+        <ul class="crit" id="kn-ev"></ul>
+      </section>
+      <section class="panel" id="rb-sec">
+        <h2><span class="ic" aria-hidden="true">⚙</span>{{web.rb.title}}</h2>
+        <p class="lead">{{web.rb.lead}}</p>
+        <div class="cons" id="rb-sum"></div>
+        <p class="sm" style="margin-top:16px">{{web.rb.zones_title}}</p>
+        <div class="scroll"><table id="t-rb-zones"></table></div>
+        <p class="sm" style="margin-top:16px" id="rb-scn-title"></p>
+        <div class="scroll"><table id="t-rb-scn"></table></div>
+        <ul class="crit" id="rb-notes"></ul>
+      </section>
+      <section class="panel">
+        <h2><span class="ic" aria-hidden="true">⇣</span>{{web.page.nguon_du_lieu}}</h2>
+        <ul class="status" id="status"></ul>
+      </section>
+    </div>
+
+    <!-- ================= PHÂN TÍCH CŨ ================= -->
+    <div class="tabp" data-panel="old" role="tabpanel" hidden>
+      <p class="warn" id="legacy-note">{{web.rb.legacy}}</p>
+      <div class="panel ctrl">
+        <div class="row"><span class="lab">{{web.page.ngay_phan_tich}}</span>
+          <div><div class="inline"><input type="date" id="date"><button class="btn" type="button" id="today">{{web.page.hom_nay}}</button></div>
+            <span class="help">{{web.page.chon_ngay_trong_qua_khu_hoac}}</span></div></div>
+        <div class="row"><span class="lab">{{web.page.bo_chi_so}}</span>
+          <div><div class="seg" id="sets"></div>
+            <div class="inds" id="inds"></div>
+            <div class="using" id="using"></div></div></div>
+        <div class="row"><span class="lab"></span>
+          <div class="inline"><button class="btn main" type="button" id="run" disabled>{{web.page.chay_bot}}</button>
+            <button class="btn" type="button" id="research" disabled>{{web.page.tim_lai_bo_co_ty_le}}</button>
+            <span class="progress" id="progress">{{web.page.dang_tai_du_lieu_that_tu}}</span></div></div>
+      </div>
+      <div class="loading" id="loading">{{web.page.dang_tai_gia_btc_fear_amp}}</div>
+      <div id="old-body" hidden>
+        <p class="warn" id="lookahead" hidden></p>
+
+        <div id="sell-view" hidden>
+          <section class="panel" id="s-hero"></section>
+
+          <section class="panel">
+            <h2 id="s-hold-title">{{web.page.giu_tiep_co_loi_khong}}</h2>
+            <p class="lead">{{web.page.ty_le_gia_cao_hon_hom}}</p>
+            <div class="tiles" id="s-tiles"></div>
+          </section>
+
+          <section class="panel">
+            <h2>{{web.page.bo_tieu_chi_chot_loi_xep}}</h2>
+            <p class="lead" id="s-tp-lead"></p>
+            <div class="scroll"><table id="t-tp"></table></div>
+            <div class="inline" style="margin-top:10px"><button class="btn" type="button" id="dl-tp">{{web.page.tai_bo_tieu_chi_chot_loi}}</button></div>
+          </section>
+
+          <section class="panel">
+            <h2>{{web.page.moc_gia_chot_loi}}</h2>
+            <p class="lead">{{web.page.gia_btc_can_dat_de_tung}}</p>
+            <div class="scroll"><table id="t-tplv"></table></div>
+          </section>
+
+          <section class="panel">
+            <h2>{{web.page.cac_lan_tieu_chi_chot_loi}}</h2>
+            <p class="lead">{{web.page.moi_vach_mau_la_mot_tuan}}</p>
+            <div class="chart" id="s-chart-box"><canvas id="s-chart" height="360"></canvas><div class="tip" id="s-tip"></div></div>
+            <div class="legend" id="s-legend"></div>
+          </section>
+
+          <section class="panel">
+            <h2>{{web.page.neu_da_giu_1_btc_va}}</h2>
+            <p class="lead">{{web.page.quy_tac_1_nhom_bat_thi}}</p>
+            <div class="scroll"><table id="t-sim"></table></div>
+          </section>
+        </div>
+
+        <div class="duo" style="margin-top:16px">
+          <div class="panel gauge" id="g-buy"></div>
+          <div class="panel gauge" id="g-sell"></div>
+        </div>
+
+        <section class="panel" id="lv-sec" style="margin:16px 0">
+          <h2>{{web.page.gia_de_xuat_mua_va_ban}}</h2>
+          <p class="lead" id="lv-lead"></p>
+          <p class="cons" id="lv-sum"></p>
+          <div class="scroll"><table id="t-lv"></table></div>
+          <div id="lv-notes"></div>
+          <p class="sm" style="margin-top:16px">{{web.page.neu_gia_ngay_phan_tich_la}}</p>
+          <div class="scroll"><table id="t-lvl"></table></div>
+        </section>
+
+        <div id="buy-view">
+        <section class="panel" id="pa-sec">
+          <h2>{{web.page.so_sanh_cac_phuong_an}}</h2>
+          <p class="lead" id="pa-lead"></p>
+          <p class="cons" id="pa-cons"></p>
+          <div class="scroll"><table id="t-pa"></table></div>
+          <div class="two" style="margin-top:16px">
+            <div><p class="sm">{{web.page.ty_le_thang_o_khung_phai}}</p><div class="chart"><canvas id="c-pa-win" height="300"></canvas></div><div class="legend" id="l-pa-win"></div></div>
+            <div><p class="sm">{{web.page.ty_le_nen_mua_va_nen}}</p><div class="chart"><canvas id="c-pa-today" height="300"></canvas></div><div class="legend" id="l-pa-today"></div></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 id="hold-title">{{web.page.xac_suat_thang_neu_mua_va}}</h2>
+          <p class="lead">{{web.page.thang_la_gia_sau_ky_giu}}</p>
+          <div class="tiles" id="tiles"></div>
+        </section>
+
+        <section class="panel">
+          <h2>{{web.page.bo_tieu_chi_danh_gia_ty}}</h2>
+          <p class="lead" id="crit-lead"></p>
+          <div class="scroll"><table id="t-buy"></table></div>
+          <div class="scroll" style="margin-top:12px"><table id="t-sell"></table></div>
+          <ul class="crit">
+            <li><b>{{web.page.ty_le_nen_mua}}</b>{{web.page.dieu_kien_ngay_phan_tich_thuan}} <b>{{web.page.phai_mua}}</b>{{web.page.s_60_80_la}} <b>{{web.page.can_nhac_mua}}</b>{{web.page.duoi_60_la}} <b>{{web.page.khong_nen_mua}}</b>.</li>
+            <li><b>{{web.page.ty_le_nen_ban}}</b>{{web.page.nguy_co_gia_giam_hon_10}} <b>{{web.page.nen_ban}}</b>{{web.page.s_70_85_la}} <b>{{web.page.can_nhac_ban}}</b>{{web.page.duoi_70_la}} <b>{{web.page.khong_nen_ban}}</b>.</li>
+            <li>{{web.page.mo_hinh_hoc_lai_moi_4}}</li>
+            <li>{{web.page.mot_khung_dang_tin_khi_ty}}</li>
+          </ul>
+        </section>
+
+        <section class="panel">
+          <h2>{{web.page.bo_chi_so_khuyen_cao_ty}}</h2>
+          <p class="lead" id="rec-lead"></p>
+          <div class="scroll"><table id="t-rec"></table></div>
+          <p class="lead" id="rec-weak" style="margin:10px 0 0"></p>
+        </section>
+
+        <section class="panel">
+          <h2>{{web.page.ty_le_nen_mua_nen_ban}}</h2>
+          <p class="lead">{{web.page.nen_mau_la_khung_mua_moi}}</p>
+          <div class="chart" id="chart-box"><canvas id="chart" height="340"></canvas><div class="tip" id="tip"></div></div>
+          <div class="legend" id="legend"></div>
+        </section>
+        </div>
+
+        <section class="panel">
+          <h2>{{web.page.gia_tri_cac_chi_so_tai}}</h2>
+          <p class="lead">{{web.page.trong_so_lay_tu_mo_hinh}}</p>
+          <div class="scroll"><table id="t-feat"></table></div>
+          <p class="lead" id="vol-line" style="margin:12px 0 0"></p>
+        </section>
+
+        <section class="panel">
+          <h2>{{web.page.bieu_do_tung_chi_so_trong}}</h2>
+          <p class="lead">{{web.page.gia_tri_theo_tuan_tu_2014}}</p>
+          <div class="ind-grid" id="ind-charts"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================= HỎI CLAUDE ================= -->
+    <div class="tabp" data-panel="ai" role="tabpanel" hidden>
+      <section class="panel">
+        <h2><span class="ic" aria-hidden="true">✦</span>{{web.page.hoi_claude_ve_nhan_dinh_cua}}</h2>
+        <p class="lead">{{web.page.bot_chi_lam_thong_ke_claude}}</p>
+        <p class="progress" id="ai-wait">{{web.page.ai_wait}}</p>
+        <div id="ai-body" hidden>
+        <div class="two">
+          <div>
+            <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_1_xuat_file_keo_vao}}</p>
+            <div class="inline"><button class="btn main" type="button" id="dl-md">{{web.page.tai_bao_cao_md}}</button><button class="btn" type="button" id="dl-csv">{{web.page.du_lieu_tung_tuan_csv}}</button><button class="btn" type="button" id="dl-pa">{{web.page.so_sanh_phuong_an_csv}}</button><button class="btn" type="button" id="copy-md">{{web.page.sao_chep_bao_cao}}</button><button class="btn" type="button" id="dl-pkg">{{web.page.tai_goi_claude_ai}}</button></div>
+            <p class="muted" style="font-size:13px;margin:8px 0 0">{{web.page.gui_ca_bao_cao_va_hai}}</p>
+            <p class="muted" id="copy-msg" style="font-size:13px"></p>
+          </div>
+          <div>
+            <p style="margin:0 0 8px;font-weight:600">{{web.page.cach_2_goi_claude_api_ngay}}</p>
+            <label class="field">{{web.page.khoa_api_console_anthropic_com}}<input type="password" id="ck" placeholder="sk-ant-…" autocomplete="off"></label>
+            <label class="check"><input type="checkbox" id="ck-remember">{{web.page.ghi_nho_khoa_tren_may_nay}}</label>
+            <label class="field">{{web.page.mo_hinh}}<select id="cmodel"><option value="claude-opus-5-5">{{web.page.claude_opus_khuyen_dung}}</option><option value="claude-sonnet-5-5">{{web.page.claude_sonnet_nhanh}}</option><option value="claude-haiku-5-5">{{web.page.claude_haiku_5_5_nhanh_re}}</option></select></label>
+            <label class="check"><input type="checkbox" id="cweb" checked>{{web.page.cho_claude_tim_tin_tuc_hien}}</label>
+            <label class="field">{{web.page.do_sau}}<select id="ceffort"><option value="high">{{web.page.do_sau_high}}</option><option value="medium">{{web.page.do_sau_medium}}</option><option value="low">{{web.page.do_sau_low}}</option></select></label>
+            <p class="muted" style="font-size:13px;margin:4px 0 0">{{web.page.claude_gui_gi}}</p>
+          </div>
+        </div>
+        <p style="margin:16px 0 6px;font-weight:600">{{web.page.ho_so_title}}</p>
+        <div class="profile" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px">
+          <label class="field">{{web.page.ho_so_horizon}}<select id="cp-horizon"><option value="">{{web.page.ho_so_none}}</option><option value="h1">{{web.page.ho_so_h1}}</option><option value="h2">{{web.page.ho_so_h2}}</option><option value="h3">{{web.page.ho_so_h3}}</option></select></label>
+          <label class="field">{{web.page.ho_so_drawdown}}<select id="cp-drawdown"><option value="">{{web.page.ho_so_none}}</option><option value="d1">{{web.page.ho_so_d1}}</option><option value="d2">{{web.page.ho_so_d2}}</option><option value="d3">{{web.page.ho_so_d3}}</option></select></label>
+          <label class="field">{{web.page.ho_so_share}}<select id="cp-share"><option value="">{{web.page.ho_so_none}}</option><option value="s1">{{web.page.ho_so_s1}}</option><option value="s2">{{web.page.ho_so_s2}}</option><option value="s3">{{web.page.ho_so_s3}}</option></select></label>
+        </div>
+        <div class="chat" id="chat"></div>
+        <label class="field">{{web.page.cau_hoi_them}}<textarea id="ai-q" rows="2" placeholder="{{web.page.vi_du_voi_ket_qua_nay}}"></textarea></label>
+        <div class="inline"><button class="btn main" type="button" id="ai-first">{{web.page.nho_claude_nhan_dinh}}</button><button class="btn" type="button" id="ai-send">{{web.page.gui_cau_hoi}}</button><button class="btn" type="button" id="ai-stop" hidden>{{web.page.dung_claude}}</button><span class="progress" id="ai-busy" hidden>{{web.page.claude_dang_doc_bao_cao}}</span></div>
+        <p class="err" id="ai-err" hidden></p>
+        </div>
+      </section>
+    </div>
+
     <p class="foot">{{web.page.ket_qua_trong_qua_khu_khong}}</p>
   </div>
-</div>
+</main>
 <script>
 /*I18N*/
 </script>

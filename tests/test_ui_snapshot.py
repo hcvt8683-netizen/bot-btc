@@ -3,7 +3,7 @@
 
 What is frozen, so any change shows up as a diff to approve:
 - tests/snapshots/theme.css: the <style> block of src/page.html (colors, fonts, spacing, tables).
-- tests/snapshots/ui_<scheme>_<width>.txt: all visible text of the page, buy and sell views.
+- tests/snapshots/ui_<scheme>_<width>.txt: all visible text of the page, every tab, buy and sell views.
 - tests/snapshots/ui_styles_<scheme>.json: computed styles of the main components.
 - tests/snapshots/ui/<platform>/*.png: screenshots, compared only on the platform that made them
   (fonts differ between Windows, Mac and Linux).
@@ -31,11 +31,15 @@ FIXED_NOW = "2026-10-28T03:00:00Z"
 FIXED_END = "2026-10-27T00:00:00Z"
 VIEWS = [(1280, "light"), (390, "light"), (1280, "dark")]
 STYLE_PROBES = {
-    "body": "body", "h1": ".top h1", "price": ".top .price", "panel": ".panel", "h2": "h2", "lead": ".lead",
+    "body": "body", "h1": ".hdr h1", "price": ".hdr .price", "panel": ".panel", "h2": "h2", "lead": ".lead",
     "btn_main": ".btn.main", "btn": ".btn", "seg_on": ".seg button[aria-pressed=true]", "th": "#t-pa th",
     "td": "#t-pa td", "tag": ".tag", "cons": ".cons", "gauge_big": ".gauge .big b", "tile": ".tile",
     "tile_p": ".tile .p", "row_here": "tr.here td", "warn": ".warn", "foot": ".foot", "scroll": ".scroll",
+    "hdr": ".hdr", "tab_on": ".tabs button[aria-selected=true]", "kpi": ".kpi", "kpi_val": ".kpi .val", "answer_big": ".answer .big",
 }
+TABS = ["home", "entry", "plan", "fc", "check", "old", "ai"]
+# full-page screenshots: (file suffix, mode, tab)
+SHOTS = [("buy", "buy", "home"), ("entry", "buy", "entry"), ("old", "buy", "old"), ("sell", "sell", "home")]
 STYLE_PROPS = ["color", "background-color", "font-family", "font-size", "font-weight", "line-height",
                "border-radius", "padding", "border-top-color", "border-top-width"]
 
@@ -111,22 +115,34 @@ async def _render(page_path: pathlib.Path, data: dict, vw: int, scheme: str) -> 
         await pg.wait_for_function("/^Xong/.test(document.getElementById('progress').textContent)", timeout=240000)
         await pg.wait_for_timeout(500)
         res = {"errors": errs}
-        res["buy_text"] = await pg.evaluate("document.querySelector('.top').innerText + '\\n' + document.getElementById('app').innerText")
+
+        async def all_tabs() -> str:
+            out = [await pg.evaluate("document.querySelector('.hdr').innerText")]
+            for t in TABS:
+                await pg.click(f"#tabs [data-tab={t}]")
+                await pg.wait_for_timeout(150)
+                out.append(f"--- {t} ---\n" + await pg.evaluate("document.getElementById('app').innerText"))
+            return "\n".join(out)
+
+        res["buy_text"] = await all_tabs()
         res["styles"] = await pg.evaluate("""([probes, props]) => {
             const out = { vars: {} }, cs = getComputedStyle(document.documentElement);
-            for (const v of ['--bg','--panel','--ink','--muted','--line','--soft','--jade','--brass','--cinnabar','--blue','--font']) out.vars[v] = cs.getPropertyValue(v).trim();
+            for (const v of ['--bg','--panel','--ink','--muted','--line','--soft','--jade','--brass','--cinnabar','--blue','--brand','--font']) out.vars[v] = cs.getPropertyValue(v).trim();
             for (const [k, sel] of Object.entries(probes)) { const e = document.querySelector(sel); if (!e) { out[k] = null; continue; }
               const s = getComputedStyle(e); out[k] = Object.fromEntries(props.map((p) => [p, s.getPropertyValue(p)])); }
             return out; }""", [STYLE_PROBES, STYLE_PROPS])
         OUT.mkdir(exist_ok=True)
-        res["shot_buy"] = OUT / f"snap_{scheme}_{vw}_buy.png"
-        await pg.screenshot(path=str(res["shot_buy"]), full_page=True)
-        await pg.click("#mode-sell")
-        await pg.wait_for_timeout(600)
-        res["sell_text"] = await pg.evaluate("document.getElementById('sell-view').innerText")
-        res["shot_sell"] = OUT / f"snap_{scheme}_{vw}_sell.png"
-        await pg.screenshot(path=str(res["shot_sell"]), full_page=True)
-        res["scroll_width"] = await pg.evaluate("document.documentElement.scrollWidth")
+        res["shots"], widths = [], []
+        for name, mode, tab in SHOTS:
+            await pg.click(f"#mode-{mode}")
+            await pg.click(f"#tabs [data-tab={tab}]")
+            await pg.wait_for_timeout(600)
+            shot = OUT / f"snap_{scheme}_{vw}_{name}.png"
+            await pg.screenshot(path=str(shot), full_page=True)
+            res["shots"].append(shot)
+            widths.append(await pg.evaluate("document.documentElement.scrollWidth"))
+        res["sell_text"] = await all_tabs()  # still in sell mode after the last screenshot
+        res["scroll_width"] = max(widths)
         await b.close()
     return res
 
@@ -151,8 +167,7 @@ def test_ui_snapshot(built_page: pathlib.Path, synth: dict, vw: int, scheme: str
     if vw == 1280:
         check(f"ui_styles_{scheme}.json", json.dumps(res["styles"], ensure_ascii=False, indent=1, sort_keys=True) + "\n")
     plat = SNAP / "ui" / sys.platform
-    for key in ("shot_buy", "shot_sell"):
-        shot = res[key]
+    for shot in res["shots"]:
         base = plat / shot.name
         if UPDATE or not base.exists():
             plat.mkdir(parents=True, exist_ok=True)
@@ -233,9 +248,11 @@ async def _claude_flow(page_path: pathlib.Path, data: dict) -> dict:
         await pg.route("**/*", route)
         await pg.goto(page_path.as_uri())
         await pg.wait_for_function("/^Xong/.test(document.getElementById('progress').textContent)", timeout=240000)
+        await pg.click("#tabs [data-tab=plan]")
+        await pg.fill("#plan-amount", "50000000")
+        await pg.click("#tabs [data-tab=ai]")
         await pg.fill("#ck", "sk-ant-test")
         await pg.select_option("#cp-horizon", "h3")
-        await pg.fill("#plan-amount", "50000000")
         async with pg.expect_download() as dl:
             await pg.click("#dl-pkg")
         package = pathlib.Path(await (await dl.value).path()).read_text(encoding="utf-8")

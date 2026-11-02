@@ -8,10 +8,11 @@ Kế hoạch cải tiến cho các phiên sau, kèm câu lệnh từng bước v
 - `src/engine.js` (đối tượng `BOT`): tải và ghép dữ liệu, tính 10 chỉ số (Fear & Greed, MVRV, MVRV Z-Score, Giá/MA 200 tuần, Mayer, RSI 14 tuần, Pi Cycle, Puell, Giảm từ đỉnh, Khối lượng tương đối), hồi quy logistic, khối lượng giao dịch.
 - `src/analysis.js` (đối tượng `B3`): phân tích theo tuần tại một ngày bất kỳ (`analyze`), tìm bộ chỉ số (`search`), so sánh phương án PA1–PA6 (`compareOptions`), bên bán (`sellSide`), báo cáo và CSV.
 - `src/ui.js`: toàn bộ giao diện (bên mua, bên bán, biểu đồ canvas, Claude API, xuất file).
-- `src/page.html`: khung trang và CSS; có 4 chỗ đánh dấu `/*I18N*/`, `/*CORE*/`, `/*B3*/`, `/*UI*/`; chữ trong trang viết dạng `{{web.page.khoa}}`.
+- `src/page.html`: khung trang và CSS (bảng màu ở `:root`, nền tối theo hệ thống hoặc nút `#theme`, lưu `btc-bot3-theme`); trang chia 7 thẻ (`.tabp[data-panel]`, địa chỉ `#home`, `#entry`, `#plan`, `#fc`, `#check`, `#old`, `#ai`); có 4 chỗ đánh dấu `/*I18N*/`, `/*CORE*/`, `/*B3*/`, `/*UI*/`; chữ trong trang viết dạng `{{web.page.khoa}}`.
 - `src/i18n.js` (`I18N.tx`, `I18N.vnTime`): đọc chữ từ `bot/i18n/vi.yaml`. Mọi chữ người dùng thấy nằm trong `vi.yaml`, mã chỉ dùng `tx('web.ui.khoa', ...)`. `python build.py` sinh `src/vi.json` cho bài kiểm tra node.
 - `bot/models/price_forecast.py`: dải giá theo ngày (1–7 và 30 ngày, mục `forecast` của `config/candidates.yaml`), nhật ký `data/forecast/forecast_log.csv` (chỉ thêm dòng, Daily ghi mỗi ngày bằng `python -m bot.cli forecast`); giao diện `#fc-sec`. Không phải dự báo hướng giá.
 - `bot/models/calib_prob.py`: xác suất có lãi đã hiệu chỉnh và lợi nhuận dự đoán 1/3/6/12 tháng (mục `calib` của `config/candidates.yaml`), bên bán = 1 − xác suất có lãi; ghi `data/results/calib.json`, nhật ký `data/calib/` (chỉ thêm dòng); giao diện `#cp-sec` đổi theo chế độ Mua/Bán, giá dự kiến tính theo giá lúc tra. Chưa cách nào vượt tỷ lệ gốc.
+- `bot/models/entry_timing.py`: giá chờ mua (khả năng giá chạm một mức trong 1–7 và 30 ngày, từ giá thấp nhất ngày Bitstamp), mua ngay hay chờ, ngày rẻ nhất trong 7 ngày tới (mục `entry` của `config/candidates.yaml`); `python -m bot.cli entry` ghi `data/entry/entry_log.csv` (chỉ thêm dòng) và `data/results/entry.json`; giao diện thẻ "Giá & ngày mua" (`#en-a`, `#en-b`, `#en-c`) và thẻ tổng quan. Kết quả: chờ không tốt hơn mua ngay; ngày đầu hay rẻ nhất.
 - `bot/models/deploy_plan.py`: kế hoạch giải ngân một khoản tiền (phương án và quy tắc ở `config/candidates.yaml` mục `plan`), ghi vào `data/recommendation.json` (`plan`); giao diện ở `#plan-sec` (bên mua), lịch tính trên trình duyệt, không lưu số tiền.
 - `bot/` (Python): dữ liệu theo thời điểm công bố, mô phỏng so với mua đều, kiểm định, mô hình, khuyến nghị tuần (`data/recommendation.json`). Kết quả nghiên cứu: `docs/RESULTS.md` (mô hình mới chưa đạt, khuyến nghị luôn là mua đều).
 - `build.py`: ghép thành `bot-xac-suat.html` (một file, chạy bằng cách mở trực tiếp hoặc qua `chay_bot_xac_suat.py`). `python build.py --zip` tạo `dist/BotBTC-Windows.zip` và `dist/BotBTC-Mac.zip`.
@@ -46,6 +47,7 @@ Kế hoạch cải tiến cho các phiên sau, kèm câu lệnh từng bước v
 7. Luôn có câu: công cụ tham khảo, không phải lời khuyên đầu tư.
 
 ## Lỗi đã gặp, đừng lặp lại
+- Thẻ đang ẩn có `clientWidth = 0`: hàm vẽ phải bỏ qua và vẽ lại khi thẻ hiện (`showTab` gọi `redraw`; biểu đồ cũ vẽ lại nhờ `ResizeObserver`). Bài kiểm tra Playwright phải bấm thẻ trước khi điền ô nằm trong thẻ đó.
 - Canvas: đọc chiều cao gốc qua `baseH(cv)`; không đọc `getAttribute('height')` sau khi đã gán `cv.height = H * dpr` (biểu đồ phình to khi trình duyệt phóng khác 100%). Thử ở `device_scale_factor` 1,25 và 2.
 - `Mo-Bot-BTC.bat` phải là ASCII, xuống dòng CRLF; HUONG_DAN cho Windows lưu UTF-8 có BOM.
 - Trên Windows không bật `allow_reuse_address` cho máy chủ (cho phép hai máy chủ chiếm một cổng).

@@ -1,29 +1,41 @@
 === BÊN MUA ===
+₿
 Bot mua bán BTC
+Thống kê từ dữ liệu thật · công cụ tham khảo, không phải lời khuyên đầu tư
 1.102 $
 giá trực tiếp
 Cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam)
-Khuyến nghị giải ngân tuần này
+Bên mua
+Tôi muốn mua thêm BTC
+Bên bán
+Tôi đang giữ BTC
+--- home ---
+Khuyến nghị tuần này
+Mua đều
+Hệ số 1,0: mua 100 $ trên mỗi 100 $ ngân sách tuần. Tín hiệu đạt 0/6 tiêu chí, chưa có cơ sở mua nhiều hay ít hơn.
+Xem chi tiết →
+Đặt chờ mua thấp hơn 3% (1.069 $)
+32%
+khả năng khớp trong 7 ngày tới; trong 30 ngày: 59%
+Xem chi tiết →
+Ngày dễ có giá thấp nhất trong 7 ngày
+Hôm nay
+28% số lần trong 4 năm qua là ngày rẻ nhất (nếu như nhau: 14%)
+Xem chi tiết →
+Giá sau 7 ngày (8/10 lần trong khoảng)
+78,0k – 85,4k $
+Giữa 81.412 $. Sau 30 ngày: 74.102 $ – 94.575 $
+Xem chi tiết →
+↧Giá thấp nhất có thể chạm trong 7 ngày tới
 
-Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.
+Mỗi cột là một mốc thời gian. Cột cho biết giá thấp nhất (tính cả những cú giảm trong ngày) từ bây giờ đến hết ngày đó thường rơi vào đâu: đoạn đậm 5/10 lần, cả cột 8/10 lần. Tính từ cách BTC dao động thật trong 4 năm qua; không đoán hướng giá.
 
-Hệ số mua: 1,0 — 100 $ trên mỗi 100 $ ngân sách tuần. Chế độ an toàn: mua đều
-
-Vì sao: mô hình đạt 0/6 tiêu chí chấp nhận định trước (cần đạt cả 6) trên giai đoạn kiểm tra cuối 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần ngày 29/10/2026. Không có cơ sở mua nhiều hay ít hơn mua đều.
-
-6 tiêu chí chấp nhận (định trước, không đổi sau khi xem kết quả)
-
-#	Tiêu chí	Kết quả	Đạt?
-1	Lợi thế giá vốn > 0 ở ≥ 75% số năm và trên giai đoạn kiểm tra cuối	năm có lợi 0/2; giai đoạn kiểm tra cuối 0,0%	✘
-2	Cận dưới khoảng tin cậy của lợi thế > 0	0,0% (khoảng tin cậy 95%: 0,0% đến 0,0%)	✘
-3	Kiểm định hoán vị đã hiệu chỉnh < 0,05	p của IC 1,000; p của lợi thế 1,000	✘
-4	Khung đơn điệu ở mọi kỳ hạn, trọng số đúng dấu	đơn điệu ở 0/4 kỳ hạn; 233/233 tuần có mô hình phải bỏ chỉ số sai dấu	✘
-5	Xác suất dự báo tốt hơn tỷ lệ gốc (Brier)	Brier 0,193 so với 0,189 (95 tuần)	✘
-6	Thắng cả hai quy tắc đơn giản 1 chỉ số	mô hình 0,0%; quy tắc MVRV 0,0%; quy tắc Giá / MA 200 tuần 0,0%	✘
-Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
-
-Sự kiện vĩ mô sau mốc chốt dữ liệu và 7 ngày tới
-
+8/10 lần
+5/10 lần
+Giữa
+Giá hiện tại
+Giá bạn muốn mua
+⚑Sự kiện vĩ mô sau mốc chốt dữ liệu và 7 ngày tới
 ⚑ 19:30 27/10/2026 (giờ Việt Nam): Chỉ số giá tiêu dùng Mỹ (CPI), đã xảy ra sau mốc chốt dữ liệu
 01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC
 19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE
@@ -31,9 +43,7 @@ Sự kiện vĩ mô sau mốc chốt dữ liệu và 7 ngày tới
 Tín hiệu tuần này chưa tính phản ứng của thị trường với sự kiện có ⚑. Nên xem lại sau giá đóng tuần kế tiếp (01/11/2026).
 Lịch Chỉ số giá chi tiêu PCE chỉ có tới 02/12/2026: "không có sự kiện" của loại này chưa đáng tin.
 Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.
-
-Độ mới của dữ liệu
-
+✓Độ mới của dữ liệu
 Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành): đến 27/10/2026
 Fear & Greed (Alternative.me): đến 28/10/2026
 Binance (giá và khối lượng ngày): đến 27/10/2026
@@ -45,51 +55,213 @@ FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026
 FRED (lợi suất thực 10 năm): đến 26/10/2026
 FRED (Nasdaq Composite): đến 26/10/2026
 FRED (cung tiền M2): đến 01/09/2026
-Tuần này theo bản xây lại (đã kiểm định)
 
-Đọc từ mô hình đóng băng và các kết quả kiểm định, tính hằng ngày trên máy chủ theo giá đóng tuần (Chủ nhật 23:59 UTC). Đây là phần đáng tin nhất của trang.
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- entry ---
+◎Giá chờ mua: khả năng giá chạm mức bạn muốn
 
-Tuần 25/10/2026, giá đóng tuần 80.039 $: thứ hạng mô hình 76 → Cân nhắc mua; quy tắc MVRV 65 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 70 → Cân nhắc mua.
+Nhập giá bạn muốn mua, hoặc bấm một mức thấp hơn giá hiện tại. Bot cho biết khả năng giá BTC chạm mức đó trong từng khoảng thời gian, để bạn đặt lệnh chờ mua (lệnh giới hạn) cho hợp lý. Mức càng thấp thì càng rẻ nhưng càng khó khớp.
 
-Thứ hạng là vị trí của điểm tuần này so với các tuần ngoài mẫu trước đó, không phải xác suất có lãi. Kiểm định cho thấy các khung chưa có lợi thế, nên chỉ để tham khảo.
+GIÁ MUỐN MUA (USD)
+$
+−1%
+−2%
+−3%
+−5%
+−8%
+−10%
+Khả năng giá chạm 1.069 $ (−3,0% so với giá hiện tại 1.102 $) trong 7 ngày tới
+32%
+Trong 1 ngày: 5% · trong 3 ngày: 17% · trong 30 ngày: 59%.
 
-Bên bán: 0 nhóm bật → Giữ. Số tiêu chí bán đáng tin: 0.
+Khả năng chạm 1.069 $ theo thời gian chờ
 
-Chế độ lãi suất Fed: tăng (từ 20/09/2026), chỉ dùng để chia nhóm báo cáo. Cảnh báo: chế độ này có dưới 3 đợt trong lịch sử đánh giá của Bot hiện tại (PA3), Mô hình lồng nhau, Quy tắc Giá/MA 200 tuần.
+1 ngày
+5%
+2 ngày
+11%
+3 ngày
+17%
+4 ngày
+22%
+5 ngày
+26%
+6 ngày
+29%
+7 ngày
+32%
+30 ngày
+59%
 
-Khung tuần này trong lịch sử: tính theo đợt độc lập, toàn bộ giai đoạn ngoài mẫu đến hết giai đoạn kiểm tra cuối
+Bảng khả năng chạm từng mức giá (theo giá hiện tại)
 
-Chiến lược	Khung	Kỳ hạn	Số tuần	Số đợt	Giá cao hơn	Mốc (mọi tuần)	Chênh (khoảng tin cậy 95%)	Kết luận
-Mô hình	Cân nhắc mua	1 tháng	15	2	73%	54%	+19,1% (−17,8% đến +47,5%)	ít đợt (< 3), chưa kết luận
-Mô hình	Cân nhắc mua	3 tháng	9	1	100%	57%	+43,5% (+26,2% đến +61,3%)	ít đợt (< 3), chưa kết luận
-Mô hình	Cân nhắc mua	6 tháng	9	1	100%	70%	+29,7% (+8,4% đến +48,4%)	ít đợt (< 3), chưa kết luận
-Mô hình	Cân nhắc mua	1 năm	9	1	100%	62%	+37,8% (+5,6% đến +68,5%)	ít đợt (< 3), chưa kết luận
-Quy tắc MVRV	Cân nhắc mua	1 tháng	125	18	51%	57%	−5,8% (−17,2% đến +6,3%)	chưa có lợi thế
-Quy tắc MVRV	Cân nhắc mua	3 tháng	119	17	43%	57%	−13,9% (−29,7% đến +1,0%)	chưa có lợi thế
-Quy tắc MVRV	Cân nhắc mua	6 tháng	114	17	49%	62%	−12,6% (−37,7% đến +8,3%)	chưa có lợi thế
-Quy tắc MVRV	Cân nhắc mua	1 năm	100	15	86%	68%	+18,2% (−0,1% đến +33,7%)	chưa có lợi thế
-Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 tháng	122	11	53%	56%	−2,3% (−13,1% đến +8,9%)	chưa có lợi thế
-Quy tắc Giá/MA 200 tuần	Cân nhắc mua	3 tháng	116	10	53%	55%	−2,4% (−17,4% đến +13,1%)	chưa có lợi thế
-Quy tắc Giá/MA 200 tuần	Cân nhắc mua	6 tháng	108	10	55%	60%	−5,1% (−25,8% đến +12,1%)	chưa có lợi thế
-Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 năm	91	9	59%	65%	−5,9% (−31,5% đến +19,4%)	chưa có lợi thế
+Giá đặt chờ	1 ngày	2 ngày	3 ngày	4 ngày	5 ngày	6 ngày	7 ngày	30 ngày
+1.102 $ (giá hiện tại)	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%
+1.091 $
+−1%
+	36%	50%	59%	64%	68%	71%	73%	85%
+1.080 $
+−2%
+	13%	25%	32%	38%	43%	47%	51%	71%
+1.069 $
+−3%
+	5%	11%	17%	22%	26%	29%	32%	59%
+1.047 $
+−5%
+	1%	3%	5%	8%	10%	12%	14%	38%
+1.014 $
+−8%
+	< 1%	< 1%	2%	3%	4%	4%	5%	20%
+991 $
+−10%
+	< 1%	< 1%	1%	2%	2%	3%	3%	16%
+Cách tính (đăng ký trước khi tính): giá thấp nhất của k ngày tới so với giá đóng ngày, chia cho độ dao động 30 ngày, lấy phân phối trong 4 năm trước (chỉ những lần đã biết kết quả), rồi nhân lại với độ dao động hiện tại (1,3% mỗi ngày). Giá thấp nhất ngày lấy từ sàn Bitstamp.
+Trang dùng giá lúc tra làm mốc; độ dao động và phân phối cập nhật mỗi ngày (số liệu đến giá đóng ngày 26/10/2026).
+Chạm giá chưa chắc khớp lệnh: nếu giá chỉ chạm đúng mức rồi bật lên, lệnh có thể không khớp. Đặt cao hơn một chút thì chắc hơn.
+Ngày tính theo giờ UTC: một ngày kết thúc lúc 7:00 sáng hôm sau giờ Việt Nam.
+Không phải dự báo hướng giá: giá có thể chạm mức thấp rồi tăng lại, hoặc giảm tiếp.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+Kiểm chứng: bot nói X% thì thực tế có đúng X% không?
+▤Ngày nào trong 7 ngày tới có giá thấp nhất?
 
-Nếu giá đi tới mức này sau 4 tuần (Fear & Greed đổi theo giá, kèm khoảng)
+Mỗi cột là tỷ lệ số lần ngày đó có giá thấp nhất của cả 7 ngày, đếm trong 4 năm qua. Nếu các ngày như nhau, mỗi ngày khoảng 14%.
 
-Giá	So với hiện tại	Fear & Greed (10–90%)	Quy tắc Giá / MA 200 tuần	Quy tắc MVRV (khoảng)	Bên bán (số nhóm)
-56.027 $	−30%	21 (7–35)	95 → Phải mua	99 (99) → Phải mua	0 → Giữ
-64.031 $	−20%	31 (17–45)	93 → Phải mua	97 (96–99) → Phải mua	0 → Giữ
-72.035 $	−10%	41 (27–54)	83 → Phải mua	82 (80–89) → Phải mua	0 → Giữ
-76.037 $	−5%	45 (31–58)	75 → Cân nhắc mua	76 (76–80) → Phải mua / Cân nhắc mua	0 → Giữ
-80.039 $	hiện tại	49 (35–62)	72 → Cân nhắc mua	67 (65–76) → Cân nhắc mua	0 → Giữ
-84.041 $	+5%	53 (38–66)	67 → Cân nhắc mua	59 (58–65) → Cân nhắc mua	0 → Giữ
-88.043 $	+10%	56 (42–70)	62 → Cân nhắc mua	53 (53–59) → Cân nhắc mua / Không nên mua	0 → Giữ
-96.047 $	+20%	63 (49–76)	56 → Cân nhắc mua	50 (47–52) → Không nên mua	0 → Giữ
-104.051 $	+30%	69 (55–82)	52 → Không nên mua	37 (37–46) → Không nên mua	0–1 → Giữ / Chốt lời một phần
-120.058 $	+50%	80 (66–93)	36 → Không nên mua	16 (13–23) → Không nên mua	3 → Bán phần lớn
-Mô hình đóng băng v1-f46ea015fc (ngày 25/10/2026): bộ S1, dùng Giá / MA 200 tuần (bỏ MVRV vì sai dấu). Nhật ký đi tới đã ghi 1 tuần; chấm lại sau 26 và 52 tuần.
-Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, không phải dự báo; hệ số mua vẫn 1,0 ở mọi mức giá.
-Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
-Xác suất có lãi nếu mua bây giờ (đã hiệu chỉnh)
+Ngày dễ rẻ nhất: hôm nay (Thứ 4 28/10), 28% số lần (gấp 2,0 lần mức như nhau). Các ngày giữa chỉ khoảng 10% đến 13%.
+
+Vì sao ngày đầu và ngày cuối hay rẻ nhất: giá biến động ngẫu nhiên nên điểm thấp nhất của một khoảng thời gian hay rơi vào hai đầu, và BTC có xu hướng tăng dài hạn nên ngày đầu nghiêng hơn.
+
+Ngày hay rẻ nhất, đúng ở cả hai nửa giai đoạn từ 2016: Ngày thứ 1.
+
+Nghĩa là: không có lý do chờ sang một ngày khác trong tuần để mua rẻ hơn. Muốn giá thấp hơn, đặt lệnh chờ ở mức bạn chấp nhận (phần trên).
+
+Khả năng trong 7 ngày tới giá không lần nào xuống dưới giá đóng ngày 26/10/2026: < 1%. Gần như chắc chắn sẽ có lúc giá thấp hơn; câu hỏi là thấp hơn bao nhiêu.
+
+Tỷ lệ là ngày rẻ nhất (4 năm qua)
+Như nhau (1/7 ≈ 14%)
+Kiểm chứng ở hai nửa giai đoạn từ 2016
+⇄Mua ngay hay đặt lệnh chờ giá thấp hơn?
+
+Thử lại trên mọi ngày từ 2016: đặt lệnh mua thấp hơn giá đóng ngày x%, chờ tối đa k ngày; không khớp thì mua ở giá cuối ngày thứ k. So với mua ngay. Số dương nghĩa là chờ được giá tốt hơn.
+
+Trong 20 cách chờ, không cách nào tốt hơn mua ngay một cách rõ ràng; 6 cách kém hơn rõ ràng.
+
+Vì sao: chờ thường khớp được giá thấp hơn (ví dụ đặt thấp hơn 2%, chờ 7 ngày: khớp 72% số lần), nhưng những lần không khớp thì giá thường đã tăng xa, nên tính trung bình chờ lại thua 0,5% so với mua ngay.
+
+Nếu đã quyết mua, mua ngay hoặc chia đều theo kế hoạch giải ngân thường không kém việc cố chờ giá thấp. Lệnh chờ hợp với tiền bạn sẵn sàng để chờ, không hợp với tiền nhất định phải mua.
+
+Đặt thấp hơn	Chờ tối đa 1 ngày	Chờ tối đa 3 ngày	Chờ tối đa 7 ngày	Chờ tối đa 30 ngày
+−1%	−0,07%
+khớp 64%
+	−0,20%
+khớp 78%
+	−0,42%
+khớp 85%
+	−0,87%
+khớp 91%
+
+−2%	−0,07%
+khớp 40%
+	−0,27%
+khớp 60%
+	−0,51%
+khớp 72%
+	−1,24%
+khớp 84%
+
+−3%	−0,07%
+khớp 26%
+	−0,26%
+khớp 46%
+	−0,49%
+khớp 61%
+	−1,57%
+khớp 77%
+
+−5%	−0,04%
+khớp 12%
+	−0,18%
+khớp 28%
+	−0,47%
+khớp 43%
+	−1,96%
+khớp 66%
+
+−8%	−0,03%
+khớp 5%
+	−0,16%
+khớp 14%
+	−0,45%
+khớp 26%
+	−2,06%
+khớp 51%
+Chờ có lợi hơn Mua ngay tốt hơn Chưa có lợi thế
+Mỗi ô: lợi trung bình so với mua ngay và tỷ lệ khớp; rê chuột vào ô để xem khoảng tin cậy. Chỉ kết luận khi đã hiệu chỉnh Holm cho 20 cách thử (p < 0,05) và cùng chiều ở cả hai nửa giai đoạn (01/01/2016 → 29/05/2021 và 29/05/2021 → 25/10/2026).
+Bỏ qua phí vì hai cách cùng chịu phí. Giả định lệnh khớp đúng giá đặt khi giá thấp nhất ngày chạm mức đặt. Kết quả trong quá khứ không bảo đảm tương lai.
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- plan ---
+₫Kế hoạch giải ngân một khoản tiền
+
+Nhập số tiền bạn muốn đưa vào BTC. Bot so các cách giải ngân trên giá thật trong quá khứ (mua mỗi tuần ở giá đóng thứ Hai, có tính phí), đề xuất cách có lợi nhuận tốt nhất theo lịch sử và lập lịch theo ngày.
+
+Số tiền muốn giải ngân
+Đơn vị
+VNĐ
+USD
+Bắt đầu từ ngày
+
+Nhập số tiền để xem đề xuất và lịch giải ngân.
+
+Đây cũng là cách có ROI trung vị cao nhất.
+
+Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất −64% thay vì −82%.
+
+So sánh các cách giải ngân (giá trị 1 năm sau lần mua đầu)
+
+Cách giải ngân	Trung vị	10% xấu nhất	Xấu nhất	Tỷ lệ lỗ	Giảm sâu nhất	Thắng giải ngân một lần	Với số tiền của bạn (trung vị)
+Giải ngân một lầnROI cao nhấtĐề xuất
+	+56%	−45%	−82%	32%	−48%	—	—
+Chia đều 4 tuần
+mỗi tuần 1/4 số tiền · kém ROI cao nhất đáng kể
+	+52%	−46%	−78%	32%	−48%	43%
+Wilson 19%–73%
+	—
+Chia đều 13 tuần
+mỗi tuần 1/13 số tiền
+	+53%	−48%	−71%	32%	−46%	41%
+Wilson 19%–73%
+	—
+Chia đều 26 tuần
+mỗi tuần 1/26 số tiền
+	+44%	−46%	−64%	32%	−40%	40%
+Wilson 19%–73%
+	—
+Chia đều 52 tuần
+mỗi tuần 1/52 số tiền · kém ROI cao nhất đáng kể
+	+26%	−31%	−55%	30%	−28%	34%
+Wilson 12%–65%
+	—
+Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Mua ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần mua, tiền chưa mua không tính lãi.
+Cách chọn, định trước khi tính: ROI cao nhất là cách có trung vị cao nhất. Đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không kém ROI cao nhất đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
+"Thắng giải ngân một lần": tỷ lệ tuần bắt đầu mà cách đó cho kết quả tốt hơn, kèm khoảng tin cậy Wilson theo số đợt độc lập. "Giảm sâu nhất": mức tụt lớn nhất của tổng giá trị (BTC đã mua + tiền chưa mua) trong năm, lấy trung vị qua các tuần bắt đầu.
+Lịch không nghiêng theo tín hiệu của bot: kiểm định 6 tiêu chí không đạt (tín hiệu chưa có lợi thế), nên chỉ chia đều theo thời gian.
+Lợi nhuận quá khứ không bảo đảm tương lai. BTC đã tăng mạnh trong lịch sử nên giải ngân sớm thường lợi hơn; điều đó có thể không lặp lại.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+
+Lịch giải ngân theo thời gian
+
+Giải ngân một lần
+Chia đều 4 tuần
+Chia đều 13 tuần
+Chia đều 26 tuần
+Chia đều 52 tuần
+Lần	Ngày	Số tiền	Cộng dồn	Đã giải ngân
+Nhập số tiền để xem đề xuất và lịch giải ngân.
+Tải lịch giải ngân (CSV)
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- fc ---
+%Xác suất có lãi nếu mua bây giờ (đã hiệu chỉnh)
 
 Xác suất đã hiệu chỉnh: khi bot báo 60% thì trong lịch sử, những lần như vậy có lãi đúng khoảng 60%. Có lãi nghĩa là giá đóng thứ Hai sau 1, 3, 6 tháng hoặc 1 năm cao hơn lúc mua. Lợi nhuận dự đoán là khoảng lợi nhuận đã gặp trong lịch sử, không phải lời hứa.
 
@@ -158,7 +330,7 @@ Lợi nhuận dự đoán: mức 10%, 50% và 90% của lợi nhuận đã gặp
 Kỳ hạn 1 năm chỉ chấm được khoảng 6 năm không chồng nhau (14/07/2019 đến 26/10/2025), nên mọi con số ở kỳ hạn này rất không chắc.
 Chấm đi tới từ 12/08/2018 đến 26/10/2025; dữ liệu này đã được xem trước nên chưa phải kiểm định ngoài mẫu mới. Từ nay mỗi tuần xác suất và khoảng lợi nhuận được ghi vào data/calib/ để kiểm chứng.
 Công cụ tham khảo, không phải lời khuyên đầu tư.
-Dự báo dải giá BTC: 7 ngày tới và 1 tháng
+≈Dự báo dải giá BTC: 7 ngày tới và 1 tháng
 
 Bot không đoán một con số giá. Bot đưa ra dải giá cho từng ngày, tính từ cách BTC đã dao động thật trong 4 năm qua (chỉnh theo mức dao động 30 ngày gần nhất), rồi ghi lại mỗi ngày để bạn tự kiểm chứng khi đến ngày.
 
@@ -220,67 +392,108 @@ Kiểm chứng trực tiếp các dự báo đã đến hạn
 Ngày dự báo	Ngày đích	Sau	Khoảng 80%	Giá thật	Trong khoảng 80%?	Trong khoảng 50%?
 20/10/2026	22/10/2026	2 ngày	78.500 $ – 82.100 $	83.000 $	không	không
 20/10/2026	21/10/2026	1 ngày	79.000 $ – 81.700 $	80.200 $	có	có
-Kế hoạch giải ngân một khoản tiền
 
-Nhập số tiền bạn muốn đưa vào BTC. Bot so các cách giải ngân trên giá thật trong quá khứ (mua mỗi tuần ở giá đóng thứ Hai, có tính phí), đề xuất cách có lợi nhuận tốt nhất theo lịch sử và lập lịch theo ngày.
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- check ---
+✓Khuyến nghị giải ngân tuần này
 
-Số tiền muốn giải ngân
-Đơn vị
-VNĐ
-USD
-Bắt đầu từ ngày
+Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.
 
-Nhập số tiền để xem đề xuất và lịch giải ngân.
+Hệ số mua: 1,0 — 100 $ trên mỗi 100 $ ngân sách tuần. Chế độ an toàn: mua đều
 
-Đây cũng là cách có ROI trung vị cao nhất.
+Vì sao: mô hình đạt 0/6 tiêu chí chấp nhận định trước (cần đạt cả 6) trên giai đoạn kiểm tra cuối 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần ngày 29/10/2026. Không có cơ sở mua nhiều hay ít hơn mua đều.
 
-Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất −64% thay vì −82%.
+6 tiêu chí chấp nhận (định trước, không đổi sau khi xem kết quả)
 
-So sánh các cách giải ngân (giá trị 1 năm sau lần mua đầu)
+#	Tiêu chí	Kết quả	Đạt?
+1	Lợi thế giá vốn > 0 ở ≥ 75% số năm và trên giai đoạn kiểm tra cuối	năm có lợi 0/2; giai đoạn kiểm tra cuối 0,0%	✘
+2	Cận dưới khoảng tin cậy của lợi thế > 0	0,0% (khoảng tin cậy 95%: 0,0% đến 0,0%)	✘
+3	Kiểm định hoán vị đã hiệu chỉnh < 0,05	p của IC 1,000; p của lợi thế 1,000	✘
+4	Khung đơn điệu ở mọi kỳ hạn, trọng số đúng dấu	đơn điệu ở 0/4 kỳ hạn; 233/233 tuần có mô hình phải bỏ chỉ số sai dấu	✘
+5	Xác suất dự báo tốt hơn tỷ lệ gốc (Brier)	Brier 0,193 so với 0,189 (95 tuần)	✘
+6	Thắng cả hai quy tắc đơn giản 1 chỉ số	mô hình 0,0%; quy tắc MVRV 0,0%; quy tắc Giá / MA 200 tuần 0,0%	✘
+Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
+⚙Tuần này theo bản xây lại (đã kiểm định)
 
-Cách giải ngân	Trung vị	10% xấu nhất	Xấu nhất	Tỷ lệ lỗ	Giảm sâu nhất	Thắng giải ngân một lần	Với số tiền của bạn (trung vị)
-Giải ngân một lầnROI cao nhấtĐề xuất
-	+56%	−45%	−82%	32%	−48%	—	—
-Chia đều 4 tuần
-mỗi tuần 1/4 số tiền · kém ROI cao nhất đáng kể
-	+52%	−46%	−78%	32%	−48%	43%
-Wilson 19%–73%
-	—
-Chia đều 13 tuần
-mỗi tuần 1/13 số tiền
-	+53%	−48%	−71%	32%	−46%	41%
-Wilson 19%–73%
-	—
-Chia đều 26 tuần
-mỗi tuần 1/26 số tiền
-	+44%	−46%	−64%	32%	−40%	40%
-Wilson 19%–73%
-	—
-Chia đều 52 tuần
-mỗi tuần 1/52 số tiền · kém ROI cao nhất đáng kể
-	+26%	−31%	−55%	30%	−28%	34%
-Wilson 12%–65%
-	—
-Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Mua ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần mua, tiền chưa mua không tính lãi.
-Cách chọn, định trước khi tính: ROI cao nhất là cách có trung vị cao nhất. Đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không kém ROI cao nhất đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
-"Thắng giải ngân một lần": tỷ lệ tuần bắt đầu mà cách đó cho kết quả tốt hơn, kèm khoảng tin cậy Wilson theo số đợt độc lập. "Giảm sâu nhất": mức tụt lớn nhất của tổng giá trị (BTC đã mua + tiền chưa mua) trong năm, lấy trung vị qua các tuần bắt đầu.
-Lịch không nghiêng theo tín hiệu của bot: kiểm định 6 tiêu chí không đạt (tín hiệu chưa có lợi thế), nên chỉ chia đều theo thời gian.
-Lợi nhuận quá khứ không bảo đảm tương lai. BTC đã tăng mạnh trong lịch sử nên giải ngân sớm thường lợi hơn; điều đó có thể không lặp lại.
-Công cụ tham khảo, không phải lời khuyên đầu tư.
+Đọc từ mô hình đóng băng và các kết quả kiểm định, tính hằng ngày trên máy chủ theo giá đóng tuần (Chủ nhật 23:59 UTC). Đây là phần đáng tin nhất của trang.
 
-Lịch giải ngân theo thời gian
+Tuần 25/10/2026, giá đóng tuần 80.039 $: thứ hạng mô hình 76 → Cân nhắc mua; quy tắc MVRV 65 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 70 → Cân nhắc mua.
 
-Giải ngân một lần
-Chia đều 4 tuần
-Chia đều 13 tuần
-Chia đều 26 tuần
-Chia đều 52 tuần
-Lần	Ngày	Số tiền	Cộng dồn	Đã giải ngân
-Nhập số tiền để xem đề xuất và lịch giải ngân.
-Tải lịch giải ngân (CSV)
+Thứ hạng là vị trí của điểm tuần này so với các tuần ngoài mẫu trước đó, không phải xác suất có lãi. Kiểm định cho thấy các khung chưa có lợi thế, nên chỉ để tham khảo.
 
+Bên bán: 0 nhóm bật → Giữ. Số tiêu chí bán đáng tin: 0.
+
+Chế độ lãi suất Fed: tăng (từ 20/09/2026), chỉ dùng để chia nhóm báo cáo. Cảnh báo: chế độ này có dưới 3 đợt trong lịch sử đánh giá của Bot hiện tại (PA3), Mô hình lồng nhau, Quy tắc Giá/MA 200 tuần.
+
+Khung tuần này trong lịch sử: tính theo đợt độc lập, toàn bộ giai đoạn ngoài mẫu đến hết giai đoạn kiểm tra cuối
+
+Chiến lược	Khung	Kỳ hạn	Số tuần	Số đợt	Giá cao hơn	Mốc (mọi tuần)	Chênh (khoảng tin cậy 95%)	Kết luận
+Mô hình	Cân nhắc mua	1 tháng	15	2	73%	54%	+19,1% (−17,8% đến +47,5%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	3 tháng	9	1	100%	57%	+43,5% (+26,2% đến +61,3%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	6 tháng	9	1	100%	70%	+29,7% (+8,4% đến +48,4%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	1 năm	9	1	100%	62%	+37,8% (+5,6% đến +68,5%)	ít đợt (< 3), chưa kết luận
+Quy tắc MVRV	Cân nhắc mua	1 tháng	125	18	51%	57%	−5,8% (−17,2% đến +6,3%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	3 tháng	119	17	43%	57%	−13,9% (−29,7% đến +1,0%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	6 tháng	114	17	49%	62%	−12,6% (−37,7% đến +8,3%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	1 năm	100	15	86%	68%	+18,2% (−0,1% đến +33,7%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 tháng	122	11	53%	56%	−2,3% (−13,1% đến +8,9%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	3 tháng	116	10	53%	55%	−2,4% (−17,4% đến +13,1%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	6 tháng	108	10	55%	60%	−5,1% (−25,8% đến +12,1%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 năm	91	9	59%	65%	−5,9% (−31,5% đến +19,4%)	chưa có lợi thế
+
+Nếu giá đi tới mức này sau 4 tuần (Fear & Greed đổi theo giá, kèm khoảng)
+
+Giá	So với hiện tại	Fear & Greed (10–90%)	Quy tắc Giá / MA 200 tuần	Quy tắc MVRV (khoảng)	Bên bán (số nhóm)
+56.027 $	−30%	21 (7–35)	95 → Phải mua	99 (99) → Phải mua	0 → Giữ
+64.031 $	−20%	31 (17–45)	93 → Phải mua	97 (96–99) → Phải mua	0 → Giữ
+72.035 $	−10%	41 (27–54)	83 → Phải mua	82 (80–89) → Phải mua	0 → Giữ
+76.037 $	−5%	45 (31–58)	75 → Cân nhắc mua	76 (76–80) → Phải mua / Cân nhắc mua	0 → Giữ
+80.039 $	hiện tại	49 (35–62)	72 → Cân nhắc mua	67 (65–76) → Cân nhắc mua	0 → Giữ
+84.041 $	+5%	53 (38–66)	67 → Cân nhắc mua	59 (58–65) → Cân nhắc mua	0 → Giữ
+88.043 $	+10%	56 (42–70)	62 → Cân nhắc mua	53 (53–59) → Cân nhắc mua / Không nên mua	0 → Giữ
+96.047 $	+20%	63 (49–76)	56 → Cân nhắc mua	50 (47–52) → Không nên mua	0 → Giữ
+104.051 $	+30%	69 (55–82)	52 → Không nên mua	37 (37–46) → Không nên mua	0–1 → Giữ / Chốt lời một phần
+120.058 $	+50%	80 (66–93)	36 → Không nên mua	16 (13–23) → Không nên mua	3 → Bán phần lớn
+Mô hình đóng băng v1-f46ea015fc (ngày 25/10/2026): bộ S1, dùng Giá / MA 200 tuần (bỏ MVRV vì sai dấu). Nhật ký đi tới đã ghi 1 tuần; chấm lại sau 26 và 52 tuần.
+Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, không phải dự báo; hệ số mua vẫn 1,0 ở mọi mức giá.
+Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
+⇣Nguồn dữ liệu
+Fear & Greed (Alternative.me): 3191 ngày
+Giá lịch sử, MVRV, thợ đào (Coin Metrics): đến 2026-10-27
+Giá trực tiếp: Binance
+Giá và khối lượng ngày (Binance): giá và khối lượng ngày từ 08/2017 (3359 ngày)
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- old ---
 ⚠ Từ đây trở xuống là phân tích của bot cũ, tính ngay trong trình duyệt: bộ chỉ số được chọn trên chính dữ liệu dùng để chấm, khoảng tin cậy tính theo tuần chồng lấn nên quá hẹp, kịch bản giá giữ nguyên Fear & Greed. Bản xây lại cho thấy các khung này chưa có lợi thế. Chỉ dùng để tham khảo.
 
+Ngày phân tích
+Hôm nay
+Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.
+Bộ chỉ số
+Tự động: phương án tốt nhất (PA 6)
+PA1 Pi + MVRV
+PA2 Pi + MVRV Z
+PA3 Pi + MVRV + F&G
+PA4 Pi + Puell
+PA5 F&G + MVRV + MA200 tuần
+PA6 Bot tự tìm
+Tất cả chỉ số
+Tự chọn
+Fear & Greed
+MVRV
+MVRV Z-Score
+Giá / MA 200 tuần
+Mayer Multiple
+RSI 14 tuần
+Tỉ số Pi Cycle
+Puell Multiple
+Giảm từ đỉnh
+Khối lượng tương đối
+Đang dùng: Mayer Multiple, Giá / MA 200 tuần
+Chạy bot
+Tìm lại bộ có tỷ lệ thắng cao nhất
+Xong. Phân tích ngày 28/10/2026 với 2 chỉ số.
 Tỷ lệ nên mua, ngày 28/10/2026
 87%
 Phải mua
@@ -759,7 +972,10 @@ Mayer Multiple
 28/10/2026: 1,25, bình thường
 Giá / MA 200 tuần
 28/10/2026: 0,57, vùng rẻ
-Hỏi Claude về nhận định của bot
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- ai ---
+✦Hỏi Claude về nhận định của bot
 
 Bot chỉ làm thống kê. Claude nhận toàn bộ kết quả đã kiểm định (6 tiêu chí, khung theo đợt, dải giá, kế hoạch giải ngân, sự kiện) cùng báo cáo, đánh giá như một chuyên gia và đề xuất kế hoạch hành động hợp với bạn.
 
@@ -809,15 +1025,446 @@ Trên 20%
 Câu hỏi thêm
 Nhờ Claude đánh giá như chuyên gia
 Gửi câu hỏi
-Nguồn dữ liệu
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+
+=== BÊN BÁN ===
+₿
+Bot mua bán BTC
+Thống kê từ dữ liệu thật · công cụ tham khảo, không phải lời khuyên đầu tư
+1.102 $
+giá trực tiếp
+Cập nhật lúc 09:35 28/10/2026 (giờ Việt Nam)
+Bên mua
+Tôi muốn mua thêm BTC
+Bên bán
+Tôi đang giữ BTC
+--- home ---
+Bên bán tuần này
+Giữ
+0 nhóm chỉ số ở vùng đắt nhất 4 năm (định trước: 1 nhóm → chốt lời một phần, 3 nhóm → bán phần lớn). Số tiêu chí bán đáng tin: 0.
+Xem chi tiết →
+Khả năng giá thấp hơn sau 1 tháng
+43%
+3 tháng: 40% · 6 tháng: 32% · 1 năm: 38%. Chưa cách nào đoán tốt hơn tỷ lệ gốc.
+Xem chi tiết →
+Giá sau 7 ngày (8/10 lần trong khoảng)
+78,0k – 85,4k $
+Giữa 81.412 $. Sau 30 ngày: 74.102 $ – 94.575 $
+Xem chi tiết →
+↧Giá thấp nhất có thể chạm trong 7 ngày tới
+
+Mỗi cột là một mốc thời gian. Cột cho biết giá thấp nhất (tính cả những cú giảm trong ngày) từ bây giờ đến hết ngày đó thường rơi vào đâu: đoạn đậm 5/10 lần, cả cột 8/10 lần. Tính từ cách BTC dao động thật trong 4 năm qua; không đoán hướng giá.
+
+8/10 lần
+5/10 lần
+Giữa
+Giá hiện tại
+Giá bạn muốn mua
+⚑Sự kiện vĩ mô sau mốc chốt dữ liệu và 7 ngày tới
+⚑ 19:30 27/10/2026 (giờ Việt Nam): Chỉ số giá tiêu dùng Mỹ (CPI), đã xảy ra sau mốc chốt dữ liệu
+01:00 29/10/2026 (giờ Việt Nam): Quyết định lãi suất FOMC
+19:30 29/10/2026 (giờ Việt Nam): Chỉ số giá chi tiêu PCE
+15:00 30/10/2026 (giờ Việt Nam): Đáo hạn quyền chọn BTC hằng tháng
+Tín hiệu tuần này chưa tính phản ứng của thị trường với sự kiện có ⚑. Nên xem lại sau giá đóng tuần kế tiếp (01/11/2026).
+Lịch Chỉ số giá chi tiêu PCE chỉ có tới 02/12/2026: "không có sự kiện" của loại này chưa đáng tin.
+Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định.
+✓Độ mới của dữ liệu
+Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành): đến 27/10/2026
+Fear & Greed (Alternative.me): đến 28/10/2026
+Binance (giá và khối lượng ngày): đến 27/10/2026
+Binance (funding rate hợp đồng vĩnh cửu): đến 28/10/2026
+Binance (khối lượng hợp đồng mở): đến 28/10/2026
+Binance (hợp đồng tương lai quý): đến 27/10/2026
+DefiLlama (tổng cung stablecoin): đến 28/10/2026
+FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026
+FRED (lợi suất thực 10 năm): đến 26/10/2026
+FRED (Nasdaq Composite): đến 26/10/2026
+FRED (cung tiền M2): đến 01/09/2026
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- entry ---
+◎Giá chờ mua: khả năng giá chạm mức bạn muốn
+
+Nhập giá bạn muốn mua, hoặc bấm một mức thấp hơn giá hiện tại. Bot cho biết khả năng giá BTC chạm mức đó trong từng khoảng thời gian, để bạn đặt lệnh chờ mua (lệnh giới hạn) cho hợp lý. Mức càng thấp thì càng rẻ nhưng càng khó khớp.
+
+GIÁ MUỐN MUA (USD)
+$
+−1%
+−2%
+−3%
+−5%
+−8%
+−10%
+Khả năng giá chạm 1.069 $ (−3,0% so với giá hiện tại 1.102 $) trong 7 ngày tới
+32%
+Trong 1 ngày: 5% · trong 3 ngày: 17% · trong 30 ngày: 59%.
+
+Khả năng chạm 1.069 $ theo thời gian chờ
+
+1 ngày
+5%
+2 ngày
+11%
+3 ngày
+17%
+4 ngày
+22%
+5 ngày
+26%
+6 ngày
+29%
+7 ngày
+32%
+30 ngày
+59%
+
+Bảng khả năng chạm từng mức giá (theo giá hiện tại)
+
+Giá đặt chờ	1 ngày	2 ngày	3 ngày	4 ngày	5 ngày	6 ngày	7 ngày	30 ngày
+1.102 $ (giá hiện tại)	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%	> 99%
+1.091 $
+−1%
+	36%	50%	59%	64%	68%	71%	73%	85%
+1.080 $
+−2%
+	13%	25%	32%	38%	43%	47%	51%	71%
+1.069 $
+−3%
+	5%	11%	17%	22%	26%	29%	32%	59%
+1.047 $
+−5%
+	1%	3%	5%	8%	10%	12%	14%	38%
+1.014 $
+−8%
+	< 1%	< 1%	2%	3%	4%	4%	5%	20%
+991 $
+−10%
+	< 1%	< 1%	1%	2%	2%	3%	3%	16%
+Cách tính (đăng ký trước khi tính): giá thấp nhất của k ngày tới so với giá đóng ngày, chia cho độ dao động 30 ngày, lấy phân phối trong 4 năm trước (chỉ những lần đã biết kết quả), rồi nhân lại với độ dao động hiện tại (1,3% mỗi ngày). Giá thấp nhất ngày lấy từ sàn Bitstamp.
+Trang dùng giá lúc tra làm mốc; độ dao động và phân phối cập nhật mỗi ngày (số liệu đến giá đóng ngày 26/10/2026).
+Chạm giá chưa chắc khớp lệnh: nếu giá chỉ chạm đúng mức rồi bật lên, lệnh có thể không khớp. Đặt cao hơn một chút thì chắc hơn.
+Ngày tính theo giờ UTC: một ngày kết thúc lúc 7:00 sáng hôm sau giờ Việt Nam.
+Không phải dự báo hướng giá: giá có thể chạm mức thấp rồi tăng lại, hoặc giảm tiếp.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+Kiểm chứng: bot nói X% thì thực tế có đúng X% không?
+▤Ngày nào trong 7 ngày tới có giá thấp nhất?
+
+Mỗi cột là tỷ lệ số lần ngày đó có giá thấp nhất của cả 7 ngày, đếm trong 4 năm qua. Nếu các ngày như nhau, mỗi ngày khoảng 14%.
+
+Ngày dễ rẻ nhất: hôm nay (Thứ 4 28/10), 28% số lần (gấp 2,0 lần mức như nhau). Các ngày giữa chỉ khoảng 10% đến 13%.
+
+Vì sao ngày đầu và ngày cuối hay rẻ nhất: giá biến động ngẫu nhiên nên điểm thấp nhất của một khoảng thời gian hay rơi vào hai đầu, và BTC có xu hướng tăng dài hạn nên ngày đầu nghiêng hơn.
+
+Ngày hay rẻ nhất, đúng ở cả hai nửa giai đoạn từ 2016: Ngày thứ 1.
+
+Nghĩa là: không có lý do chờ sang một ngày khác trong tuần để mua rẻ hơn. Muốn giá thấp hơn, đặt lệnh chờ ở mức bạn chấp nhận (phần trên).
+
+Khả năng trong 7 ngày tới giá không lần nào xuống dưới giá đóng ngày 26/10/2026: < 1%. Gần như chắc chắn sẽ có lúc giá thấp hơn; câu hỏi là thấp hơn bao nhiêu.
+
+Tỷ lệ là ngày rẻ nhất (4 năm qua)
+Như nhau (1/7 ≈ 14%)
+Kiểm chứng ở hai nửa giai đoạn từ 2016
+⇄Mua ngay hay đặt lệnh chờ giá thấp hơn?
+
+Thử lại trên mọi ngày từ 2016: đặt lệnh mua thấp hơn giá đóng ngày x%, chờ tối đa k ngày; không khớp thì mua ở giá cuối ngày thứ k. So với mua ngay. Số dương nghĩa là chờ được giá tốt hơn.
+
+Trong 20 cách chờ, không cách nào tốt hơn mua ngay một cách rõ ràng; 6 cách kém hơn rõ ràng.
+
+Vì sao: chờ thường khớp được giá thấp hơn (ví dụ đặt thấp hơn 2%, chờ 7 ngày: khớp 72% số lần), nhưng những lần không khớp thì giá thường đã tăng xa, nên tính trung bình chờ lại thua 0,5% so với mua ngay.
+
+Nếu đã quyết mua, mua ngay hoặc chia đều theo kế hoạch giải ngân thường không kém việc cố chờ giá thấp. Lệnh chờ hợp với tiền bạn sẵn sàng để chờ, không hợp với tiền nhất định phải mua.
+
+Đặt thấp hơn	Chờ tối đa 1 ngày	Chờ tối đa 3 ngày	Chờ tối đa 7 ngày	Chờ tối đa 30 ngày
+−1%	−0,07%
+khớp 64%
+	−0,20%
+khớp 78%
+	−0,42%
+khớp 85%
+	−0,87%
+khớp 91%
+
+−2%	−0,07%
+khớp 40%
+	−0,27%
+khớp 60%
+	−0,51%
+khớp 72%
+	−1,24%
+khớp 84%
+
+−3%	−0,07%
+khớp 26%
+	−0,26%
+khớp 46%
+	−0,49%
+khớp 61%
+	−1,57%
+khớp 77%
+
+−5%	−0,04%
+khớp 12%
+	−0,18%
+khớp 28%
+	−0,47%
+khớp 43%
+	−1,96%
+khớp 66%
+
+−8%	−0,03%
+khớp 5%
+	−0,16%
+khớp 14%
+	−0,45%
+khớp 26%
+	−2,06%
+khớp 51%
+Chờ có lợi hơn Mua ngay tốt hơn Chưa có lợi thế
+Mỗi ô: lợi trung bình so với mua ngay và tỷ lệ khớp; rê chuột vào ô để xem khoảng tin cậy. Chỉ kết luận khi đã hiệu chỉnh Holm cho 20 cách thử (p < 0,05) và cùng chiều ở cả hai nửa giai đoạn (01/01/2016 → 29/05/2021 và 29/05/2021 → 25/10/2026).
+Bỏ qua phí vì hai cách cùng chịu phí. Giả định lệnh khớp đúng giá đặt khi giá thấp nhất ngày chạm mức đặt. Kết quả trong quá khứ không bảo đảm tương lai.
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- plan ---
+Kế hoạch giải ngân dành cho bên mua. Bấm "Bên mua" ở đầu trang để dùng.
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- fc ---
+%Xác suất bán bây giờ tốt hơn giữ (đã hiệu chỉnh)
+
+Bán bây giờ tốt hơn giữ khi giá sau 1, 3, 6 tháng hoặc 1 năm thấp hơn giá bán. Đây là mặt kia của cùng phép đo bên mua: xác suất giá thấp hơn = 100% trừ xác suất có lãi.
+
+Bán bây giờ: xác suất giá thấp hơn sau 1 tháng 43%, sau 3 tháng 40%, sau 6 tháng 32%, sau 1 năm 38%.
+
+Giá lúc tra: 1.102 $ (giá trực tiếp). Xác suất và khoảng lợi nhuận tính theo tuần 25/10/2026; giá dự kiến = giá lúc tra × (1 + lợi nhuận).
+
+Thời điểm bán có lợi nhất: chưa cách nào chọn được tuần bán tốt hơn bán bất kỳ lúc nào, nên các con số gần như không đổi theo từng tuần.
+
+Ở mọi kỳ hạn, xác suất giá thấp hơn dưới 50%: trong lịch sử, giữ thường có lợi hơn bán. Nếu cần giảm rủi ro, bán dần một phần theo kế hoạch an toàn hơn bán hết một lần.
+
+Nếu giữ thêm	Xác suất bán bây giờ tốt hơn	Nếu giữ: lợi nhuận mức giữa	Giá dự kiến theo giá lúc tra	Chọn được điểm bán?
+1 tháng	43%	+2%
+8/10 lần: −13% đến +24%
+	1.119 $
+8/10 lần: 954 $ – 1.363 $
+	chưa
+3 tháng	40%	+6%
+8/10 lần: −21% đến +54%
+	1.165 $
+8/10 lần: 874 $ – 1.696 $
+	chưa
+6 tháng	32%	+20%
+8/10 lần: −31% đến +71%
+	1.326 $
+8/10 lần: 759 $ – 1.882 $
+	chưa
+1 năm	38%	+42%
+8/10 lần: −44% đến +141%
+	1.567 $
+8/10 lần: 617 $ – 2.660 $
+	chưa
+
+Kiểm định trong lịch sử
+
+Giữ	Mô hình logistic nói giá thấp hơn	Nhóm theo Giá / MA 200 tuần nói giá thấp hơn	Sai số Brier: tỷ lệ gốc / cách tốt nhất	Khi mô hình báo giá thấp hơn ≥ 80%, thực tế thấp hơn	20% tuần mô hình thấy dễ giảm nhất, thực tế thấp hơn	Khoảng 8/10 lần chứa kết quả thật
+1 tháng	37%	45%	0,250 / 0,257
+cải thiện -0,007, khoảng tin cậy -0,017 đến 0,002
+	chưa từng báo	41%
+135 tuần, 13 đợt; mốc 45%
+	85%
+mục tiêu 80%; 425 tuần
+
+3 tháng	32%	46%	0,247 / 0,271
+cải thiện -0,024, khoảng tin cậy -0,075 đến 0,021
+	chưa từng báo	42%
+191 tuần, 15 đợt; mốc 42%
+	86%
+mục tiêu 80%; 407 tuần
+
+6 tháng	20%	44%	0,240 / 0,254
+cải thiện -0,014, khoảng tin cậy -0,088 đến 0,047
+	chưa từng báo	40%
+202 tuần, 4 đợt; mốc 35%
+	87%
+mục tiêu 80%; 381 tuần
+
+1 năm	1%	39%	0,268 / 0,229
+cải thiện 0,039, khoảng tin cậy -0,014 đến 0,089
+	chưa từng báo	52%
+145 tuần, 2 đợt; mốc 43%
+	87%
+mục tiêu 80%; 329 tuần
+Bên bán dùng cùng số liệu với bên mua: chọn được điểm bán chỉ khi chọn được điểm mua. Cột "20% tuần dễ giảm nhất" cho biết những tuần mô hình bi quan nhất có thật sự giảm nhiều hơn không.
+Ba cách tính đăng ký trước khi chạy: tỷ lệ gốc của 4 năm gần nhất; 5 nhóm theo thứ hạng Giá / MA 200 tuần (co về tỷ lệ gốc); hồi quy logistic trên MVRV, Giá / MA 200 tuần và độ lệch so với MA 20 tuần. Mỗi tuần chỉ dùng kết quả đã biết tại tuần đó.
+Chỉ dùng mô hình để chọn điểm mua hay bán khi sai số Brier của nó thấp hơn tỷ lệ gốc, với khoảng tin cậy 95% của mức cải thiện nằm hẳn trên 0. Sai số Brier càng thấp càng tốt.
+Lợi nhuận dự đoán: mức 10%, 50% và 90% của lợi nhuận đã gặp trong 4 năm gần nhất. Tính theo nhóm Giá / MA 200 tuần không tốt hơn (điểm phân vị không giảm có ý nghĩa), nên dùng 4 năm gần nhất. 1/10 lần thấp hơn mức dưới, 1/10 lần cao hơn mức trên.
+Kỳ hạn 1 năm chỉ chấm được khoảng 6 năm không chồng nhau (14/07/2019 đến 26/10/2025), nên mọi con số ở kỳ hạn này rất không chắc.
+Chấm đi tới từ 12/08/2018 đến 26/10/2025; dữ liệu này đã được xem trước nên chưa phải kiểm định ngoài mẫu mới. Từ nay mỗi tuần xác suất và khoảng lợi nhuận được ghi vào data/calib/ để kiểm chứng.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+≈Dự báo dải giá BTC: 7 ngày tới và 1 tháng
+
+Bot không đoán một con số giá. Bot đưa ra dải giá cho từng ngày, tính từ cách BTC đã dao động thật trong 4 năm qua (chỉnh theo mức dao động 30 ngày gần nhất), rồi ghi lại mỗi ngày để bạn tự kiểm chứng khi đến ngày.
+
+Gốc: giá đóng ngày 28/10/2026: 81.237 $. Sau 7 ngày (04/11/2026), khoảng 80% là 78.042 $ đến 85.369 $; sau 30 ngày (27/11/2026), khoảng 80% là 74.102 $ đến 94.575 $.
+
+Kiểm chứng từ 01/01/2018: giá thật rơi vào khoảng 80% ở 81% số lần (7 ngày) và 80% số lần (30 ngày); dải đúng thì phải gần 80%.
+
+Ngày đích	Sau	Giữa (trung vị)	Khoảng 50%	Khoảng 80%	Lịch sử: giá thật trong khoảng 80%
+29/10/2026
+Thứ Năm
+	1 ngày	81.245 $	80.744 $ – 81.826 $	80.040 $ – 82.557 $	80%
+Wilson 79%–82%, 3222 lần độc lập
+
+30/10/2026
+Thứ Sáu
+	2 ngày	81.285 $	80.468 $ – 82.091 $	79.520 $ – 83.213 $	80%
+Wilson 78%–82%, 1610 lần độc lập
+
+31/10/2026
+Thứ Bảy
+	3 ngày	81.346 $	80.302 $ – 82.421 $	79.172 $ – 83.725 $	81%
+Wilson 78%–83%, 1073 lần độc lập
+
+01/11/2026
+Chủ Nhật
+	4 ngày	81.309 $	80.208 $ – 82.603 $	78.853 $ – 84.143 $	81%
+Wilson 78%–84%, 804 lần độc lập
+
+02/11/2026
+Thứ Hai
+	5 ngày	81.333 $	80.093 $ – 82.744 $	78.458 $ – 84.667 $	81%
+Wilson 78%–84%, 643 lần độc lập
+
+03/11/2026
+Thứ Ba
+	6 ngày	81.387 $	79.951 $ – 82.917 $	78.236 $ – 84.951 $	81%
+Wilson 78%–84%, 536 lần độc lập
+
+04/11/2026
+Thứ Tư
+	7 ngày	81.412 $	79.812 $ – 83.053 $	78.042 $ – 85.369 $	81%
+Wilson 77%–84%, 459 lần độc lập
+
+27/11/2026
+Thứ Sáu
+	30 ngày	82.215 $	79.085 $ – 86.571 $	74.102 $ – 94.575 $	80%
+Wilson 72%–87%, 106 lần độc lập
+Cách tính (định trước khi tính): lợi suất k ngày chia cho độ dao động 30 ngày, lấy phân vị trong 4 năm trước ngày gốc (chỉ những lần đã biết kết quả), nhân lại với độ dao động hiện tại.
+Đã so 32 cách tính trên giá từ 18/07/2010, chấm bằng điểm phân vị (thưởng dải vừa trúng đúng tỷ lệ vừa hẹp; chỉ nhìn tỷ lệ trúng thì dải càng rộng càng "đúng"). Cách tốt nhất giai đoạn 2014–2021 không hơn rõ rệt cách đang dùng ở giai đoạn 2022–nay (chênh −0,1%, khoảng tin cậy −1,1% đến +0,8%), nên giữ nguyên.
+Không phải dự báo hướng giá: kiểm định 6 tiêu chí cho thấy tín hiệu của bot chưa có lợi thế. "Giữa" không phải mục tiêu giá; trong lịch sử giá thật cao hơn giữa ở 48% số lần.
+Giá đóng ngày theo Coin Metrics, chốt lúc 00:00 UTC (07:00 sáng hôm sau giờ Việt Nam). Ngày gốc là ngày đóng cửa cuối có trong dữ liệu, nên có thể chậm hơn hôm nay một ngày.
+Dải rộng là đúng bản chất: BTC dao động mạnh. Dải hẹp hơn sẽ sai nhiều hơn.
+Công cụ tham khảo, không phải lời khuyên đầu tư.
+
+Kiểm chứng trực tiếp các dự báo đã đến hạn
+
+Đã đến hạn 2 dự báo: 1 lần (50%) giá thật nằm trong khoảng 80%, 1 lần (50%) trong khoảng 50%. Dải đúng thì hai tỷ lệ này dần tiến về 80% và 50%. Nhật ký: data/forecast/forecast_log.csv (chỉ thêm dòng, không sửa).
+
+Ngày dự báo	Ngày đích	Sau	Khoảng 80%	Giá thật	Trong khoảng 80%?	Trong khoảng 50%?
+20/10/2026	22/10/2026	2 ngày	78.500 $ – 82.100 $	83.000 $	không	không
+20/10/2026	21/10/2026	1 ngày	79.000 $ – 81.700 $	80.200 $	có	có
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- check ---
+✓Khuyến nghị giải ngân tuần này
+
+Bao nhiêu phần ngân sách tuần này nên giải ngân, so với mua đều (DCA) cùng số tiền mỗi tuần. Tính hằng ngày từ dữ liệu công khai, chỉ dùng số liệu đã công bố.
+
+Hệ số mua: 1,0 — 100 $ trên mỗi 100 $ ngân sách tuần. Chế độ an toàn: mua đều
+
+Vì sao: mô hình đạt 0/6 tiêu chí chấp nhận định trước (cần đạt cả 6) trên giai đoạn kiểm tra cuối 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần ngày 29/10/2026. Không có cơ sở mua nhiều hay ít hơn mua đều.
+
+6 tiêu chí chấp nhận (định trước, không đổi sau khi xem kết quả)
+
+#	Tiêu chí	Kết quả	Đạt?
+1	Lợi thế giá vốn > 0 ở ≥ 75% số năm và trên giai đoạn kiểm tra cuối	năm có lợi 0/2; giai đoạn kiểm tra cuối 0,0%	✘
+2	Cận dưới khoảng tin cậy của lợi thế > 0	0,0% (khoảng tin cậy 95%: 0,0% đến 0,0%)	✘
+3	Kiểm định hoán vị đã hiệu chỉnh < 0,05	p của IC 1,000; p của lợi thế 1,000	✘
+4	Khung đơn điệu ở mọi kỳ hạn, trọng số đúng dấu	đơn điệu ở 0/4 kỳ hạn; 233/233 tuần có mô hình phải bỏ chỉ số sai dấu	✘
+5	Xác suất dự báo tốt hơn tỷ lệ gốc (Brier)	Brier 0,193 so với 0,189 (95 tuần)	✘
+6	Thắng cả hai quy tắc đơn giản 1 chỉ số	mô hình 0,0%; quy tắc MVRV 0,0%; quy tắc Giá / MA 200 tuần 0,0%	✘
+Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
+⚙Tuần này theo bản xây lại (đã kiểm định)
+
+Đọc từ mô hình đóng băng và các kết quả kiểm định, tính hằng ngày trên máy chủ theo giá đóng tuần (Chủ nhật 23:59 UTC). Đây là phần đáng tin nhất của trang.
+
+Tuần 25/10/2026, giá đóng tuần 80.039 $: thứ hạng mô hình 76 → Cân nhắc mua; quy tắc MVRV 65 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 70 → Cân nhắc mua.
+
+Thứ hạng là vị trí của điểm tuần này so với các tuần ngoài mẫu trước đó, không phải xác suất có lãi. Kiểm định cho thấy các khung chưa có lợi thế, nên chỉ để tham khảo.
+
+Bên bán: 0 nhóm bật → Giữ. Số tiêu chí bán đáng tin: 0.
+
+Chế độ lãi suất Fed: tăng (từ 20/09/2026), chỉ dùng để chia nhóm báo cáo. Cảnh báo: chế độ này có dưới 3 đợt trong lịch sử đánh giá của Bot hiện tại (PA3), Mô hình lồng nhau, Quy tắc Giá/MA 200 tuần.
+
+Khung tuần này trong lịch sử: tính theo đợt độc lập, toàn bộ giai đoạn ngoài mẫu đến hết giai đoạn kiểm tra cuối
+
+Chiến lược	Khung	Kỳ hạn	Số tuần	Số đợt	Giá cao hơn	Mốc (mọi tuần)	Chênh (khoảng tin cậy 95%)	Kết luận
+Mô hình	Cân nhắc mua	1 tháng	15	2	73%	54%	+19,1% (−17,8% đến +47,5%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	3 tháng	9	1	100%	57%	+43,5% (+26,2% đến +61,3%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	6 tháng	9	1	100%	70%	+29,7% (+8,4% đến +48,4%)	ít đợt (< 3), chưa kết luận
+Mô hình	Cân nhắc mua	1 năm	9	1	100%	62%	+37,8% (+5,6% đến +68,5%)	ít đợt (< 3), chưa kết luận
+Quy tắc MVRV	Cân nhắc mua	1 tháng	125	18	51%	57%	−5,8% (−17,2% đến +6,3%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	3 tháng	119	17	43%	57%	−13,9% (−29,7% đến +1,0%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	6 tháng	114	17	49%	62%	−12,6% (−37,7% đến +8,3%)	chưa có lợi thế
+Quy tắc MVRV	Cân nhắc mua	1 năm	100	15	86%	68%	+18,2% (−0,1% đến +33,7%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 tháng	122	11	53%	56%	−2,3% (−13,1% đến +8,9%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	3 tháng	116	10	53%	55%	−2,4% (−17,4% đến +13,1%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	6 tháng	108	10	55%	60%	−5,1% (−25,8% đến +12,1%)	chưa có lợi thế
+Quy tắc Giá/MA 200 tuần	Cân nhắc mua	1 năm	91	9	59%	65%	−5,9% (−31,5% đến +19,4%)	chưa có lợi thế
+
+Nếu giá đi tới mức này sau 4 tuần (Fear & Greed đổi theo giá, kèm khoảng)
+
+Giá	So với hiện tại	Fear & Greed (10–90%)	Quy tắc Giá / MA 200 tuần	Quy tắc MVRV (khoảng)	Bên bán (số nhóm)
+56.027 $	−30%	21 (7–35)	95 → Phải mua	99 (99) → Phải mua	0 → Giữ
+64.031 $	−20%	31 (17–45)	93 → Phải mua	97 (96–99) → Phải mua	0 → Giữ
+72.035 $	−10%	41 (27–54)	83 → Phải mua	82 (80–89) → Phải mua	0 → Giữ
+76.037 $	−5%	45 (31–58)	75 → Cân nhắc mua	76 (76–80) → Phải mua / Cân nhắc mua	0 → Giữ
+80.039 $	hiện tại	49 (35–62)	72 → Cân nhắc mua	67 (65–76) → Cân nhắc mua	0 → Giữ
+84.041 $	+5%	53 (38–66)	67 → Cân nhắc mua	59 (58–65) → Cân nhắc mua	0 → Giữ
+88.043 $	+10%	56 (42–70)	62 → Cân nhắc mua	53 (53–59) → Cân nhắc mua / Không nên mua	0 → Giữ
+96.047 $	+20%	63 (49–76)	56 → Cân nhắc mua	50 (47–52) → Không nên mua	0 → Giữ
+104.051 $	+30%	69 (55–82)	52 → Không nên mua	37 (37–46) → Không nên mua	0–1 → Giữ / Chốt lời một phần
+120.058 $	+50%	80 (66–93)	36 → Không nên mua	16 (13–23) → Không nên mua	3 → Bán phần lớn
+Mô hình đóng băng v1-f46ea015fc (ngày 25/10/2026): bộ S1, dùng Giá / MA 200 tuần (bỏ MVRV vì sai dấu). Nhật ký đi tới đã ghi 1 tuần; chấm lại sau 26 và 52 tuần.
+Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, không phải dự báo; hệ số mua vẫn 1,0 ở mọi mức giá.
+Báo cáo đầy đủ và phụ lục: docs/BAO_CAO.md, docs/PHU_LUC.md trong mã nguồn.
+⇣Nguồn dữ liệu
 Fear & Greed (Alternative.me): 3191 ngày
 Giá lịch sử, MVRV, thợ đào (Coin Metrics): đến 2026-10-27
 Giá trực tiếp: Binance
 Giá và khối lượng ngày (Binance): giá và khối lượng ngày từ 08/2017 (3359 ngày)
 
 Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- old ---
+⚠ Từ đây trở xuống là phân tích của bot cũ, tính ngay trong trình duyệt: bộ chỉ số được chọn trên chính dữ liệu dùng để chấm, khoảng tin cậy tính theo tuần chồng lấn nên quá hẹp, kịch bản giá giữ nguyên Fear & Greed. Bản xây lại cho thấy các khung này chưa có lợi thế. Chỉ dùng để tham khảo.
 
-=== BÊN BÁN ===
+Ngày phân tích
+Hôm nay
+Chọn ngày trong quá khứ (hoặc bấm vào biểu đồ) để xem bot nói gì lúc đó, chỉ với dữ liệu có đến ngày ấy, và thực tế sau đó ra sao.
+Bộ chỉ số
+Tự động: phương án tốt nhất (PA 6)
+PA1 Pi + MVRV
+PA2 Pi + MVRV Z
+PA3 Pi + MVRV + F&G
+PA4 Pi + Puell
+PA5 F&G + MVRV + MA200 tuần
+PA6 Bot tự tìm
+Tất cả chỉ số
+Tự chọn
+Fear & Greed
+MVRV
+MVRV Z-Score
+Giá / MA 200 tuần
+Mayer Multiple
+RSI 14 tuần
+Tỉ số Pi Cycle
+Puell Multiple
+Giảm từ đỉnh
+Khối lượng tương đối
+Đang dùng: Mayer Multiple, Giá / MA 200 tuần
+Chạy bot
+Tìm lại bộ có tỷ lệ thắng cao nhất
+Xong. Phân tích ngày 28/10/2026 với 2 chỉ số.
 Nên giữ hay chốt lời? Ngày 28/10/2026, giá 1.102 $
 Giữ
 
@@ -978,3 +1625,195 @@ Bắt đầu	Giữ nguyên 1 BTC	Theo quy tắc chốt lời	Quy ra BTC	Lần b�
 05/11/2017 → 25/10/2026	1.129 $	1.406 $	1,246 BTC	3 / 3	−82% / −76%	0 $
 07/01/2018 → 25/10/2026	1.129 $	1.399 $	1,239 BTC	3 / 3	−82% / −76%	0 $
 03/01/2021 → 25/10/2026	1.129 $	1.449 $	1,284 BTC	2 / 2	−82% / −76%	0 $
+Tỷ lệ nên mua, ngày 28/10/2026
+87%
+Phải mua
+Không nên mua
+0–60%
+Cân nhắc mua
+60–80%
+Phải mua
+80–100%
+
+Điều kiện ngày này thuận lợi hơn 87% số tuần trong lịch sử, tính chung cho 4 kỳ giữ.
+
+Lịch sử ở khung phải mua: thắng sau 6 tháng 99%, sau 1 năm 100% (106 tuần, 10 đợt). Mua bất kỳ lúc nào: 62% và 66%.
+
+Phân tích cũ: thứ hạng của bộ chỉ số đang chọn, không phải xác suất. Bản xây lại cho thấy các khung chưa có lợi thế.
+
+Tỷ lệ nên bán, ngày 28/10/2026
+22%
+Không nên bán
+Không nên bán
+0–70%
+Cân nhắc bán
+70–85%
+Nên bán
+85–100%
+
+Nguy cơ giá giảm hơn 10% trong 3–6 tháng tới cao hơn 22% số tuần trong lịch sử.
+
+Lịch sử ở khung không nên bán: giá thấp hơn sau 6 tháng 25%, giảm hơn 10% 22% (279 tuần). Bất kỳ lúc nào: 38% và 32%.
+
+Phân tích cũ: thứ hạng của bộ chỉ số đang chọn, không phải xác suất. Bản xây lại cho thấy các khung chưa có lợi thế.
+
+Giá đề xuất mua và bán
+
+Giá BTC để bot chuyển sang từng khung, nếu giá đi tới mức đó ngay ngày 28/10/2026. Bot tính lại các chỉ số theo giá giả định, giữ nguyên mô hình đã học (chỉ từ dữ liệu có đến ngày này) và các yếu tố không phụ thuộc giá như Fear & Greed, khối lượng. Khi thời gian trôi, các đường trung bình thay đổi nên mốc dịch chuyển; mỗi lần chạy bot tính lại.
+
+Giá đề xuất mua: Cân nhắc mua ở mọi mức giá đến 4.407 $; Phải mua ở mọi mức giá đến 4.407 $. Giá đề xuất bán: Cân nhắc bán chưa đạt dù giá tăng tới 4.407 $; Nên bán chưa đạt dù giá tăng tới 4.407 $.
+
+Khuyến cáo	Giá BTC	Cách giá hiện tại	Hôm nay	Lịch sử ở khung này
+Nên bán
+tỷ lệ nên bán từ 85%
+	chưa đạt dù giá tăng tới 4.407 $	—	chưa đạt	Giá thấp hơn sau 6 tháng 41%, giảm hơn 10%: 29% (bất kỳ lúc nào: 38%, 32%)
+126 tuần, 11 đợt
+
+Cân nhắc bán
+tỷ lệ nên bán từ 70%
+	chưa đạt dù giá tăng tới 4.407 $	—	chưa đạt	Giá thấp hơn sau 6 tháng 84%, giảm hơn 10%: 79% (bất kỳ lúc nào: 38%, 32%)
+65 tuần, 18 đợt
+
+Giá ngày phân tích	1.102 $		nên mua 87%, nên bán 22%	
+Cân nhắc mua
+tỷ lệ nên mua từ 60%
+	ở mọi mức giá đến 4.407 $	—	đang đạt	Thắng sau 6 tháng 81%, sau 1 năm 94% (mua bất kỳ lúc nào: 62%, 66%)
+57 tuần, 20 đợt
+
+Phải mua
+tỷ lệ nên mua từ 80%
+	ở mọi mức giá đến 4.407 $	—	đang đạt	Thắng sau 6 tháng 99%, sau 1 năm 100% (mua bất kỳ lúc nào: 62%, 66%)
+106 tuần, 10 đợt
+
+Mô hình của bộ chỉ số này đang cho tỷ lệ nên mua giảm khi giá giảm, ngược cách hiểu thông thường. Không nên dùng mốc giá mua của bộ này.
+
+Mô hình của bộ chỉ số này đang cho tỷ lệ nên bán giảm khi giá tăng, ngược cách hiểu thông thường. Không nên dùng mốc giá bán của bộ này.
+
+Nếu giá ngày phân tích là…
+
+Giá BTC	So với hiện tại	Tỷ lệ nên mua	Tỷ lệ nên bán
+771 $	−30%	61,2%
+Cân nhắc mua
+	54,0%
+Không nên bán
+
+881 $	−20%	77,8%
+Cân nhắc mua
+	35,4%
+Không nên bán
+
+991 $	−10%	83,6%
+Phải mua
+	27,1%
+Không nên bán
+
+1.047 $	−5%	85,5%
+Phải mua
+	24,0%
+Không nên bán
+
+1.102 $	hiện tại	87,1%
+Phải mua
+	21,9%
+Không nên bán
+
+1.157 $	+5%	89,5%
+Phải mua
+	19,8%
+Không nên bán
+
+1.212 $	+10%	91,7%
+Phải mua
+	17,7%
+Không nên bán
+
+1.322 $	+20%	95,2%
+Phải mua
+	12,7%
+Không nên bán
+
+1.432 $	+30%	97,5%
+Phải mua
+	7,3%
+Không nên bán
+
+1.652 $	+50%	100,0%
+Phải mua
+	0,8%
+Không nên bán
+Giá trị các chỉ số tại ngày phân tích
+
+Trọng số lấy từ mô hình giữ 6 tháng: dương nghĩa là chỉ số càng báo rẻ thì xác suất thắng càng cao; âm là chỉ số đang chạy ngược cách hiểu thông thường.
+
+Chỉ số	Nhóm	Giá trị	Trọng số 6 tháng	Ý nghĩa
+Mayer Multiple	Xu hướng giá	1,25	−1,64	
+Xem
+
+Giá / MA 200 tuần	Xu hướng giá	0,57	+0,68	
+Xem
+
+Khối lượng (Binance): tuần kết thúc 25/10/2026, giá +2%, khối lượng bằng 1,16 lần trung bình 20 tuần, loại "khối lượng và giá bình thường".
+
+Biểu đồ từng chỉ số trong bộ đang dùng
+
+Giá trị theo tuần từ 2014. Nền xanh là vùng rẻ, nền đỏ là vùng nóng, theo ngưỡng thông dụng của từng chỉ số; bot không dùng cứng các ngưỡng này mà tự học mức độ ảnh hưởng. Vạch xanh dương là ngày phân tích.
+
+Mayer Multiple
+28/10/2026: 1,25, bình thường
+Giá / MA 200 tuần
+28/10/2026: 0,57, vùng rẻ
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
+--- ai ---
+✦Hỏi Claude về nhận định của bot
+
+Bot chỉ làm thống kê. Claude nhận toàn bộ kết quả đã kiểm định (6 tiêu chí, khung theo đợt, dải giá, kế hoạch giải ngân, sự kiện) cùng báo cáo, đánh giá như một chuyên gia và đề xuất kế hoạch hành động hợp với bạn.
+
+Cách 1: xuất file, kéo vào claude.ai
+
+Tải báo cáo (.md)
+Dữ liệu từng tuần (.csv)
+So sánh phương án (.csv)
+Sao chép gói cho claude.ai
+Tải gói cho claude.ai (.md)
+
+Không cần khóa API: bấm "Sao chép gói cho claude.ai" rồi dán vào claude.ai, hoặc tải gói .md và kéo vào khung chat. Gói gồm chỉ dẫn chuyên gia, hồ sơ của bạn (ở dưới) và báo cáo có đủ phần đã kiểm định. Muốn Claude tự kiểm tra lại số liệu thì gửi thêm hai file .csv.
+
+Cách 2: gọi Claude API ngay tại đây
+
+Khóa API (console.anthropic.com)
+Ghi nhớ khóa trên máy này
+Mô hình
+Claude Opus 5.5 (chuyên gia, khuyên dùng)
+Claude Sonnet 5.5 (nhanh, rẻ hơn)
+Claude Haiku 5.5 (rất nhanh, phân tích nông)
+Cho Claude tìm tin tức hiện tại trên web
+Độ sâu phân tích
+Cao: kỹ nhất, tốn token nhất
+Vừa: cân bằng
+Thấp: nhanh, rẻ nhất
+
+Khi bấm, trang gửi tới Anthropic bằng khóa của bạn: hồ sơ dữ liệu của bot, báo cáo, câu hỏi, các lựa chọn hồ sơ (ở dưới) và số tiền trong ô kế hoạch giải ngân (nếu đã nhập). Trang không lưu những thứ này.
+
+Hồ sơ của bạn (không bắt buộc, dùng cho cả hai cách, giúp lời khuyên sát hơn)
+
+Thời gian định nắm giữ
+Không nói
+Dưới 1 năm
+1–3 năm
+Trên 3 năm
+Chịu được giá giảm tạm thời
+Không nói
+Tối đa 20%
+Tối đa 50%
+Trên 50%
+BTC chiếm bao nhiêu tổng tài sản
+Không nói
+Dưới 5%
+5–20%
+Trên 20%
+Câu hỏi thêm
+Nhờ Claude đánh giá như chuyên gia
+Gửi câu hỏi
+
+Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.

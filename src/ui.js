@@ -70,13 +70,13 @@
       st.vol = BOT.volumeStudy(st.S);
       await afterLoad();
     } catch (e) {
-      $('loading').hidden = false; $('loading').textContent = e.message + tx('web.ui.kiem_tra_mang_hoac_mo_bang');
+      $('loading').hidden = false; $('loading').textContent = e.message + tx('web.ui.kiem_tra_mang_hoac_mo_bang'); $('ai-wait').textContent = $('loading').textContent;
       $('progress').textContent = '';
     } finally { /* xong */ }
   }
   async function loadLive() {
-    for (const u of URLS.live) { try { const j = await getJSON(u, 15000); if (Number(j.price) > 0) { st.raw.live = { price: Number(j.price) }; setStatus('live', true, 'Binance'); return; } } catch (e) { /* tiếp */ } }
-    try { const j = await getJSON(URLS.gecko, 15000); st.raw.live = { price: j.bitcoin.usd }; setStatus('live', true, 'CoinGecko'); } catch (e) { setStatus('live', false, e.message); }
+    for (const u of URLS.live) { try { const j = await getJSON(u, 15000); if (Number(j.price) > 0) { st.raw.live = { price: Number(j.price) }; setStatus('live', true, 'Binance'); onLive(); return; } } catch (e) { /* tiếp */ } }
+    try { const j = await getJSON(URLS.gecko, 15000); st.raw.live = { price: j.bitcoin.usd }; setStatus('live', true, 'CoinGecko'); onLive(); } catch (e) { setStatus('live', false, e.message); }
   }
 
   // ---------- chạy ----------
@@ -131,7 +131,7 @@
       st.lv = B3.priceLevels(st.S, st.asOf, st.a);
       st.sdFull = B3.sellSide(st.S, last, st.full);
       st.sd = st.asOf === last ? st.sdFull : B3.sellSide(st.S, st.asOf, st.a);
-      $('loading').hidden = true; $('app').hidden = false;
+      $('loading').hidden = true; $('app').hidden = false; $('old-body').hidden = false; $('ai-body').hidden = false; $('ai-wait').hidden = true;
       render();
       $('progress').textContent = tx('web.ui.xong_phan_tich_ngay_0_voi', fmtDate(st.a.date), ids.length);
     } catch (e) { $('progress').textContent = e.message; }
@@ -489,8 +489,9 @@
   function applyMode() {
     const sell = st.mode === 'sell';
     $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
-    $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell;
+    $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell; $('plan-sell').hidden = !sell;
     if ($('cp-sec')) renderCalib();
+    renderHome();
     if (sell && st.sd) requestAnimationFrame(drawSellChart);
     if (!sell && st.a) requestAnimationFrame(drawChart);
   }
@@ -720,6 +721,9 @@
       du_bao_dai_gia: F ? { ngay_goc: F.anchor, gia_goc: F.price, phien_ban: F.version, dai: F.rows,
         kiem_chung_lich_su: Object.fromEntries(Object.entries(F.check || {}).map(([k, v]) => [k, v.vol])), kiem_chung_truc_tiep: F.log, so_sanh_phuong_phap: F.search || null } : null,
       ke_hoach_giai_ngan: PLAN ? { ...PLAN, so_tien_nguoi_dung: amt > 0 ? { so_tien: amt, don_vi: pl.unit, bat_dau: $('plan-start').value } : null } : null,
+      gia_cho_mua_va_ngay_re_nhat: EN ? { ngay_goc: EN.anchor, gia_dong_bitstamp: EN.price, do_dao_dong_ngay: EN.sigma, phien_ban: EN.version,
+        gia_thap_nhat_k_ngay_toi: EN.rows.map(({ z, ...r }) => r), kiem_chung_lich_su: EN.check, mua_ngay_hay_cho: EN.wait, ngay_re_nhat_7_ngay: EN.cheapest,
+        kiem_chung_truc_tiep: EN.log, gia_nguoi_dung_muon_mua: target() > 0 ? { gia: target(), so_voi_gia_luc_tra: target() / refPrice() - 1 } : null } : null,
       ho_so_nguoi_dung: { thoi_gian_nam_giu: pick('cp-horizon'), chiu_giam_tam_thoi: pick('cp-drawdown'), ty_trong_btc: pick('cp-share') },
     };
   }
@@ -1171,6 +1175,298 @@
     renderPlan();
   }
 
+  // ================================================================ GIÁ & NGÀY MUA (KN.entry, bot/models/entry_timing.py)
+  // Máy chủ gửi 99 phân vị của z = log(giá thấp nhất k ngày tới / giá mốc) / (σ√k); trang lấy giá lúc tra làm mốc.
+  const EN = KN && KN.entry && KN.entry.rows && KN.entry.rows.length ? KN.entry : null;
+  const enRow = (k) => (EN ? EN.rows.find((r) => r.k === k) : null);
+  const refPrice = () => (st.raw.live ? st.raw.live.price : EN ? EN.price : null);
+  const QUICK = [0.01, 0.02, 0.03, 0.05, 0.08, 0.1], HEAT = [0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.1], WEEK = [1, 2, 3, 4, 5, 6, 7];
+  const en = { pct: 0.03, price: null };
+  const target = () => (en.pct != null ? refPrice() * (1 - en.pct) : en.price);
+  const utcDay = () => new Date(Date.now()).toISOString().slice(0, 10);
+  const addDays = (s, k) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + k); return d.toISOString().slice(0, 10); };
+  // Lúc tra được coi như giá đóng ngày gốc (đăng ký trước, mục entry.touch.live): ngày thứ k tính từ hôm nay (giờ UTC), kể cả khi số liệu chậm một ngày.
+  const dayK = (k) => { const t = utcDay(), a1 = addDays(EN.anchor, 1); return addDays(t > a1 ? t : a1, k - 1); };
+  const dm = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
+  const wdOf = (s) => new Intl.DateTimeFormat('vi-VN', { weekday: 'short', timeZone: 'UTC' }).format(new Date(s + 'T00:00:00Z'));
+  const dayLab = (s) => (s === utcDay() ? tx('web.en.today') : `${wdOf(s)} ${dm(s)}`);
+  const dayFull = (s) => (s === utcDay() ? tx('web.en.today_full', `${wdOf(s)} ${dm(s)}`) : `${wdOf(s)} ${dm(s)}`);
+  const kusd = (x) => (x == null || !isFinite(x) ? '—' : tx('web.home.kilo', nf(1).format(x / 1000)));
+  // P(giá thấp nhất k ngày tới ≤ X): nội suy tuyến tính giữa 99 phân vị; ngoài 1–99% thì giữ ở hai đầu (như bot/models/entry_timing.py)
+  function touchP(X, k) {
+    const r = enRow(k), L = refPrice();
+    if (!r || !(X > 0) || !(L > 0)) return null;
+    const z = Math.log(X / L) / (EN.sigma * Math.sqrt(k)), q = r.z;
+    if (z < q[0]) return { p: 0.01, lt: true };
+    if (z > q[98]) return { p: 0.99, gt: true };
+    for (let i = 1; i < 99; i++) if (z <= q[i]) { const d = q[i] - q[i - 1]; return { p: (i + (d > 0 ? (z - q[i - 1]) / d : 1)) / 100 }; }
+    return { p: 0.99, gt: true };
+  }
+  const pT = (o) => (o == null ? '—' : o.lt ? tx('web.en.lt1') : o.gt ? tx('web.en.gt99') : pc(o.p));
+  const bandAt = (k, q) => { const r = enRow(k), L = refPrice(); return r && L ? L * Math.exp(r.z[q - 1] * EN.sigma * Math.sqrt(k)) : null; };  // q = phân vị 1..99
+  function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, Math.min(r, Math.abs(h) / 2, w / 2)); else g.rect(x, y, w, h); g.fill(); }
+  function niceTicks(lo, hi, n) {
+    const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) || raw, out = [];
+    for (let t = Math.ceil(lo / step) * step; t <= hi; t += step) out.push(t);
+    return out;
+  }
+
+  function renderEntry() {
+    $('en-none').hidden = !!EN;
+    for (const id of ['en-a', 'en-b', 'en-c']) $(id).hidden = !EN;
+    if (!EN) return;
+    const L = refPrice(), X = target(), ok = X > 0 && isFinite(X), inp = $('en-target'), today = utcDay();
+    if (en.pct != null && document.activeElement !== inp) inp.value = nf(0).format(Math.round(X));
+    $('en-quick').replaceChildren(...QUICK.map((x) => {
+      const b = el('button', null, spc(-x)); b.type = 'button'; b.setAttribute('aria-pressed', String(en.pct === x));
+      b.addEventListener('click', () => { en.pct = x; en.price = null; renderEntry(); renderHome(); requestAnimationFrame(redraw); });
+      return b;
+    }));
+    const ans = $('en-answer');
+    if (!ok) ans.replaceChildren(el('p', 'warn', tx('web.en.answer_bad')));
+    else if (X >= L) ans.replaceChildren(el('p', null, tx('web.en.answer_above', usd(L))));
+    else ans.replaceChildren(el('div', 'muted', tx('web.en.answer', usd(X), spc(X / L - 1, 1), usd(L))), el('div', 'big num', pT(touchP(X, 7))),
+      el('div', null, tx('web.en.answer_more', pT(touchP(X, 1)), pT(touchP(X, 3)), pT(touchP(X, 30)))));
+    $('en-bars-title').textContent = tx('web.en.bars_title', ok ? usd(X) : '—');
+    $('en-bars').replaceChildren(...EN.rows.map((r) => {
+      const o = !ok ? null : X >= L ? { p: 1 } : touchP(X, r.k);
+      const row = el('div', 'bar'), lab = el('span', null, tx('web.en.bar_lab', r.k)), tr = el('span', 'tr'), i = el('i');
+      lab.title = tx('web.en.bar_until', fmtDate(dayK(r.k))); i.style.width = (o ? o.p * 100 : 0) + '%'; tr.append(i);
+      row.append(lab, tr, el('b', null, pT(o)));
+      return row;
+    }));
+    // bảng nhiệt: khả năng chạm từng mức theo từng kỳ hạn
+    const h = el('tr');
+    h.append(el('th', null, tx('web.en.col_level')));
+    EN.rows.forEach((r) => h.append(el('th', null, tx('web.en.col_k', r.k))));
+    const tb = el('tbody');
+    for (const x of HEAT) {
+      const tr = el('tr', x === 0 ? 'base' : ''), P = L * (1 - x), c0 = el('td', 'nowrap');
+      c0.append(x ? usd(P) : tx('web.en.level_now', usd(P)));
+      if (x) c0.append(el('span', 'sub', spc(-x)));
+      tr.append(c0);
+      for (const r of EN.rows) {
+        const o = touchP(P, r.k), td = el('td', null, pT(o));
+        if (o) td.style.background = `color-mix(in srgb, var(--brand) ${Math.round(o.p * 55)}%, transparent)`;
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-en-heat').replaceChildren(th, tb);
+    const notes = [tx('web.en.note_method', pc(EN.sigma, 1)), tx('web.en.note_live', fmtDate(EN.anchor)), tx('web.en.note_fill'), tx('web.en.note_utc'), tx('web.en.note_direction'), tx('web.fc.note_ref')];
+    if (Math.round((Date.parse(today) - Date.parse(EN.anchor)) / 86400000) > 2) notes.unshift(tx('web.en.stale', fmtDate(EN.anchor)));
+    $('en-a-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+    renderEntryCheck();
+    renderDays();
+    renderWait();
+  }
+
+  function renderEntryCheck() {
+    const C = EN.check || {}, c7 = C[7], c30 = C[30];
+    $('en-check-sum').textContent = c7 && c30 && c7.n ? tx('web.en.check_sum', fmtDate(c7.from), fmtDate(c7.to), pc(c7.cover80), pc(c30.cover80)) : '';
+    const xs = [0.02, 0.05], h = el('tr');
+    [tx('web.en.col_ck'), tx('web.en.col_cover'), ...xs.map((x) => tx('web.en.col_x', pc(x))), tx('web.en.col_brier')].forEach((t, i) => h.append(el('th', i ? 'r' : '', t)));
+    const tb = el('tbody'), d3 = (x) => (x == null || !isFinite(x) ? '—' : nf(3).format(x));
+    for (const r of EN.rows) {
+      const c = C[r.k]; if (!c || !c.n) continue;
+      const tr = el('tr'), cov = el('td', 'r num ' + (c.trusted ? '' : 'bad'), pc(c.cover80));
+      cov.append(el('span', 'sub', tx('web.en.cover_sub', pc(c.cover80_ci[0]), pc(c.cover80_ci[1]), c.n_eff) + (c.trusted ? '' : ' · ' + tx('web.en.untrusted'))));
+      tr.append(el('td', 'nowrap', tx('web.fc.k_days', r.k)), cov);
+      xs.forEach((x) => { const p = c.probs.find((y) => Math.abs(y.x - x) < 1e-9); tr.append(el('td', 'r num', p ? tx('web.en.pred_cell', pc(p.pred), pc(p.actual)) : '—')); });
+      tr.append(el('td', 'r num', tx('web.en.brier_cell', d3(c.brier), d3(c.brier_raw))));
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-en-check').replaceChildren(th, tb);
+    const lg = EN.log || { matured: 0, versions: {} }, v = (lg.versions || {})[EN.version];
+    $('en-log').textContent = !lg.matured ? tx('web.en.log_none')
+      : tx('web.en.log_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null));
+  }
+
+  const daysAhead = () => EN.cheapest.days.map((x) => ({ ...x, date: dayK(x.pos) }));
+  function renderDays() {
+    const C = EN.cheapest; if (!C) return;
+    const d = daysAhead(), best = d.reduce((a, b) => (b.share > a.share ? b : a)), mids = d.slice(1, -1).map((x) => x.share);
+    const p1 = el('p'); p1.append(el('b', null, tx('web.en.c_sum_top', dayFull(best.date), pc(best.share), nf(1).format(best.share * d.length), pc(Math.min(...mids)), pc(Math.max(...mids)))));
+    const nb = C.none_below;
+    $('en-c-sum').replaceChildren(p1, el('p', null, tx('web.en.c_why')),
+      el('p', null, C.standout.length ? tx('web.en.c_standout', C.standout.map((j) => tx('web.en.c_pos', j)).join(', ')) : tx('web.en.c_standout_none')),
+      el('p', null, tx('web.en.c_meaning')), el('p', 'muted', tx('web.en.c_none_below', fmtDate(EN.anchor), nb < 0.0101 ? tx('web.en.lt1') : pc(nb))));
+    $('en-days-legend').replaceChildren(...[['--brand', 1, tx('web.en.c_bar')], ['--ink', 0.6, tx('web.en.c_ref')]].map(([v, o, t]) => { const s = el('span'), i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; if (v === '--ink') i.style.height = '2px'; s.append(i, t); return s; }));
+    const h = el('tr');
+    h.append(el('th', null, tx('web.en.col_pos')));
+    C.halves.forEach((x) => { const c = el('th', 'r', tx('web.en.col_half', fmtDate(x.from), fmtDate(x.to))); c.append(el('span', 'sub', tx('web.en.half_sub', x.n_eff))); h.append(c); });
+    const tb = el('tbody');
+    d.forEach((x, j) => {
+      const tr = el('tr', C.standout.includes(j + 1) ? 'here' : '');
+      tr.append(el('td', null, tx('web.en.c_pos', j + 1)));
+      C.halves.forEach((hv) => tr.append(el('td', 'r num', tx('web.en.half_cell', pc(hv.shares[j]), pc(hv.ci[j][0]), pc(hv.ci[j][1])))));
+      tb.append(tr);
+    });
+    const th = el('thead'); th.append(h); $('t-en-days').replaceChildren(th, tb);
+  }
+
+  function renderWait() {
+    const Wt = EN.wait; if (!Wt) return;
+    const rows = Wt.rows, xs = [...new Set(rows.map((r) => r.x))], ks = [...new Set(rows.map((r) => r.k))], at = (x, k) => rows.find((r) => r.x === x && r.k === k);
+    const cho = rows.filter((r) => r.verdict === 'cho'), ngay = rows.filter((r) => r.verdict === 'ngay').length, cfgName = (r) => tx('web.en.cfg', pc(r.x), r.k);
+    const p1 = el('p'); p1.append(el('b', null, cho.length ? tx('web.en.b_sum_some', cho.length, cho.map(cfgName).join('; '), ngay) : tx('web.en.b_sum_none', rows.length, ngay)));
+    const sum = [p1], ex = at(0.02, 7);
+    if (ex && ex.mean < 0) sum.push(el('p', null, tx('web.en.b_why', pc(ex.x), ex.k, pc(ex.fill), tx('web.en.worse', spc(Math.abs(ex.mean), 1).replace('+', '')))));
+    if (!cho.length) sum.push(el('p', null, tx('web.en.b_meaning')));
+    $('en-b-sum').replaceChildren(...sum);
+    const h = el('tr');
+    h.append(el('th', null, tx('web.en.col_x_b')));
+    ks.forEach((k) => h.append(el('th', null, tx('web.en.col_k_b', k))));
+    const tb = el('tbody'), TONE = { cho: 'good', ngay: 'bad', chua: 'muted' }, TINT = { cho: '--jade', ngay: '--cinnabar' };
+    for (const x of xs) {
+      const tr = el('tr');
+      tr.append(el('td', 'nowrap', spc(-x)));
+      for (const k of ks) {
+        const r = at(x, k), td = el('td', r ? TONE[r.verdict] : '', r ? spc(r.mean, 2) : '—');
+        if (r) {
+          td.append(el('span', 'sub', tx('web.en.cell_sub', pc(r.fill))));
+          td.title = tx('web.en.cell_title', spc(r.mean, 2), spc(r.ci[0], 2), spc(r.ci[1], 2), spc(r.median, 1), pc(r.better), spc(r.p10, 1), nf(3).format(r.p_holm));
+          if (TINT[r.verdict]) td.style.background = `color-mix(in srgb, var(${TINT[r.verdict]}) 13%, transparent)`;
+        }
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(h); $('t-en-wait').replaceChildren(th, tb);
+    const r0 = rows[0], leg = el('li');
+    ['cho', 'ngay', 'chua'].forEach((v) => leg.append(el('span', 'pill ' + TONE[v], tx('web.en.v_' + v)), ' '));
+    $('en-b-notes').replaceChildren(leg, el('li', null, tx('web.en.b_note_cells') + ' ' + tx('web.en.b_note_stats', Wt.n_configs, fmtDate(r0.from), fmtDate(r0.split), fmtDate(r0.to))), el('li', null, tx('web.en.b_note_fees')));
+  }
+
+  // biểu đồ: cột giá thấp nhất từng ngày (đoạn 25–75% đậm, 10–90% nhạt), đường giá hiện tại và giá muốn mua
+  function drawFan() {
+    const cv = $('h-fan'); if (!EN || !cv.clientWidth) return;
+    const { g, W, H, c } = canvasSetup(cv), L = refPrice(), X = target(), rows = WEEK.map(enRow).filter(Boolean), today = utcDay();
+    const lo = Math.min(...rows.map((r) => bandAt(r.k, 10)), X > 0 && X < L ? X : Infinity) * 0.996, hi = L * 1.004;
+    const PL = 58, PR = 12, PT = 12, PB = 40, ph = H - PT - PB, cw = (W - PL - PR) / rows.length, y = (p) => PT + ((hi - p) / (hi - lo)) * ph;
+    g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+    const ticks = niceTicks(lo, hi, 4), step = ticks.length > 1 ? ticks[1] - ticks[0] : 1000, narrow = cw < 72;
+    ticks.forEach((t) => { const yy = Math.round(y(t)) + 0.5; g.beginPath(); g.moveTo(PL, yy); g.lineTo(W - PR, yy); g.stroke(); g.fillText(step >= 100 ? kusd(t) : nf(0).format(t), PL - 8, yy); });
+    rows.forEach((r, i) => {
+      const cx = PL + cw * (i + 0.5), bw = Math.min(54, cw * 0.58), day = dayK(r.k);
+      g.fillStyle = c('--brand'); g.globalAlpha = 0.25; rrect(g, cx - bw / 2, y(bandAt(r.k, 90)), bw, y(bandAt(r.k, 10)) - y(bandAt(r.k, 90)), 6);
+      g.globalAlpha = 0.7; rrect(g, cx - bw / 2, y(bandAt(r.k, 75)), bw, y(bandAt(r.k, 25)) - y(bandAt(r.k, 75)), 4);
+      g.globalAlpha = 1; g.fillStyle = c('--ink'); g.fillRect(cx - bw / 2, Math.round(y(bandAt(r.k, 50))) - 1, bw, 2);
+      g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = day === today ? c('--brand-ink') : c('--ink'); g.font = `600 ${narrow ? 10.5 : 12}px ${c('--font')}`;
+      g.fillText(narrow ? dm(day) : dayLab(day), cx, H - PB + 8); g.font = `${narrow ? 10.5 : 12}px ${c('--font')}`; g.fillStyle = c('--muted');
+      if (!narrow) g.fillText(tx('web.fc.k_days', r.k), cx, H - PB + 23);
+      g.globalAlpha = 1;
+    });
+    const line = (p, col, dash, label, below) => {
+      const yy = Math.round(y(p)) + 0.5; g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash(dash); g.beginPath(); g.moveTo(PL, yy); g.lineTo(W - PR, yy); g.stroke(); g.setLineDash([]);
+      g.font = `600 12px ${c('--font')}`; g.textAlign = 'right'; g.textBaseline = below ? 'top' : 'bottom'; const tw = g.measureText(label).width;
+      g.fillStyle = c('--panel'); g.globalAlpha = 0.85; g.fillRect(W - PR - tw - 6, below ? yy + 2 : yy - 17, tw + 6, 15); g.globalAlpha = 1;
+      g.fillStyle = col; g.fillText(label, W - PR - 3, below ? yy + 3 : yy - 3); g.font = `12px ${c('--font')}`;
+    };
+    line(L, c('--ink'), [], `${tx('web.en.fan_now')} ${usd(L)}`, false);
+    if (X > 0 && X < L) line(X, c('--blue'), [6, 4], `${tx('web.en.fan_target')} ${usd(X)}`, true);
+    const sw = (v, o, t, hgt) => { const s = el('span'), i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; if (hgt) i.style.height = hgt; s.append(i, t); return s; };
+    $('h-fan-legend').replaceChildren(sw('--brand', 0.25, tx('web.en.fan_80')), sw('--brand', 0.7, tx('web.en.fan_50')), sw('--ink', 1, tx('web.en.fan_mid'), '2px'), sw('--ink', 1, tx('web.en.fan_now'), '2px'), sw('--blue', 1, tx('web.en.fan_target'), '2px'));
+  }
+
+  // biểu đồ cột: tỷ lệ mỗi ngày trong 7 ngày tới là ngày rẻ nhất; mini = bản nhỏ trong thẻ tổng quan
+  function drawDays(cv, mini) {
+    const C = EN && EN.cheapest; if (!C || !cv || !cv.clientWidth) return;
+    const { g, W, H, c } = canvasSetup(cv), d = daysAhead(), best = d.reduce((a, b) => (b.share > a.share ? b : a)), today = utcDay();
+    const top = Math.max(0.2, best.share * 1.18), PL = mini ? 0 : 40, PR = mini ? 0 : 8, PT = mini ? 14 : 22, PB = mini ? 16 : 40, ph = H - PT - PB, cw = (W - PL - PR) / d.length;
+    const y = (v) => PT + ph - (v / top) * ph;
+    if (!mini) {
+      g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+      niceTicks(0, top, 4).forEach((t) => { const yy = Math.round(y(t)) + 0.5; g.beginPath(); g.moveTo(PL, yy); g.lineTo(W - PR, yy); g.stroke(); g.fillText(pc(t), PL - 6, yy); });
+    }
+    d.forEach((x, i) => {
+      const bw = cw * (mini ? 0.62 : 0.56), bx = PL + cw * i + (cw - bw) / 2, on = x === best;
+      g.fillStyle = on ? c('--brand') : c('--muted'); g.globalAlpha = on ? 1 : 0.4; rrect(g, bx, y(x.share), bw, y(0) - y(x.share), mini ? 3 : 6); g.globalAlpha = 1;
+      g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillStyle = on ? c('--brand-ink') : c('--muted');
+      g.font = `${on ? 700 : 500} ${mini ? 11 : 12}px ${c('--font')}`;
+      if (!mini || on) g.fillText(pc(x.share), bx + bw / 2, y(x.share) - 3);
+      g.textBaseline = 'top'; g.fillStyle = x.date === today ? c('--brand-ink') : c('--muted'); g.font = `${x.date === today ? 700 : 500} ${mini ? 10.5 : 12}px ${c('--font')}`;
+      if (mini) g.fillText(wdOf(x.date), bx + bw / 2, H - PB + 3);
+      else { g.fillText(x.date === today ? tx('web.en.today') : wdOf(x.date), bx + bw / 2, H - PB + 8); g.fillText(dm(x.date), bx + bw / 2, H - PB + 23); }
+    });
+    const yr = Math.round(y(1 / 7)) + 0.5;
+    g.strokeStyle = c('--ink'); g.globalAlpha = 0.55; g.lineWidth = 1.2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(PL, yr); g.lineTo(W - PR, yr); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+  }
+
+  // ----- Tổng quan: các thẻ số chính theo chế độ Mua / Bán -----
+  function renderHome() {
+    const sell = st.mode === 'sell', cards = [], stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, ex = KN ? KN.amount_example_usd : 100;
+    const card = (tone, lab, val, sub, go) => {
+      const k = el('div', 'kpi ' + tone); k.append(el('span', 'lab', lab), el('div', 'val num', val));
+      if (sub) k.append(el('span', 'sub', sub));
+      if (go) { const b = el('button', 'go', tx('web.home.go')); b.type = 'button'; b.addEventListener('click', () => { showTab(go); window.scrollTo({ top: 0 }); }); k.append(b); }
+      return k;
+    };
+    if (!sell) {
+      const npass = RB ? Object.values(RB.acceptance.criteria).filter((x) => x.pass).length : null, safe = !KN || stale || KN.mode === 'safe';
+      cards.push(card(safe ? 'good' : 'mid', tx('web.home.rec_lab'), safe ? tx('web.home.rec_val') : tx('web.home.rec_val_model', nf(1).format(m)),
+        npass != null && safe ? tx('web.home.rec_sub', nf(1).format(m), usd(ex * m), usd(ex), npass) : tx('web.home.rec_sub_plain', nf(1).format(m), usd(ex * m), usd(ex)), 'check'));
+      if (EN) {
+        const X = target(), L = refPrice(), drop = en.pct != null ? en.pct : 1 - X / L;
+        cards.push(card('info', tx('web.home.touch_lab', pc(drop, Math.abs(drop * 100 - Math.round(drop * 100)) < 1e-6 ? 0 : 1), usd(X)), X < L ? pT(touchP(X, 7)) : pc(1), tx('web.home.touch_sub', X < L ? pT(touchP(X, 30)) : pc(1)), 'entry'));
+        const best = daysAhead().reduce((a, b) => (b.share > a.share ? b : a)), k = card('mid', tx('web.home.day_lab'), dayLab(best.date), tx('web.home.day_sub', pc(best.share)), 'entry');
+        const cv = el('canvas'); cv.setAttribute('height', '64'); k.insertBefore(cv, k.querySelector('.go')); cards.push(k);
+      }
+    } else {
+      const W = RB && RB.week, lv = W ? W.sell_level : null;
+      cards.push(card(lv === 'ban' ? 'bad' : lv === 'chot' ? 'mid' : 'good', tx('web.home.sell_lab'), lv ? tx('web.rb.level_' + lv) : '—', W ? tx('web.home.sell_sub', W.sell_groups, RB.sell_trusted) : '', 'check'));
+      const CB = KN && KN.calib && KN.calib['4'] ? KN.calib : null;
+      if (CB) cards.push(card('mid', tx('web.home.drop_lab'), pc(1 - CB['4'].now.p), tx('web.home.drop_sub', ...['13', '26', '52'].map((h) => (CB[h] ? pc(1 - CB[h].now.p) : '—')))
+        + (Object.values(CB).some((x) => x.pick) ? '' : ' ' + tx('web.home.drop_nopick')), 'fc'));
+    }
+    const F = KN && KN.forecast && KN.forecast.rows ? KN.forecast : null, r7 = F && F.rows.find((r) => r.k === 7), r30 = F && F.rows.find((r) => r.k === 30);
+    if (r7 && r30) cards.push(card('info', tx('web.home.band_lab'), tx('web.home.band_val', kusd(r7.q10), kusd(r7.q90)), tx('web.home.band_sub', usd(r7.q50), usd(r30.q10), usd(r30.q90)), 'fc'));
+    $('h-kpis').replaceChildren(...cards);
+    requestAnimationFrame(() => document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)));
+  }
+
+  function redraw() {
+    drawFan();
+    if (EN) { drawDays($('en-days'), false); document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)); }
+  }
+  function redrawAll() { redraw(); if (st.full) drawChart(); if (st.cmp) drawOptCharts(); if (st.mode === 'sell' && st.sdFull) drawSellChart(); if (st.a) drawIndCharts(); }
+  for (const id of ['h-fan', 'en-days']) new ResizeObserver(() => requestAnimationFrame(redraw)).observe($(id).parentElement);
+  new ResizeObserver(() => requestAnimationFrame(() => document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)))).observe($('h-kpis'));
+  $('en-target').addEventListener('input', () => { en.pct = null; en.price = parseAmount($('en-target').value); renderEntry(); renderHome(); requestAnimationFrame(redraw); });
+  $('en-target').addEventListener('change', () => { if (en.price > 0) $('en-target').value = nf(0).format(Math.round(en.price)); });
+  function onLive() {
+    const L = st.raw.live.price;
+    $('price').textContent = usd(L);
+    if (!st.S) $('when').textContent = tx('web.ui.gia_truc_tiep');
+    // % so với giá đóng ngày gốc; lệch quá 25% là hai nguồn giá không khớp nhau (không phải biến động thật), nên ẩn
+    if (EN) { const ch = L / EN.price - 1, c = $('chg'); c.hidden = !(Math.abs(ch) < 0.25); c.className = 'chg num ' + (ch >= 0 ? 'up' : 'down'); c.textContent = tx('web.home.chg', spc(ch, 1), dm(EN.anchor)); }
+    renderEntry(); renderHome(); requestAnimationFrame(redraw);
+  }
+
+  // ----- thẻ (tab) và nền sáng / tối -----
+  const TABS = [...document.querySelectorAll('#tabs [role=tab]')], TAB_IDS = TABS.map((b) => b.dataset.tab);
+  function showTab(name) {
+    if (!TAB_IDS.includes(name)) name = 'home';
+    TABS.forEach((b) => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    document.querySelectorAll('.tabp').forEach((p) => { p.hidden = p.dataset.panel !== name; });
+    try { if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
+    requestAnimationFrame(redraw);
+  }
+  TABS.forEach((b, i) => {
+    b.addEventListener('click', () => showTab(b.dataset.tab));
+    b.addEventListener('keydown', (ev) => {
+      const j = ev.key === 'ArrowRight' ? (i + 1) % TABS.length : ev.key === 'ArrowLeft' ? (i - 1 + TABS.length) % TABS.length : -1;
+      if (j >= 0) { ev.preventDefault(); showTab(TABS[j].dataset.tab); TABS[j].focus(); }
+    });
+  });
+  window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+  $('theme').addEventListener('click', () => {
+    const root = document.documentElement, cur = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), nx = cur === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = nx;
+    try { localStorage.setItem('btc-bot3-theme', nx); } catch (e) { /* bỏ qua */ }
+    requestAnimationFrame(redrawAll);
+  });
+
   function renderStatus() {
     const names ={ live: tx('web.ui.gia_truc_tiep_2'), fng: 'Fear & Greed (Alternative.me)', cm: tx('web.ui.gia_lich_su_mvrv_tho_dao'), kl: tx('web.ui.gia_va_khoi_luong_ngay_binance'), cache: tx('web.ui.du_lieu_luu_tren_may') };
     $('status').replaceChildren(...Object.entries(st.status).map(([k, s]) => el('li', s.ok ? 'ok' : 'err', `${names[k]}: ${s.ok || k === 'cache' ? s.msg : tx('web.ui.loi') + s.msg}`)));
@@ -1180,7 +1476,10 @@
   initPlan();
   if ($('fc-sec')) renderForecast();
   if ($('rb-sec')) renderRebuild();
-  if ($('cp-sec')) renderCalib();
+  renderKN();
+  renderEntry();
+  applyMode();
+  showTab(location.hash.slice(1));
   loadAll();
-  setInterval(async () => { if (!st.S) return; await loadLive(); if (st.raw.live) $('price').textContent = usd(st.raw.live.price); }, 60 * 1000);
+  setInterval(loadLive, 60 * 1000);
 })();

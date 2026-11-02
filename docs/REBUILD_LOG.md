@@ -377,3 +377,24 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - Kỳ hạn 1 năm chỉ có khoảng 6 năm không chồng nhau: rất không chắc.
 - Nhật ký đi tới: `data/calib/calib_log.csv` (xác suất) và `data/calib/ret_log.csv` (lợi nhuận), Daily ghi mỗi tuần một lần.
 - Trang web: mục `#cp-sec` đổi theo chế độ Mua / Bán; giá dự kiến = giá lúc tra × (1 + lợi nhuận). Báo cáo tải về, gói claude.ai và hồ sơ gửi Claude có đủ phần này.
+
+## Giá chờ mua, mua ngay hay chờ, ngày rẻ nhất 7 ngày tới (02/11/2026)
+
+**Yêu cầu:** biết lúc tra cứu nên mua ngày nào, ở giá nào là tốt nhất.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `entry`, commit `293f7ec`, trước khi tính bất kỳ con số nào):
+- (A) giá thấp nhất trong k ngày tới (1–7 và 30 ngày): z = log(giá thấp nhất của các nến k ngày tới / giá đóng) / (độ dao động 30 ngày × √k), phân vị trong 4 năm trước, chỉ cửa sổ đã biết kết quả; nến ngày Bitstamp (có giá thấp nhất ngày, từ 2011);
+- (B) mua ngay hay đặt lệnh chờ thấp hơn x% (1, 2, 3, 5, 8%) trong k ngày (1, 3, 7, 30), không khớp thì mua ở giá đóng ngày thứ k; bootstrap khối, Holm trên 20 cấu hình, cùng chiều ở hai nửa giai đoạn;
+- (C) vị trí 1..7 của ngày có giá thấp nhất trong 7 ngày tới, so với 1/7 ở hai nửa giai đoạn từ 2016.
+
+**Kiểm tra rò rỉ:** `tests/test_entry.py`. Đã cài thử hai lỗi nhìn trước (phân vị dùng cửa sổ chưa đóng: `z.shift(k - 1)`; tỷ lệ ngày rẻ nhất dùng cửa sổ chưa đóng: `shift(days - 1)`): cả hai bị bắt (2 bài kiểm tra hỏng mỗi lần), rồi khôi phục.
+
+**Kết quả** (`data/results/entry.json`, đi tới mỗi ngày từ 01/01/2016):
+- (A) Dải 8/10 của giá thấp nhất trúng 80,2% (1 ngày), 81,1% (7 ngày, Wilson 77,6–84,1%, 564 lần độc lập), 81,3% (30 ngày, 130 lần độc lập): đúng tỷ lệ ở mọi kỳ hạn. Xác suất chạm khớp thực tế, ví dụ 7 ngày: mức −2% bot nói 71,1%, thực tế 72,4%; mức −5% nói 41,8%, thực tế 43,3%. Sai số Brier thấp hơn cách không chỉnh độ dao động ở mọi kỳ hạn (7 ngày: 0,157 so với 0,166). **Công cụ này đáng tin để đặt lệnh chờ.**
+- (B) Không cách chờ nào tốt hơn mua ngay. 6/20 cách **kém hơn rõ ràng** (Holm p < 0,05, cùng chiều hai nửa): chờ −1% hoặc −2% trong 3, 7, 30 ngày, thua 0,2–1,2% (ví dụ −2% trong 7 ngày: khớp 72% số lần nhưng trung bình thua 0,51%, khoảng tin cậy −0,82% đến −0,21%). Các cách còn lại: chưa có lợi thế. Nửa sau (2021–2026) chênh lệch nhỏ hơn nhiều nửa đầu.
+- (C) Ngày đầu tiên là ngày rẻ nhất 34,7% (2016–2021, Wilson 29,4–40,5%) và 27,0% (2021–2026, Wilson 22,1–32,4%) số lần, cao hơn hẳn 1/7 ở cả hai nửa; ngày cuối đứng thứ hai (14–19%); các ngày giữa 9–13%. Đúng với lý thuyết giá đi ngẫu nhiên có xu hướng tăng; nghĩa thực tế: không có lý do chờ sang ngày khác trong tuần.
+- Không thay khuyến nghị mua đều; không phải dự báo hướng giá.
+
+**Sau lần chạy đầu (không đổi phương pháp, kết quả không đổi):** thêm tham số `end` cho `run()` để dựng dữ liệu mẫu cố định cho bài kiểm tra giao diện; phiên bản mã đổi theo (nhật ký `data/entry/` chưa có dòng nào nên không ảnh hưởng). Trang web coi lúc tra như giá đóng ngày gốc (đúng mục `entry.touch.live`), nên các ngày được đếm từ hôm nay (giờ UTC) kể cả khi số liệu chậm một ngày.
+
+**Trang web làm mới:** đầu trang có giá trực tiếp lớn và % so với giá đóng; chia 7 thẻ (Tổng quan, Giá & ngày mua, Giải ngân, Dự báo, Kiểm định, Phân tích cũ, Hỏi Claude); thẻ tổng quan có 4 thẻ số chính và biểu đồ giá thấp nhất 7 ngày tới; nút nền sáng / tối; phần phân tích cũ chuyển vào thẻ riêng kèm cảnh báo (bước A2 mới làm phần thu gọn, chưa gỡ hay tính lại). Phần tổng quan, giá chờ mua và dự báo hiện ngay khi mở trang, không phải chờ phân tích cũ tải xong. Báo cáo tải về, gói claude.ai và hồ sơ gửi Claude có thêm phần giá chờ mua.

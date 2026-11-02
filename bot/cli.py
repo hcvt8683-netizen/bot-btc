@@ -12,6 +12,7 @@ forward freeze|log|score   part H forward log in data/forward/ (freeze only afte
 acceptance rehearsal       part I on a pretend holdout inside already-seen data (no log, no acceptance file)
 acceptance --final         part I: the single logged run on the holdout from 01/01/2024 (refuses a second run)
 forecast                   append today's daily price bands to data/forecast/forecast_log.csv (once per anchor day)
+entry                      buying price / day tools: append today's band of the lowest price to data/entry/entry_log.csv, write data/results/entry.json
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
@@ -85,6 +86,13 @@ def main(argv: list[str] | None = None) -> int:
         rows = pf.log_today(pf.daily_prices(), cfg, pf.utc_now())
         print(f"Dự báo giá: đã ghi {len(rows)} dòng (ngày gốc {rows[0]['issued']}, phiên bản {rows[0]['version']})." if rows
               else "Dự báo giá: ngày gốc mới nhất đã được ghi, không ghi thêm.")
+        return 0
+    if args.command == "entry":
+        from bot.models import entry_timing as et
+        rows = et.log_today(et.candles(), et.spec(), et.utc_now())
+        et.run(write=True)
+        print(f"Giá chờ mua: đã ghi {len(rows)} dòng (ngày gốc {rows[0]['issued']}, phiên bản {rows[0]['version']})." if rows
+              else "Giá chờ mua: ngày gốc mới nhất đã được ghi, không ghi thêm.")
         return 0
     if args.command == "final-report":
         from bot.report import final_report

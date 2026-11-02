@@ -11,7 +11,7 @@ Công cụ tham khảo, không phải lời khuyên đầu tư.
 
 - Windows: bấm đúp `Mo-Bot-BTC.bat`. Mac: bấm đúp `Mo-Bot-BTC.command`. Hướng dẫn chi tiết: `HUONG_DAN_WINDOWS.txt`, `HUONG_DAN_MAC.txt`.
 - Hoặc: `python chay_bot_xac_suat.py` rồi mở http://127.0.0.1:8789 (máy chủ cục bộ chuyển tiếp yêu cầu dữ liệu và lưu bản sao để dùng khi mất mạng).
-- Trên trang: chọn Bên mua / Bên bán, ngày phân tích, bộ chỉ số; ô "Kế hoạch giải ngân một khoản tiền" lập lịch mua theo số tiền bạn nhập; mục "Dự báo dải giá" cho dải giá từng ngày trong 7 ngày tới và 1 tháng, kèm kiểm chứng (nhật ký `data/forecast/forecast_log.csv`).
+- Trên trang: chọn Bên mua / Bên bán ở đầu trang; các thẻ Tổng quan, **Giá & ngày mua** (nhập giá muốn mua → khả năng giá chạm mức đó trong 1–7 và 30 ngày; mua ngay hay chờ; ngày nào trong 7 ngày tới hay rẻ nhất), Giải ngân, Dự báo, Kiểm định, Phân tích cũ (ngày phân tích, bộ chỉ số), Hỏi Claude; ô "Kế hoạch giải ngân một khoản tiền" lập lịch mua theo số tiền bạn nhập; mục "Dự báo dải giá" cho dải giá từng ngày trong 7 ngày tới và 1 tháng, kèm kiểm chứng (nhật ký `data/forecast/forecast_log.csv`).
 
 ## Cấu trúc mã
 
@@ -19,7 +19,7 @@ Công cụ tham khảo, không phải lời khuyên đầu tư.
 |---|---|---|
 | Dữ liệu | `bot/data/` | Tải từng nguồn (`fetchers/`: Coin Metrics, Alternative.me, Binance, FRED, Bitstamp, CoinGecko…), lưu theo thời điểm công bố (`pit_store.py`), kiểm tra chất lượng, đối chiếu giữa các nguồn (`crosscheck.py`), danh mục nguồn có dấu thời gian (`manifest.py`). |
 | Đặc trưng | `bot/features/` | `weekly_close.py`: bảng tuần theo giá đóng Chủ nhật 23:59 UTC, phân vị trượt 4 năm, chế độ lãi suất Fed. |
-| Mô hình | `bot/models/` | Hồi quy logistic L2 đi tới lồng nhau có ràng buộc dấu (`wf_logit.py`), khung có vùng trễ và hệ số giải ngân (`zones.py`), bên bán một hệ thống (`sell_system.py`), kịch bản giá (`scenarios.py`), nhật ký đi tới (`forward.py`), kế hoạch giải ngân (`deploy_plan.py`), dải giá theo ngày (`price_forecast.py`); các bước kiểm định `part_c.py` … `part_i.py`. |
+| Mô hình | `bot/models/` | Hồi quy logistic L2 đi tới lồng nhau có ràng buộc dấu (`wf_logit.py`), khung có vùng trễ và hệ số giải ngân (`zones.py`), bên bán một hệ thống (`sell_system.py`), kịch bản giá (`scenarios.py`), nhật ký đi tới (`forward.py`), kế hoạch giải ngân (`deploy_plan.py`), dải giá theo ngày (`price_forecast.py`), giá chờ mua và ngày rẻ nhất (`entry_timing.py`); các bước kiểm định `part_c.py` … `part_i.py`. |
 | Kiểm định | `bot/backtest/` | Thước đo thống nhất (`measure.py`: đợt, bootstrap khối, Wilson, đơn điệu, hiệu chỉnh), mô phỏng so với mua đều (`engine.py`, `metrics.py`), bot hiện tại chạy lại bằng node (`current_bot.py`). |
 | Báo cáo | `bot/report/` | Khuyến nghị tuần cho web (`vi_report.py`), báo cáo dữ liệu (`data_report.py`), sự kiện sau mốc chốt dữ liệu (`events.py`), báo cáo tổng và phụ lục (`final_report.py`). |
 | Web | `src/`, `build.py` | `engine.js`, `analysis.js`, `ui.js`, `page.html`, chữ trong `bot/i18n/vi.yaml`; `python build.py` ghép thành `bot-xac-suat.html`. |
@@ -41,6 +41,7 @@ Công cụ tham khảo, không phải lời khuyên đầu tư.
 | Báo cáo tổng, phụ lục, biểu đồ hiệu chỉnh | `python -m bot.cli final-report` |
 | Nhật ký đi tới | `python -m bot.cli forward log`, `python -m bot.cli forward score` |
 | Ghi dự báo dải giá hôm nay | `python -m bot.cli forecast` |
+| Giá chờ mua, ngày rẻ nhất (ghi nhật ký hôm nay) | `python -m bot.cli entry` |
 | Kiểm tra tất cả (không cần mạng) | `python -m pytest` |
 
 Lần chạy holdout duy nhất (`python -m bot.cli acceptance --final`) đã chạy ngày 29/10/2026 và được ghi trong `experiments/final_runs.log`; lệnh từ chối chạy lần hai.
@@ -63,7 +64,7 @@ Lần chạy holdout duy nhất (`python -m bot.cli acceptance --final`) đã ch
 
 ## Tự động trên GitHub
 
-- `.github/workflows/daily.yml`: mỗi ngày 01:00 UTC và mỗi lần có mã mới trên `main`: tải dữ liệu, ghi dự báo dải giá, khuyến nghị tuần, ghi nhật ký đi tới, ghép trang, chạy kiểm tra, lưu dữ liệu, đăng trang.
+- `.github/workflows/daily.yml`: mỗi ngày 01:00 UTC và mỗi lần có mã mới trên `main`: tải dữ liệu, ghi dự báo dải giá, ghi giá chờ mua, khuyến nghị tuần, ghi nhật ký đi tới, ghép trang, chạy kiểm tra, lưu dữ liệu, đăng trang.
 - `.github/workflows/ci.yml`: kiểm tra mỗi lần đẩy mã. `rollback.yml`: đăng lại bản cũ khi cần. Chi tiết: `docs/DEPLOY.md`.
 
 ## Tài liệu
