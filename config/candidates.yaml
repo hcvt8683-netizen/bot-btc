@@ -209,3 +209,40 @@ calib:
     live: "trang web nhân phân vị với giá lúc tra để ra giá dự kiến; phân vị và xác suất chỉ đổi theo tuần"
   sell_side: "mặt kia của cùng phép đo: xác suất giá sau h tuần thấp hơn = 1 − xác suất có lãi (Brier như nhau nên quy tắc chọn như nhau). Báo thêm (mô tả): những tuần bins/logit nói xác suất có lãi ≤ 20%, thực tế giá thấp hơn bao nhiêu lần; 20% tuần có xác suất thấp nhất so với mọi tuần theo đợt"
   forward: "xác suất của từng tuần mới được ghi vào nhật ký đi tới riêng để kiểm chứng từ nay (data/calib/calib_log.csv); lợi nhuận dự đoán ghi vào data/calib/ret_log.csv"
+
+# Chọn giá / ngày mua lúc tra cứu: giá chờ mua, mua ngay hay chờ, ngày rẻ nhất 7 ngày tới. Đăng ký trước khi tính bất kỳ con số nào (02/11/2026).
+entry:
+  why: "người dùng muốn biết nên mua ngày nào, ở giá nào. Không đoán hướng giá (Phần I: tín hiệu chưa có lợi thế); chỉ đo độ dao động: giá thấp nhất sắp tới có thể xuống tới đâu, khả năng chạm một mức giá, và trong lịch sử chờ giá thấp hơn có lợi hơn mua ngay không"
+  price: "nến ngày Bitstamp BTC/USD (mở 00:00 UTC, có giá thấp nhất ngày, từ 18/08/2011: nguồn dài nhất có giá thấp nhất). Ngày gốc T = nến cuối đã đóng; giá mốc = giá đóng T"
+  horizons_days: [1, 2, 3, 4, 5, 6, 7, 30]
+  vol_days: 30
+  window_days: 1461            # phân phối lấy từ 4 năm trước ngày gốc, chỉ các cửa sổ đã biết kết quả (nến cuối ≤ T)
+  min_obs: 365
+  check_from: 2016-01-01       # kiểm chứng đi tới mỗi ngày từ đây đến ngày cuối đã biết kết quả
+  # (A) Giá chờ mua: giá thấp nhất trong k ngày tới
+  touch:
+    stat: "z = log(giá thấp nhất của các nến T+1..T+k / giá đóng T) / (độ lệch chuẩn lợi suất log ngày (giá đóng) của 30 ngày đến T × √k)"
+    grid: "phân vị 1%, 2%, …, 99% của z (99 giá trị) cho mỗi kỳ hạn. Xác suất chạm giá X = tỷ lệ z ≤ log(X / giá mốc) / (σ√k), nội suy tuyến tính giữa các phân vị; ngoài 1–99% ghi '< 1%' hoặc '> 99%'"
+    show_quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]          # dải giá thấp nhất trong k ngày tới
+    show_discounts: [0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10]   # bảng xác suất chạm mức thấp hơn giá mốc x%
+    live: "trang web dùng giá lúc tra làm giá mốc (xấp xỉ: coi lúc tra như giá đóng ngày gốc); σ và phân vị chỉ đổi theo ngày. Người dùng nhập giá muốn mua thì tính xác suất chạm theo cùng cách"
+    check: "đi tới mỗi ngày từ check_from: (1) độ phủ: tỷ lệ giá thấp nhất thật ≤ từng phân vị 10/25/50/75/90% (kỳ vọng bằng đúng phân vị), dải 80% = 10–90%; (2) xác suất chạm từng mức trong show_discounts so với tỷ lệ chạm thật; (3) Brier của xác suất chạm so với cùng cách nhưng không chỉnh độ dao động (phân vị lợi suất thô, cùng cửa sổ). Wilson theo số cửa sổ không chồng lấn (số ngày chia k)"
+    trust: "kỳ hạn nào dải 80% của giá thấp nhất phủ ngoài 75–85% thì trang ghi rõ 'dải chưa đúng tỷ lệ' ở kỳ hạn đó"
+  # (B) Mua ngay hay chờ giá thấp hơn
+  wait:
+    discounts: [0.01, 0.02, 0.03, 0.05, 0.08]
+    days: [1, 3, 7, 30]
+    rule: "tại giá đóng T đặt lệnh chờ mua ở giá đóng T × (1 − x) trong k ngày (nến T+1..T+k). Khớp khi giá thấp nhất ngày ≤ giá lệnh, mua đúng giá lệnh; không khớp thì mua ở giá đóng T+k. So với mua ngay ở giá đóng T: lợi = giá đóng T / giá đã mua − 1 (dương = chờ được giá tốt hơn). Phí như nhau nên bỏ qua"
+    period: "mọi ngày gốc từ check_from đến ngày cuối đã biết kết quả k ngày"
+    stats: "lợi trung bình, trung vị, phân vị 10% (lúc xấu), tỷ lệ khớp, tỷ lệ chờ được giá tốt hơn; lợi trung bình riêng hai nửa giai đoạn"
+    ci: "khoảng tin cậy 95% của lợi trung bình: bootstrap khối dừng (độ dài khối trung bình k ngày, 2000 lần, hạt giống 0). p hai phía = 2 × tỷ lệ trung bình bootstrap ở phía bên kia của 0 (tối thiểu 1/2000); số đợt độc lập = số ngày chia k"
+    verdict: "'Chờ có lợi hơn' khi p đã hiệu chỉnh Holm trên 20 cấu hình < 0,05 và lợi trung bình > 0 ở cả hai nửa; 'Mua ngay tốt hơn' khi p Holm < 0,05 và < 0 ở cả hai nửa; còn lại 'chưa có lợi thế'"
+    no_tuning: "chỉ báo cáo đủ 20 cấu hình, không chọn cấu hình tốt nhất để khuyên; mua đều vẫn là khuyến nghị chính"
+  # (C) Ngày nào rẻ nhất trong 7 ngày tới
+  cheapest_day:
+    days: 7
+    stat: "với mỗi ngày gốc T: vị trí 1..7 của nến có giá thấp nhất ngày nhỏ nhất trong T+1..T+7; thêm 'không ngày nào xuống dưới giá đóng T' (= 1 − xác suất chạm 0% của A, kỳ hạn 7)"
+    estimate: "tỷ lệ của từng vị trí 1..7 trong 4 năm trước ngày gốc (chỉ cửa sổ đã biết kết quả). Thứ trong tuần của từng ngày tới chỉ để hiển thị"
+    compare: "so với đều nhau 1/7, Wilson theo số cửa sổ 7 ngày không chồng lấn, riêng hai nửa giai đoạn từ check_from. Vị trí nào khoảng tin cậy nằm hẳn trên 1/7 ở cả hai nửa mới được nói là 'hay rẻ nhất'; còn lại 'không ngày nào nổi trội'"
+  log: "mỗi ngày ghi một lần các phân vị 10/25/50/75/90% giá thấp nhất (A) của ngày gốc mới nhất vào data/entry/entry_log.csv (chỉ thêm dòng, chỉ ghi khi nến cuối của kỳ hạn chưa đóng, không ghi bù); chấm khi đã có đủ nến; đổi phương pháp = phiên bản mới, thống kê tách theo phiên bản"
+  no_direction: "không phải dự báo hướng giá và không thay khuyến nghị mua đều"
