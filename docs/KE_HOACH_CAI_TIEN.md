@@ -27,6 +27,7 @@ Viết ngày 29/10/2026, sau khi bot đạt 0/6 tiêu chí chấp nhận (`docs/
 | khoảng 30/11/2026 | Xem tỷ lệ dải 80% trúng sau 1 tháng (bước D1) |
 | 25/04/2027 | Nhật ký đi tới đủ 26 tuần: chấm lần đầu (bước D2) |
 | 24/10/2027 | Nhật ký đi tới đủ 52 tuần: chấm lần hai (bước D2) |
+| 11/2027 | Nhật ký Long/Short có cắt lỗ (`data/perp_trade/`) và Long/Short giữ đúng kỳ hạn (`data/perp/`) đủ 1 năm: chấm lần đầu |
 
 ---
 

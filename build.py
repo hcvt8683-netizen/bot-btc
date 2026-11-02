@@ -56,7 +56,16 @@ def perp(path=None):
         return json.load(f)
 
 
-def build(out=None, kn_path=None, ls_path=None):
+def perp_trade(path=None):
+    """data/results/perp_trade.json (python -m bot.cli perp-trade): entry, stop-loss, take-profit for the Long/Short view."""
+    path = path or os.path.join(ROOT, "data", "results", "perp_trade.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def build(out=None, kn_path=None, ls_path=None, lt_path=None):
     vi = web_strings()
     page = fill_page(read("page.html"), vi)
     i18n = read("i18n.js").replace("if (typeof module !== 'undefined') module.exports = I18N;\n", "").replace(
@@ -67,7 +76,8 @@ def build(out=None, kn_path=None, ls_path=None):
         if page.count(mark) != 1:
             sys.exit(f"Lỗi: page.html phải có đúng một chỗ {mark}")
     html = page.replace("/*I18N*/", i18n).replace("/*CORE*/", engine).replace("/*B3*/", analysis).replace("/*UI*/", read("ui.js").replace("/*KN_JSON*/null", json.dumps(recommendation(kn_path), ensure_ascii=False)))
-    html = html.replace("/*LS*/", read("ls.js").replace("/*LS_JSON*/null", json.dumps(perp(ls_path), ensure_ascii=False, separators=(",", ":"))))
+    ls = read("ls.js").replace("/*LS_JSON*/null", json.dumps(perp(ls_path), ensure_ascii=False, separators=(",", ":")))
+    html = html.replace("/*LS*/", ls.replace("/*LT_JSON*/null", json.dumps(perp_trade(lt_path), ensure_ascii=False, separators=(",", ":"))))
     out = out or os.path.join(ROOT, "bot-xac-suat.html")
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)

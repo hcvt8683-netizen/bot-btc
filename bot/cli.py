@@ -15,6 +15,7 @@ forecast                   append today's daily price bands to data/forecast/for
 entry                      buying price / day tools: append today's band of the lowest price to data/entry/entry_log.csv, write data/results/entry.json
 exit                       selling price / day tools: append today's band of the highest price to data/exit/exit_log.csv, write data/results/exit.json
 perp                       long/short on the BTCUSDT perpetual: write data/results/perp.json, append today's calls to data/perp/perp_log.csv
+perp-trade                 long/short with entry, stop-loss, take-profit: write data/results/perp_trade.json, append the month's pick to data/perp_trade/select_log.csv
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
@@ -111,6 +112,20 @@ def main(argv: list[str] | None = None) -> int:
         calls = sum(r["verdict"] != "khong" for r in rows)
         print(f"Long/Short: đã ghi {len(rows)} kỳ hạn (gốc {rows[0]['issued']} UTC, phiên bản {rows[0]['version']}), {calls} kỳ hạn có kết luận vào lệnh."
               if rows else "Long/Short: ngày gốc mới nhất đã được ghi, không ghi thêm.")
+        return 0
+    if args.command == "perp-trade":
+        from bot.models import perp_trade as pt
+        res = pt.run(write=True)
+        rows = pt.log_month(res, pt.utc_now())
+        wf, cur = res["wf"], res["current"]
+        rule = cur["rule"]["id"] if cur["rule"] else "đứng ngoài"
+        print(f"Long/Short có cắt lỗ: tháng {cur['month']} chọn {rule} (t = {cur['t']:.2f}); đi tới từ {wf['from']}: {wf['n']} lệnh, "
+              f"thắng {wf['p']:.1%}, R trung bình {wf['meanR']:+.3f}, {'có lợi thế' if wf['edge'] else 'chưa có lợi thế'}. "
+              + ("Đã ghi lựa chọn của tháng." if rows else "Lựa chọn của tháng đã có trong nhật ký."))
+        for sd, x in res["sides"].items():
+            got = f", thắng {x['p']:.1%}, R trung bình {x['meanR']:+.3f}" if x["n"] else f" (đứng ngoài {x['stand_aside']} tháng)"
+            print(f"  Riêng {sd}: {x['n']} lệnh đi tới{got}; tiêu chí c1–c4: "
+                  + " ".join(f"{k}={'đạt' if v else 'không'}" for k, v in x["check"].items()))
         return 0
     if args.command == "final-report":
         from bot.report import final_report
