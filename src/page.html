@@ -44,7 +44,15 @@
   .hdr h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
   .tagline { display: block; font-size: 12.5px; color: var(--hdr-muted); }
   .quote { display: grid; justify-items: end; gap: 0; }
-  .hdr .price { font-size: 34px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+  .hdr .price { font-size: 34px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; border-radius: 8px; padding: 0 4px; }
+  .hdr .price.up { animation: tick-up 0.9s ease-out; } .hdr .price.down { animation: tick-down 0.9s ease-out; }
+  @keyframes tick-up { from { color: #5FD3A5; background: rgba(95, 211, 165, .16); } }
+  @keyframes tick-down { from { color: #FF9C86; background: rgba(255, 156, 134, .16); } }
+  .qtop { display: flex; align-items: center; gap: 12px; }
+  #spark { width: 150px; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #3DDC97; animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61, 220, 151, .6); } 70% { box-shadow: 0 0 0 7px rgba(61, 220, 151, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 220, 151, 0); } }
+  @media (prefers-reduced-motion: reduce) { .live-dot, .hdr .price.up, .hdr .price.down { animation: none; } }
   .qline { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: flex-end; align-items: center; }
   .hdr .when { color: var(--hdr-muted); font-size: 12.5px; }
   .chg { font-size: 12.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); }
@@ -58,7 +66,7 @@
   .icon-btn:hover { border-color: var(--muted); }
   @media (max-width: 680px) {
     .quote { justify-items: start; } .qline { justify-content: flex-start; }
-    .hdr .price { font-size: 28px; } .hdr .mode span { display: none; }
+    .hdr .price { font-size: 28px; } .hdr .mode span { display: none; } #spark { width: 110px; }
   }
 
   /* thẻ */
@@ -268,8 +276,9 @@
     <div class="brand"><span class="logo" aria-hidden="true">₿</span>
       <div><h1>{{web.page.bot_mua_ban_btc}}</h1><span class="tagline">{{web.page.tagline}}</span></div></div>
     <div class="quote">
-      <span class="price num" id="price">—</span>
-      <div class="qline"><span class="chg num" id="chg" hidden></span><span class="when" id="when"></span></div>
+      <div class="qtop"><canvas id="spark" height="36" aria-hidden="true" hidden></canvas><span class="price num" id="price" aria-live="off">—</span></div>
+      <div class="qline"><span class="chg num" id="chg" hidden></span><span class="when num" id="hl" hidden></span></div>
+      <div class="qline"><span class="live-dot" id="live-dot" hidden></span><span class="when num" id="when"></span></div>
       <span class="when" id="updated" hidden></span>
     </div>
     <div class="modes" role="group" aria-label="{{web.page.che_do}}">
@@ -281,7 +290,7 @@
 <div class="tabbar">
   <div class="wrap tabrow"><nav class="tabs" role="tablist" id="tabs" aria-label="{{web.page.tabs_label}}">
     <button type="button" role="tab" data-tab="home" aria-selected="true">{{web.page.tab_home}}</button>
-    <button type="button" role="tab" data-tab="entry" aria-selected="false">{{web.page.tab_entry}}<span class="dot" aria-hidden="true"></span></button>
+    <button type="button" role="tab" data-tab="entry" aria-selected="false"><span id="tab-entry-lab">{{web.page.tab_entry}}</span><span class="dot" aria-hidden="true"></span></button>
     <button type="button" role="tab" data-tab="plan" aria-selected="false">{{web.page.tab_plan}}</button>
     <button type="button" role="tab" data-tab="fc" aria-selected="false">{{web.page.tab_fc}}</button>
     <button type="button" role="tab" data-tab="check" aria-selected="false">{{web.page.tab_check}}</button>
@@ -298,7 +307,7 @@
     <div class="tabp" data-panel="home" role="tabpanel">
       <div class="kpis" id="h-kpis"></div>
       <section class="panel" id="h-fan-sec">
-        <h2><span class="ic" aria-hidden="true">↧</span><span id="h-fan-title">{{web.en.fan_title}}</span></h2>
+        <h2><span class="ic" aria-hidden="true" id="h-fan-ic">↧</span><span id="h-fan-title">{{web.en.fan_title}}</span></h2>
         <p class="lead" id="h-fan-lead">{{web.en.fan_lead}}</p>
         <div class="chart"><canvas id="h-fan" height="300"></canvas></div>
         <div class="legend" id="h-fan-legend"></div>
@@ -313,37 +322,37 @@
     <div class="tabp" data-panel="entry" role="tabpanel" hidden>
       <p class="warn" id="en-none" hidden>{{web.en.none}}</p>
       <section class="panel" id="en-a">
-        <h2><span class="ic" aria-hidden="true">◎</span>{{web.en.a_title}}</h2>
-        <p class="lead">{{web.en.a_lead}}</p>
+        <h2><span class="ic" aria-hidden="true">◎</span><span id="en-a-title">{{web.en.a_title}}</span></h2>
+        <p class="lead" id="en-a-lead">{{web.en.a_lead}}</p>
         <div class="calc">
           <div class="box">
-            <label class="kicker" for="en-target">{{web.en.target_label}}</label>
+            <label class="kicker" for="en-target" id="en-target-lab">{{web.en.target_label}}</label>
             <div class="bigin"><input type="text" inputmode="decimal" id="en-target" autocomplete="off"><span>$</span></div>
             <div class="quick" id="en-quick" role="group" aria-label="{{web.en.quick_label}}"></div>
             <div class="answer" id="en-answer"></div>
           </div>
           <div><p class="sm" id="en-bars-title"></p><div class="bars" id="en-bars"></div></div>
         </div>
-        <p class="sm" style="margin-top:20px">{{web.en.heat_title}}</p>
+        <p class="sm" style="margin-top:20px" id="en-heat-title">{{web.en.heat_title}}</p>
         <div class="scroll"><table class="heat" id="t-en-heat"></table></div>
         <ul class="crit" id="en-a-notes"></ul>
-        <details><summary>{{web.en.check_title}}</summary>
+        <details><summary id="en-check-title">{{web.en.check_title}}</summary>
           <p id="en-check-sum"></p>
           <div class="scroll"><table id="t-en-check"></table></div>
           <p id="en-log"></p>
         </details>
       </section>
       <section class="panel" id="en-c">
-        <h2><span class="ic" aria-hidden="true">▤</span>{{web.en.c_title}}</h2>
-        <p class="lead">{{web.en.c_lead}}</p>
+        <h2><span class="ic" aria-hidden="true">▤</span><span id="en-c-title">{{web.en.c_title}}</span></h2>
+        <p class="lead" id="en-c-lead">{{web.en.c_lead}}</p>
         <div class="cons" id="en-c-sum"></div>
         <div class="chart"><canvas id="en-days" height="260"></canvas></div>
         <div class="legend" id="en-days-legend"></div>
-        <details><summary>{{web.en.c_check_title}}</summary><div class="scroll" style="margin-top:8px"><table id="t-en-days"></table></div></details>
+        <details><summary id="en-c-check-title">{{web.en.c_check_title}}</summary><div class="scroll" style="margin-top:8px"><table id="t-en-days"></table></div></details>
       </section>
       <section class="panel" id="en-b">
-        <h2><span class="ic" aria-hidden="true">⇄</span>{{web.en.b_title}}</h2>
-        <p class="lead">{{web.en.b_lead}}</p>
+        <h2><span class="ic" aria-hidden="true">⇄</span><span id="en-b-title">{{web.en.b_title}}</span></h2>
+        <p class="lead" id="en-b-lead">{{web.en.b_lead}}</p>
         <div class="cons" id="en-b-sum"></div>
         <div class="scroll"><table class="heat" id="t-en-wait"></table></div>
         <ul class="crit" id="en-b-notes"></ul>
@@ -413,6 +422,7 @@
         <p class="sm" style="margin-top:16px">{{web.rb.zones_title}}</p>
         <div class="scroll"><table id="t-rb-zones"></table></div>
         <p class="sm" style="margin-top:16px" id="rb-scn-title"></p>
+        <p class="lead" id="rb-scn-lead"></p>
         <div class="scroll"><table id="t-rb-scn"></table></div>
         <ul class="crit" id="rb-notes"></ul>
       </section>

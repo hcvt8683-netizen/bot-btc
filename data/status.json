@@ -12,7 +12,7 @@
    ],
    "last": "2026-11-01",
    "rows": 5951,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fng": {
    "ok": true,
@@ -24,7 +24,7 @@
    ],
    "last": "2026-11-02",
    "rows": 3193,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_spot": {
    "ok": true,
@@ -36,7 +36,7 @@
    ],
    "last": "2026-11-01",
    "rows": 3364,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_funding": {
    "ok": false,
@@ -68,7 +68,7 @@
    ],
    "last": "2026-11-02",
    "rows": 3261,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DTWEXBGS": {
    "ok": false,
@@ -92,7 +92,7 @@
    ],
    "last": "2026-10-29",
    "rows": 5961,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -104,7 +104,7 @@
    ],
    "last": "2026-10-29",
    "rows": 14052,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_M2SL": {
    "ok": true,
@@ -115,7 +115,7 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coinmetrics_ext": {
    "ok": true,
@@ -128,7 +128,7 @@
    ],
    "last": "2026-11-01",
    "rows": 5951,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "bitstamp": {
    "ok": true,
@@ -139,7 +139,7 @@
    ],
    "last": "2026-11-01",
    "rows": 5555,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coingecko": {
    "ok": true,
@@ -150,7 +150,7 @@
    ],
    "last": "2026-11-01",
    "rows": 365,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFEDTARU": {
    "ok": true,
@@ -161,8 +161,8 @@
    ],
    "last": "2026-11-01",
    "rows": 6530,
-   "snapshot": "2026-11-02.parquet"
+   "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-02T05:36:07Z"
+ "fetched_at": "2026-11-02T06:59:42Z"
 }

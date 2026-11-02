@@ -79,6 +79,18 @@ def test_every_text_key_exists_and_vi_json_is_in_sync():
     assert json.loads((ROOT / "src" / "vi.json").read_text(encoding="utf-8")) == {"web": vi["web"], "sources": vi["sources"]}, "run python build.py"
 
 
+def test_buy_and_sell_tools_have_the_same_text_keys():
+    """K('key') in src/ui.js reads web.en.key (buy side) or web.ex.key (sell side): both must exist."""
+    web = load_yaml(ROOT / "bot" / "i18n" / "vi.yaml")["web"]
+    js = (ROOT / "src" / "ui.js").read_text(encoding="utf-8")
+    keys = set(re.findall(r"\bK\('([a-z0-9_]+)'(?!\s*\+)", js))  # K('x')
+    keys |= set(re.findall(r"\['en-[a-z-]+', '([a-z0-9_]+)'\]", js))  # [id, key] list of titles in renderEntry
+    keys |= {"v_cho", "v_ngay", "v_chua"}  # K('v_' + verdict)
+    assert len(keys) > 30
+    missing = sorted(f"{side}.{k}" for k in keys for side in ("en", "ex") if k not in web[side])
+    assert not missing, missing
+
+
 def test_source_errors_are_shown_in_vietnamese():
     assert vi_report._friendly("FetchError: HTTP 451 (https://fapi.binance.com/...)") == \
         "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"

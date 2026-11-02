@@ -296,33 +296,37 @@ const B3 = (() => {
       if (F.search) { const Sx = F.search; t('- ' + tx(Sx.switch ? 'web.fc.note_search_switch' : 'web.fc.note_search', Sx.n_variants, D(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, SP1(Sx.diff), SP1(Sx.ci[0]), SP1(Sx.ci[1]))); }
       t('- ' + tx('web.fc.note_direction', P(ck(7) ? ck(7).above_median : null))); t('');
     }
-    const E = kn.entry && kn.entry.rows && kn.entry.rows.length ? kn.entry : null;
-    if (E) {
+    // giá chờ mua (kn.entry, giá thấp nhất) và giá chờ bán (kn.exit, giá cao nhất): cùng cách trình bày, khác chiều
+    const timing = (E, side) => {
+      if (!E || !E.rows || !E.rows.length) return;
+      const pre = side === 'sell' ? 'web.ex.' : 'web.en.', vr = side === 'sell' ? 'web.vr.ex_' : 'web.vr.en_', sg = side === 'sell' ? 1 : -1;
       const ec = (k) => (E.check && E.check[k] && E.check[k].n ? E.check[k] : null), xs = Object.keys(E.rows[0].probs).sort();
-      t(tx('web.vr.en_title')); t(tx('web.vr.en_band_title', usdT(E.price), D(E.anchor)));
-      head([tx('web.en.col_ck'), tx('web.fc.col_date'), tx('web.fc.col_50'), tx('web.fc.col_80'), tx('web.en.col_cover')]);
+      t(tx(vr + 'title')); t(tx(vr + 'band_title', usdT(E.price), D(E.anchor)));
+      head([tx('web.en.col_ck'), tx('web.fc.col_date'), tx('web.fc.col_50'), tx('web.fc.col_80'), tx(pre + 'col_cover')]);
       E.rows.forEach((r) => { const c = ec(r.k); row([tx('web.fc.k_days', r.k), D(r.target), tx('web.fc.range', usdT(r.q25), usdT(r.q75)), tx('web.fc.range', usdT(r.q10), usdT(r.q90)),
         c ? `${P(c.cover80)} (${tx('web.en.cover_sub', P(c.cover80_ci[0]), P(c.cover80_ci[1]), c.n_eff)})` : '—']); });
-      t(''); t(tx('web.vr.en_touch_title'));
-      head([tx('web.en.col_ck'), ...xs.map((x) => SP(-Number(x)))]);
-      E.rows.forEach((r) => row([tx('web.fc.k_days', r.k), ...xs.map((x) => (r.probs[x] <= 0.01 ? tx('web.en.lt1') : r.probs[x] >= 0.99 ? tx('web.en.gt99') : P(r.probs[x])))]));
+      t(''); t(tx(vr + 'touch_title'));
+      head([tx('web.en.col_ck'), ...xs.map((x) => SP(sg * Number(x)))]);
+      E.rows.forEach((r) => row([tx('web.fc.k_days', r.k), ...xs.map((x) => (r.probs[x] < 0.0101 ? tx('web.en.lt1') : r.probs[x] > 0.9899 ? tx('web.en.gt99') : P(r.probs[x])))]));
       const Wt = E.wait;
       if (Wt && Wt.rows.length) {
         const ks = [...new Set(Wt.rows.map((r) => r.k))], wx = [...new Set(Wt.rows.map((r) => r.x))];
-        t(''); t(tx('web.vr.en_wait_title', D(Wt.rows[0].from), D(Wt.rows[0].to)));
-        head([tx('web.en.col_x_b'), ...ks.map((k) => tx('web.en.col_k_b', k))]);
         const SP2 = (v) => (v > 0 ? '+' : '') + (v * 100).toFixed(2).replace('.', ',') + '%';
-        wx.forEach((x) => row([SP(-x), ...ks.map((k) => { const r = Wt.rows.find((y) => y.x === x && y.k === k); return r ? `${SP2(r.mean)} (${tx('web.en.v_' + r.verdict)}, ${tx('web.en.cell_sub', P(r.fill))})` : '—'; })]));
-        t(''); t('- ' + tx('web.en.b_note_stats', Wt.n_configs, D(Wt.rows[0].from), D(Wt.rows[0].split), D(Wt.rows[0].to)));
+        t(''); t(tx(vr + 'wait_title', D(Wt.rows[0].from), D(Wt.rows[0].to)));
+        head([tx(pre + 'col_x_b'), ...ks.map((k) => tx('web.en.col_k_b', k))]);
+        wx.forEach((x) => row([SP(sg * x), ...ks.map((k) => { const r = Wt.rows.find((y) => y.x === x && y.k === k); return r ? `${SP2(r.mean)} (${tx(pre + 'v_' + r.verdict)}, ${tx('web.en.cell_sub', P(r.fill))})` : '—'; })]));
+        t(''); t('- ' + tx(pre + 'b_note_stats', Wt.n_configs, D(Wt.rows[0].from), D(Wt.rows[0].split), D(Wt.rows[0].to)));
       }
-      const C = E.cheapest;
+      const C = side === 'sell' ? E.highest : E.cheapest;
       if (C) {
-        const best = C.days.reduce((a, b) => (b.share > a.share ? b : a)), mids = C.days.slice(1, -1).map((x) => x.share);
-        t('- ' + tx('web.en.c_sum_top', D(best.date), P(best.share), (best.share * C.days.length).toFixed(1).replace('.', ','), P(Math.min(...mids)), P(Math.max(...mids))));
-        t('- ' + (C.standout.length ? tx('web.en.c_standout', C.standout.map((j) => tx('web.en.c_pos', j)).join(', ')) : tx('web.en.c_standout_none')));
+        const best = C.days.reduce((x, y) => (y.share > x.share ? y : x)), mids = C.days.slice(1, -1).map((x) => x.share);
+        t('- ' + tx(pre + 'c_sum_top', D(best.date), P(best.share), (best.share * C.days.length).toFixed(1).replace('.', ','), P(Math.min(...mids)), P(Math.max(...mids))));
+        t('- ' + (C.standout.length ? tx(pre + 'c_standout', C.standout.map((j) => tx('web.en.c_pos', j)).join(', ')) : tx(pre + 'c_standout_none')));
       }
-      t('- ' + tx('web.en.note_direction')); t('');
-    }
+      t('- ' + tx(pre + 'note_direction')); t('');
+    };
+    timing(kn.entry, 'buy');
+    timing(kn.exit, 'sell');
     if (PL) {
       const pn = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n)), op = (n) => PL.options.find((o) => o.weeks === n), rec = op(PL.recommended), best = op(PL.best_roi);
       t(tx('web.vr.plan_title'));

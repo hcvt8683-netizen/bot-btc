@@ -13,6 +13,7 @@ acceptance rehearsal       part I on a pretend holdout inside already-seen data 
 acceptance --final         part I: the single logged run on the holdout from 01/01/2024 (refuses a second run)
 forecast                   append today's daily price bands to data/forecast/forecast_log.csv (once per anchor day)
 entry                      buying price / day tools: append today's band of the lowest price to data/entry/entry_log.csv, write data/results/entry.json
+exit                       selling price / day tools: append today's band of the highest price to data/exit/exit_log.csv, write data/results/exit.json
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
@@ -93,6 +94,13 @@ def main(argv: list[str] | None = None) -> int:
         et.run(write=True)
         print(f"Giá chờ mua: đã ghi {len(rows)} dòng (ngày gốc {rows[0]['issued']}, phiên bản {rows[0]['version']})." if rows
               else "Giá chờ mua: ngày gốc mới nhất đã được ghi, không ghi thêm.")
+        return 0
+    if args.command == "exit":
+        from bot.models import exit_timing as xt
+        rows = xt.log_today(xt.candles(), xt.spec(), xt.utc_now())
+        xt.run(write=True)
+        print(f"Giá chờ bán: đã ghi {len(rows)} dòng (ngày gốc {rows[0]['issued']}, phiên bản {rows[0]['version']})." if rows
+              else "Giá chờ bán: ngày gốc mới nhất đã được ghi, không ghi thêm.")
         return 0
     if args.command == "final-report":
         from bot.report import final_report
