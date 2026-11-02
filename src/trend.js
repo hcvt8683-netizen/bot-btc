@@ -17,8 +17,8 @@
   const shortDate = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
   const LOCAL = location.protocol.startsWith('http') && ['localhost', '127.0.0.1'].includes(location.hostname);
   const GROUPS = { day: [1, 2, 3, 4, 5, 6, 7], week: [7, 14, 21, 28], month: [30, 60, 90, 120, 150, 180] };
-  const MODELS = ['goc', 'dong_luong', 'ma200', 'dinh_gia', 'dao_chieu', 'ket_hop'];
-  const TESTED = MODELS.slice(1);
+  const MODELS = ['goc', 'dong_luong', 'ma200', 'dinh_gia', 'dao_chieu', 'ket_hop', 'hoc_may'];
+  const TESTED = ['dong_luong', 'ma200', 'dinh_gia', 'dao_chieu', 'ket_hop'];   // 5 mô hình chấm chung một họ Holm (học máy chấm riêng)
   const view = { group: 'day', price: null, at: null, timer: null };
   const row = (k) => (TR ? TR.now.find((r) => r.k === k) : null);
   const hLabel = (k, group) => (group === 'week' || (!group && [14, 21, 28].includes(k)) ? tx('web.tr.h_week', k / 7)
@@ -56,6 +56,19 @@
       : tx('web.tr.honest_none', nf(0).format(TR.tests))];
     if (magEdge.length) lines.push(tx('web.tr.honest_mag', magEdge.map((r) => `${hLabel(r.k)} (${modelName(r.mag_model)})`).join(', ')));
     $('tr-honest').replaceChildren(...lines.map((t) => el('p', null, t)));
+    // điều nói chắc được: khoảng 9/10 lần, kèm độ phủ thật khi chấm đi tới
+    const P = base(), sure = [el('span', 't', tx('web.tr.sure_title'))];
+    for (const k of [1, 7, 30]) {
+      const r = row(k), e = TR.eval[String(k)];
+      if (!r || !ok(r.q5) || !e || !e.models) continue;
+      const p = el('p');
+      p.append(document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', pc(e.models[e.mag_model].cover90, 0)).split('\u0000')[0]),
+        el('b', null, usd(P * (1 + r.q5))), document.createTextNode(' – '), el('b', null, usd(P * (1 + r.q95))),
+        document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', pc(e.models[e.mag_model].cover90, 0)).split('\u0001')[1]));
+      sure.push(p);
+    }
+    sure.push(el('p', 'no', tx('web.tr.sure_basis', usd(P), vnDate(TR.anchor))), el('p', 'no', tx('web.tr.sure_no')));
+    $('tr-sure').replaceChildren(...sure);
     document.querySelectorAll('#tr-groups button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.g === view.group)));
   }
 
@@ -66,8 +79,9 @@
     const box = $('tr-fan'), W = box.clientWidth;
     if (!TR || !W) return;
     const ks = GROUPS[view.group], P = base(), H = 260, m = { l: 64, r: 16, t: 16, b: 30 };
-    const pts = [{ k: 0, lo: P, mid: P, hi: P }, ...ks.map((k) => { const r = row(k); return { k, lo: P * (1 + r.q10), mid: P * (1 + r.q50), hi: P * (1 + r.q90), r }; })];
-    let lo = Math.min(...pts.map((p) => p.lo)), hi = Math.max(...pts.map((p) => p.hi));
+    const pts = [{ k: 0, lo: P, mid: P, hi: P, lo9: P, hi9: P }, ...ks.map((k) => { const r = row(k);
+      return { k, lo: P * (1 + r.q10), mid: P * (1 + r.q50), hi: P * (1 + r.q90), lo9: P * (1 + (ok(r.q5) ? r.q5 : r.q10)), hi9: P * (1 + (ok(r.q95) ? r.q95 : r.q90)), r }; })];
+    let lo = Math.min(...pts.map((p) => p.lo9)), hi = Math.max(...pts.map((p) => p.hi9));
     const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
     const X = (i) => m.l + i / (pts.length - 1) * (W - m.l - m.r), Y = (v) => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
     const svg = sv('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': tx('web.tr.fan_title') });
@@ -80,7 +94,8 @@
       const t = sv('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', class: 'ax' }); t.textContent = nf(0).format(v); svg.append(t);
     }
     const area = pts.map((p, i) => `${X(i).toFixed(1)},${Y(p.hi).toFixed(1)}`).concat(pts.slice().reverse().map((p, j) => `${X(pts.length - 1 - j).toFixed(1)},${Y(p.lo).toFixed(1)}`));
-    svg.append(sv('polygon', { points: area.join(' '), class: 'band' }));
+    const area9 = pts.map((p, i) => `${X(i).toFixed(1)},${Y(p.hi9).toFixed(1)}`).concat(pts.slice().reverse().map((p, j) => `${X(pts.length - 1 - j).toFixed(1)},${Y(p.lo9).toFixed(1)}`));
+    svg.append(sv('polygon', { points: area9.join(' '), class: 'band90' }), sv('polygon', { points: area.join(' '), class: 'band' }));
     svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: Y(P), y2: Y(P), class: 'now' }));
     svg.append(sv('polyline', { points: pts.map((p, i) => `${X(i).toFixed(1)},${Y(p.mid).toFixed(1)}`).join(' '), class: 'midline' }));
     const compact = (W - m.l - m.r) / (pts.length - 1) < 64;   // khung hẹp: nhãn chỉ ghi số của nhóm đang chọn
@@ -96,7 +111,7 @@
       const p = pts[i];
       if (!i) { tip.style.display = 'none'; return; }
       tip.replaceChildren(el('b', null, `${hLabel(p.k, view.group)} · ${tx('web.tr.by_date', shortDate(p.r.target))}`),
-        el('div', null, tx('web.tr.mid', usd(p.mid), spc(p.r.q50))), el('div', 'muted', tx('web.tr.band', usd(p.lo), usd(p.hi))));
+        el('div', null, tx('web.tr.mid', usd(p.mid), spc(p.r.q50))), el('div', null, tx('web.tr.band90', usd(p.lo9), usd(p.hi9))), el('div', 'muted', tx('web.tr.band80', usd(p.lo), usd(p.hi))));
       tip.style.display = 'block';
       const left = X(i) + 12, w = tip.offsetWidth;
       tip.style.left = (left + w > W ? X(i) - w - 12 : left) + 'px'; tip.style.top = (Math.max(4, Y(p.hi) - 10)) + 'px';
@@ -108,7 +123,8 @@
   // ----- thẻ từng kỳ hạn -----
   function renderCards() {
     const ks = GROUPS[view.group], P = base();
-    const M = Math.max(...ks.map((k) => Math.max(Math.abs(row(k).q10), Math.abs(row(k).q90)))) * 1.05;
+    const lo9 = (r) => (ok(r.q5) ? r.q5 : r.q10), hi9 = (r) => (ok(r.q95) ? r.q95 : r.q90);
+    const M = Math.max(...ks.map((k) => Math.max(Math.abs(lo9(row(k))), Math.abs(hi9(row(k)))))) * 1.05;
     const pos = (x) => 50 + 50 * x / M;
     $('tr-cards').replaceChildren(...ks.map((k) => {
       const r = row(k), t = tone(r.label), c = el('article', 'tr-card ' + t);
@@ -121,10 +137,11 @@
       const meter = el('div', 'meter'), fill = el('i'); fill.style.width = (100 * (r.p || 0)) + '%'; meter.append(fill, el('s'));
       const mid = el('div', 'med', tx('web.tr.mid', usd(P * (1 + r.q50)), spc(r.q50)));
       const rb = el('div', 'rbar'), seg = el('i'), zero = el('s'), mk = el('b');
-      seg.style.left = pos(r.q10) + '%'; seg.style.width = (pos(r.q90) - pos(r.q10)) + '%';
+      seg.style.left = pos(lo9(r)) + '%'; seg.style.width = (pos(hi9(r)) - pos(lo9(r))) + '%';
       zero.style.left = '50%'; mk.style.left = pos(r.q50) + '%';
       rb.append(seg, zero, mk);
-      const band = el('div', 'band muted', tx('web.tr.band', usd(P * (1 + r.q10)), usd(P * (1 + r.q90))));
+      const band = el('div', 'band');
+      band.append(el('div', 'b90', tx('web.tr.band90', usd(P * (1 + lo9(r))), usd(P * (1 + hi9(r))))), el('div', 'muted', tx('web.tr.band80', usd(P * (1 + r.q10)), usd(P * (1 + r.q90)))));
       const src = el('div', 'src', r.dir_model === 'goc' ? tx('web.tr.src_goc') : tx('web.tr.src_model', modelName(r.dir_model)));
       const dots = el('div', 'dots');
       dots.title = tx('web.tr.agree', r.agree_up, r.agree_down);
@@ -212,7 +229,8 @@
     const first = TR.eval['1'];
     $('tr-bt-lead').textContent = tx('web.tr.bt_lead', first && first.from ? vnDate(first.from) : '—');
     const head = el('tr');
-    for (const k of ['th_h', 'th_n', 'th_win', 'th_goc_hit', 'th_best', 'th_gain', 'th_holm', 'th_cover', 'th_verdict']) head.append(el('th', null, tx('web.tr.' + k)));
+    for (const k of ['th_h', 'th_n', 'th_win', 'th_goc_hit', 'th_best', 'th_ml', 'th_gain', 'th_holm', 'th_cover', 'th_cover90', 'th_verdict']) head.append(el('th', null, tx('web.tr.' + k)));
+    const ML = TR.ml || {};
     const tb = el('tbody');
     for (const r of TR.now) {
       const e = TR.eval[String(r.k)];
@@ -222,14 +240,55 @@
       if (!edge && x.dir_gain > 0 && !x.dir_halves) v.append(el('span', 'sub', tx('web.tr.halves_bad')));
       tr.append(el('td', null, hLabel(r.k)), el('td', 'r num', nf(0).format(e.n)), el('td', 'r num', nf(0).format(e.windows)), el('td', 'r num', pc(e.models.goc.hit, 1)),
         el('td', 'r num', tx('web.tr.best_cell', modelName(b), pc(x.hit, 1))),
+        (() => { const m = ML[String(r.k)]; return el('td', 'r num ' + (m && m.hit != null ? (m.dir_edge ? 'good' : m.hit < m.hit_goc ? 'bad' : 'muted') : 'muted'), m && m.hit != null ? pc(m.hit, 1) : '—'); })(),
         el('td', 'r num ' + (edge ? 'good' : x.dir_gain < 0 ? 'bad' : 'muted'), tx('web.tr.gain_cell', nf(4).format(x.dir_gain), nf(4).format(x.dir_ci[0]), nf(4).format(x.dir_ci[1]))),
-        el('td', 'r num', nf(2).format(x.dir_holm)), el('td', 'r num', pc(e.models[e.mag_model].cover80, 0)), v);
+        el('td', 'r num', nf(2).format(x.dir_holm)), el('td', 'r num', pc(e.models[e.mag_model].cover80, 0)), el('td', 'r num', pc(e.models[e.mag_model].cover90, 0)), v);
       tb.append(tr);
     }
     const th = el('thead'); th.append(head);
     $('t-tr-bt').replaceChildren(th, tb);
+    const notes = [], mls = Object.values(ML).filter((m) => m && m.hit != null);
+    if (mls.length) notes.push(tx('web.tr.ml_note', mls.filter((m) => m.hit < m.hit_goc).length, mls.length));
+    const B = Object.entries(TR.bitstamp || {});
+    if (B.length) {
+      const same = B.filter(([k, b]) => b.dir_model === (TR.eval[k] || {}).dir_model).length, c9 = B.map(([, b]) => b.cover90).filter(ok);
+      notes.push(tx('web.tr.robust', same, B.length, pc(Math.min(...c9), 0), pc(Math.max(...c9), 0)));
+    }
+    $('tr-bt-notes').replaceChildren(...notes.map((t) => el('li', null, t)));
     drawHits();
   }
+  // ----- mô hình nến: hôm nay có mẫu nào, mỗi mẫu đúng hướng bao nhiêu so với một ngày bất kỳ -----
+  function renderCandles() {
+    const CD = TR.candles;
+    if (!CD) { $('tr-cd-sec').hidden = true; return; }
+    $('tr-cd-lead').textContent = tx('web.tr.cd_lead', vnDate(String(CD.from)));
+    const name = (n) => tx('web.tr.c_' + n);
+    $('tr-cd-today').replaceChildren(CD.today.length
+      ? el('span', 'pill mid', tx('web.tr.cd_today', vnDate(CD.anchor), CD.today.map(name).join(', ')))
+      : el('span', 'pill muted', tx('web.tr.cd_today_none', vnDate(CD.anchor))));
+    const ks = ['1', '3', '7'], head = el('tr');
+    head.append(el('th', null, tx('web.tr.th_cd')), el('th', null, tx('web.tr.th_cd_n')));
+    for (const k of ks) head.append(el('th', null, tx('web.tr.th_cd_k', k)));
+    head.append(el('th', null, tx('web.tr.th_cd_v')));
+    const tb = el('tbody');
+    for (const [n, x] of Object.entries(CD.patterns)) {
+      const tr = el('tr', CD.today.includes(n) ? 'here' : null), c0 = el('td');
+      c0.append(el('b', null, name(n)), el('span', 'sub', tx(x.dir > 0 ? 'web.tr.cd_up' : 'web.tr.cd_down')));
+      tr.append(c0, el('td', 'r num', nf(0).format(x.count)));
+      const cells = ks.map((k) => x.per_k[k]);
+      for (const v of cells) {
+        const better = v && v.rate != null && v.rate > v.base;
+        tr.append(el('td', 'r num ' + (v && v.edge ? (x.dir > 0 ? 'hit-up' : 'hit-down') : better ? '' : 'muted'), v && v.n ? tx('web.tr.cd_cell', pc(v.rate, 0), pc(v.base, 0)) : '—'));
+      }
+      const edge = cells.some((v) => v && v.edge), few = cells.every((v) => !v || v.few);
+      tr.append(el('td', edge ? 'good' : 'muted', tx(edge ? 'web.tr.cd_edge' : few ? 'web.tr.cd_few' : 'web.tr.cd_none')));
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(head);
+    $('t-tr-cd').replaceChildren(th, tb);
+    $('tr-cd-notes').replaceChildren(el('li', null, tx('web.tr.cd_note', nf(0).format(CD.tests))));
+  }
+
   function renderMethod() {
     const items = [tx('web.tr.m1'), tx('web.tr.m2'), tx('web.tr.m3', nf(0).format(TR.tests)), tx('web.tr.m4'), tx('web.tr.m5'), tx('web.tr.updated', vnDate(TR.anchor), TR.version)];
     $('tr-method-list').replaceChildren(...items.map((t) => el('li', null, t)));
@@ -244,7 +303,7 @@
   }
   function renderAll() {
     if (!TR) { render(); return; }
-    render(); renderModels(); renderCross(); renderBacktest(); renderMethod();
+    render(); renderModels(); renderCross(); renderCandles(); renderBacktest(); renderMethod();
   }
 
   // ----- chuyển chế độ: chỉ thêm / bỏ lớp body.tr-view (và bỏ ls-view), không gọi gì của các phần khác -----

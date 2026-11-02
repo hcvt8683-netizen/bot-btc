@@ -461,3 +461,19 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 **Sửa lỗi rà soát (docs/DE_XUAT_NANG_CAP.md):** L1 câu thừa ở Giải ngân khi chưa nhập số tiền; L2 Bên bán có thẻ Chốt lời dần thay dòng nhắc; L3 `tests/test_report.py` ghi đè `data/results/calib.json` và có thể chèn dòng giả vào nhật ký `data/calib/` (nay ghi vào thư mục tạm); L5 kiểm chứng trực tiếp dải giá ghi số ngày gốc độc lập, Wilson và "còn quá ít để kết luận"; L6 `tests/test_browser.py` kẹt vì giả lập nến đòi `startTime` và chờ thẻ đang ẩn hiện lên (nay qua trọn ở 1280 sáng, 390 sáng, 1280 tối).
 
 **Hồi cứu cắt ngang** (`tools/hoi_cuu.py` → `docs/HOI_CUU.md`, 24 thời điểm 11/2024 → 10/2026): dải giá 7 và 30 ngày trúng 79% (mục tiêu 80%); giá chờ mua −3%/7 ngày bot nói 53%, chạm 50%; **giá chờ bán +3%/7 ngày bot nói 55%, chạm 79% (Wilson 60–91%)**: trong giai đoạn này bot đánh giá thấp khả năng chạm giá bán (kiểm chứng dài hạn trước đó cũng thấy bot hơi thận trọng ở bên bán); xác suất có lãi 4/13 tuần nằm trong khoảng tin cậy; Long/Short chưa tháng nào đạt 6/6 và nếu vẫn long theo công thức mọi tháng thì 59 lệnh, −8,1R; xu hướng 30 ngày chỉ nghiêng một phía 3 lần. Không đổi phương pháp nào theo kết quả này.
+
+## Thẻ Xu hướng: mô hình nến, học máy, khoảng 9/10 lần, kiểm chứng trên giá Bitstamp (03/11/2026)
+
+**Yêu cầu:** kiểm chứng mô hình với dữ liệu khác, so với mô hình nến, thêm bộ tiêu chí nếu cần, mô hình độc lập mạnh, "xác suất dự báo đúng trên 90%", giao diện dễ dùng.
+
+**Nói rõ với người dùng trước khi làm:** đoán hướng giá BTC đúng trên 90% là không thực tế (mọi kiểm định trước đều quanh 50–65%, phần lớn do BTC hay tăng). Con số 90% làm được một cách trung thực là **khoảng giá 9/10 lần** đã kiểm chứng.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `candles` và `trend_plus`, commit `3fa3cd0`, trước khi tính; ghi rõ là thêm sau khi đã thấy kết quả mục `trend`). Mã: `bot/models/candles.py` (mới), `bot/models/trend.py` (thêm phân vị 5/95%, học máy, kiểm chứng Bitstamp; 5 mô hình cũ không đổi).
+
+**Kết quả:**
+- **Khoảng 9/10 lần** (phân vị 5–95% của z, mô hình biên độ đang dùng): độ phủ đi tới từ 2016 là **88,7–92,5% ở cả 16 kỳ hạn** (1 ngày 90,2%, Wilson 89,3–91,1%), đúng mục tiêu 90% và trong khoảng 87–93% đã đăng ký. Trang hiện ô "Điều bot nói chắc được" (1 ngày, 7 ngày, 1 tháng) và dòng 9/10 lần trên mỗi thẻ, vùng nhạt trên biểu đồ quạt.
+- **12 mẫu nến kinh điển** (nến ngày Bitstamp từ 2012, nhị thức, Holm 36): **không mẫu nào thắng một ngày bất kỳ**. Gần nhất "ba chàng lính trắng" sau 7 ngày đúng 65,8% so với 54,9% (158 lần độc lập, Holm 0,13). Xuyên tăng và mây đen gần như không xuất hiện (BTC giao dịch 24/7, hiếm khoảng trống giá).
+- **Học máy** (logistic L2, 16 đặc trưng gồm 11 cờ mẫu nến, học lại mỗi 30 ngày, Holm 16): **kém tỷ lệ gốc ở 16/16 kỳ hạn** (Holm 1,00). Thêm đặc trưng làm mô hình học thuộc quá khứ.
+- **Kiểm chứng trên giá Bitstamp** (thay cho Coin Metrics): cùng kết luận ở 16/16 kỳ hạn; khoảng 9/10 lần trúng 89,0–92,5%.
+- Kiểm tra rò rỉ `tests/test_candles.py`: cài thử 2 lỗi nhìn trước (cờ mẫu nến biết sớm một ngày; học máy học trên kết quả chưa biết), cả hai bị bắt. Lần đầu bài kiểm tra học máy chỉ thử ở một ngày nên không bắt được lỗi cài thử; đã sửa để thử ngay sau các ngày học lại.
+- Không đổi kết luận về hướng: trang vẫn dùng tỷ lệ gốc cho hướng.

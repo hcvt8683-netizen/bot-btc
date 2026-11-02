@@ -389,6 +389,15 @@
   #t-tr-models td.hi-up { background: color-mix(in srgb, var(--jade) 16%, transparent); color: var(--jade); }
   #t-tr-models td.hi-down { background: color-mix(in srgb, var(--cinnabar) 15%, transparent); color: var(--cinnabar); }
   #t-tr-models td.use { box-shadow: inset 0 0 0 2px #6B4FD6; border-radius: 6px; }
+  .tr-sure { display: grid; gap: 6px; border: 1.5px solid color-mix(in srgb, var(--jade) 45%, var(--line)); background: color-mix(in srgb, var(--jade) 8%, var(--panel)); border-radius: 14px; padding: 12px 16px; margin: 6px 0 10px; }
+  .tr-sure .t { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--jade); }
+  .tr-sure p { margin: 0; font-size: 15px; } .tr-sure p b { font-variant-numeric: tabular-nums; }
+  .tr-sure p.no { font-size: 13.5px; color: var(--muted); }
+  .tr-card .b90 { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #tr-fan .band90 { fill: color-mix(in srgb, #6B4FD6 8%, transparent); stroke: color-mix(in srgb, #6B4FD6 22%, transparent); stroke-width: 1; stroke-dasharray: 4 4; }
+  .legend .fan-band90 { background: color-mix(in srgb, #6B4FD6 10%, transparent); border: 1px dashed color-mix(in srgb, #6B4FD6 40%, transparent); }
+  #t-tr-cd td.hit-up { color: var(--jade); font-weight: 600; } #t-tr-cd td.hit-down { color: var(--cinnabar); font-weight: 600; }
+  #t-tr-cd td:first-child { min-width: 170px; } #t-tr-cd td .sub { white-space: normal; }
   #t-tr-bt td.r, #t-tr-cross td.num, #t-tr-bt td:first-child, #t-tr-models td:first-child { white-space: nowrap; }
   @media (min-width: 701px) { #t-tr-bt td:last-child { min-width: 150px; } }
   #ls-app .box .field select#lt-hold { width: 100%; }
@@ -852,6 +861,7 @@
           </div>
         </div>
         <div class="chips" id="tr-states" aria-label="{{web.tr.state_title}}"></div>
+        <div class="tr-sure" id="tr-sure"></div>
         <div class="tr-honest" id="tr-honest"></div>
         <div class="seg tr-groups" id="tr-groups" role="group" aria-label="{{web.tr.groups_label}}">
           <button type="button" data-g="day" aria-pressed="true">{{web.tr.g_day}}</button>
@@ -861,7 +871,7 @@
         <div class="tr-cards" id="tr-cards"></div>
         <p class="sm" style="margin-top:18px">{{web.tr.fan_title}}</p>
         <div class="chart" id="tr-fan"></div>
-        <div class="legend"><span><i class="fan-band"></i>{{web.tr.fan_band}}</span><span><i class="fan-mid"></i>{{web.tr.fan_mid}}</span><span><i class="fan-now"></i>{{web.tr.fan_now}}</span></div>
+        <div class="legend"><span><i class="fan-band90"></i>{{web.tr.fan_band90}}</span><span><i class="fan-band"></i>{{web.tr.fan_band}}</span><span><i class="fan-mid"></i>{{web.tr.fan_mid}}</span><span><i class="fan-now"></i>{{web.tr.fan_now}}</span></div>
       </section>
       <section class="panel" id="tr-models-sec">
         <h2><span class="ic" aria-hidden="true">▦</span>{{web.tr.models_title}}</h2>
@@ -871,6 +881,13 @@
         <p class="lead">{{web.tr.cross_lead}}</p>
         <div class="scroll"><table id="t-tr-cross"></table></div>
       </section>
+      <section class="panel" id="tr-cd-sec">
+        <h2><span class="ic" aria-hidden="true">▮</span>{{web.tr.cd_title}}</h2>
+        <p class="lead" id="tr-cd-lead"></p>
+        <div class="chips" id="tr-cd-today"></div>
+        <div class="scroll"><table id="t-tr-cd"></table></div>
+        <ul class="crit" id="tr-cd-notes"></ul>
+      </section>
       <section class="panel" id="tr-bt-sec">
         <h2><span class="ic" aria-hidden="true">↺</span>{{web.tr.bt_title}}</h2>
         <p class="lead" id="tr-bt-lead"></p>
@@ -878,6 +895,7 @@
         <div class="chart" id="tr-hits"></div>
         <div class="legend"><span><i class="b-goc"></i>{{web.tr.lg_goc}}</span><span><i class="b-best"></i>{{web.tr.lg_best}}</span></div>
         <div class="scroll" style="margin-top:12px"><table id="t-tr-bt"></table></div>
+        <ul class="crit" id="tr-bt-notes"></ul>
         <p class="sm" style="margin-top:18px">{{web.tr.method_title}}</p>
         <ul class="crit" id="tr-method-list"></ul>
         <p class="lead" id="tr-log" style="margin-top:12px"></p>

@@ -70,6 +70,11 @@ async def _run(page_path: pathlib.Path, vw: int) -> dict:
             tr: getComputedStyle(document.getElementById('tr-app')).display,
             panels: [...document.querySelectorAll('#app > .tabp')].filter((p) => getComputedStyle(p).display !== 'none').length })""")
         res["head"] = await pg.inner_text("#tr-sec")
+        res["sure"] = await pg.inner_text("#tr-sure")
+        res["cd"] = await pg.evaluate("""() => { const t = document.getElementById('t-tr-cd');
+            return { rows: t.tBodies[0].rows.length, stack: t.classList.contains('stack'), today: document.getElementById('tr-cd-today').innerText }; }""")
+        res["bt_notes"] = await pg.inner_text("#tr-bt-notes")
+        res["model_cols"] = await pg.evaluate("document.getElementById('t-tr-models').tHead.rows[0].cells.length")
         res["price"] = await pg.inner_text("#tr-price")
         res["cards"] = {}
         for g in ("week", "month", "day"):
@@ -121,19 +126,26 @@ def test_trend_view_and_sell_plan(page_path: pathlib.Path, vw: int) -> None:
     assert v["cls"] == "tr-view" and v["pressed"] == ["false", "false", "false", "true"] and v["tabs"] == "none" and v["ls"] == "none" and v["panels"] == 0 and v["tr"] != "none"
     assert r["price"] == usd(TR["close"])
     assert "Chưa mô hình nào đoán hướng giá tốt hơn tỷ lệ gốc" in r["head"] and "80 phép so sánh" in r["head"]
+    r7 = next(x for x in TR["now"] if x["k"] == 7)
+    c90 = TR["eval"]["7"]["models"][TR["eval"]["7"]["mag_model"]]["cover90"]
+    assert "Giá sau 7 ngày nằm trong" in r["sure"] and usd(TR["close"] * (1 + r7["q5"])) in r["sure"] and usd(TR["close"] * (1 + r7["q95"])) in r["sure"]
+    assert f"đúng {round(c90 * 100)}% số lần" in r["sure"] and "không cách nào đoán hướng tốt hơn tỷ lệ gốc" in r["sure"]
+    assert r["cd"]["rows"] == 12 and "Nến ngày" in r["cd"]["today"] and r["model_cols"] == 8          # horizon + 6 models + learned model
+    assert "16/16 kỳ hạn" in r["bt_notes"] and "Bitstamp" in r["bt_notes"]
+    assert "9/10 lần" in r["cards"]["day"][0] if "cards" in r else True
     c = r["cards"]
-    assert len(c["day"]) == 7 and len(c["week"]) == 4 and len(c["month"]) == 6
+    assert len(c["day"]) == 7 and len(c["week"]) == 4 and len(c["month"]) == 6 and "9/10 lần" in c["day"][0] and "8/10 lần" in c["day"][0]
     r30 = next(x for x in TR["now"] if x["k"] == 30)
     assert "1 tháng" in c["month"][0] and f"{round(r30['p'] * 100)}%" in c["month"][0] and "theo tỷ lệ gốc 4 năm" in c["month"][0]
     assert {"day": "1 ngày", "week": "1 tuần"}["day"] in c["day"][0] and "1 tuần" in c["week"][0]
-    assert r["fan"] is not None and r["fan"][0] > 200 and r["fan"][1] == 1 and r["fan"][2] == 8      # now + 7 days
+    assert r["fan"] is not None and r["fan"][0] > 200 and r["fan"][1] == 2 and r["fan"][2] == 8      # 9/10 and 8/10 bands; now + 7 days
     t = r["tables"]
     assert t["t-tr-models"]["rows"] == 16 and t["t-tr-bt"]["rows"] == 16 and t["t-tr-cross"]["rows"] >= 6
     assert "Khớp" in t["t-tr-cross"]["text"] and "Chưa có lợi thế" in t["t-tr-bt"]["text"]
     assert r["hits"] == 32
     assert r["scroll_width"] <= vw and r["sell_scroll"] <= vw
     if vw < 700:
-        assert all(x["stack"] and x["overflow"] <= 1 for x in t.values())
+        assert all(x["stack"] and x["overflow"] <= 1 for x in t.values()) and r["cd"]["stack"]
     assert r["to_ls"] == "ls-view" and r["to_tr"] == "tr-view"
     assert r["after_sell"]["cls"] == "" and r["after_sell"]["stored"] is None
     # Chốt lời dần on the sell side, Giải ngân on the buy side

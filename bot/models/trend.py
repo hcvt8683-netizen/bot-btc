@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from bot.backtest import measure
+from bot.backtest.metrics import wilson
 from bot.config import CONFIG, DATA, ROOT, load_yaml
 from bot.models import price_forecast as pf
 
@@ -31,6 +32,8 @@ TESTED = COND + ("ket_hop",)
 ALL = ("goc",) + TESTED
 SHRINK, MIN_SAME, MIN_OBS, VOL_DAYS, MA_DAYS, RANK_MIN = 20, 100, 365, 30, 200, 365
 N_BOOT, SEED = 4000, 0
+BAND90 = (0.05, 0.95)          # trend_plus.band90: the "9 out of 10" band, same way as the 10–90% band
+ML_REFIT, ML_MIN = 30, 730     # trend_plus.ml: refit every 30 days on at least 730 known days
 LOG_COLS = ["issued", "k", "target", "price", *[f"p_{m}" for m in ALL], "dir_model", "mag_model", "q10", "q50", "q90", "version", "logged_at"]
 
 
@@ -39,7 +42,7 @@ def spec() -> dict:
 
 
 def version(cfg: dict) -> str:
-    code = b"".join((ROOT / "bot" / "models" / f).read_bytes().replace(b"\r\n", b"\n") for f in ("trend.py", "price_forecast.py"))
+    code = b"".join((ROOT / "bot" / "models" / f).read_bytes().replace(b"\r\n", b"\n") for f in ("trend.py", "price_forecast.py", "candles.py"))
     return hashlib.sha256(json.dumps(cfg, sort_keys=True, ensure_ascii=False, default=str).encode() + code).hexdigest()[:10]
 
 
@@ -87,7 +90,7 @@ def base_states(d: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     x7 = (np.log(p / p.shift(7)) / (sig * np.sqrt(7))).to_numpy(dtype=float)
     r7 = _past_rank(x7, int(cfg["window_days"]), RANK_MIN)
     dao_chieu = np.where(np.isfinite(r7), np.where(r7 < 0.2, 0.0, np.where(r7 >= 0.8, 2.0, 1.0)), np.nan)
-    return pd.DataFrame({"ma200": ma200, "dinh_gia": dinh_gia, "dao_chieu": dao_chieu}, index=d.index)
+    return pd.DataFrame({"ma200": ma200, "dinh_gia": dinh_gia, "dao_chieu": dao_chieu, "rank_mv": r_mv, "rank7": r7}, index=d.index)
 
 
 def momentum_state(p: pd.Series, k: int) -> pd.Series:
@@ -108,7 +111,7 @@ def predict(d: pd.DataFrame, bs: pd.DataFrame, k: int, cfg: dict) -> dict:
     W = int(cfg["window_days"]) - k
     zk, upk = z.shift(k), up.shift(k)              # at T: the window that started k days earlier, whose end is T
     known = zk.notna()
-    qs = [float(q) for q in cfg["quantiles"]]
+    qs = [float(q) for q in cfg["quantiles"]] + list(BAND90)
     goc_p = upk.rolling(W, min_periods=MIN_OBS).mean()
     goc_q = {q: zk.rolling(W, min_periods=MIN_OBS).quantile(q) for q in qs}
     out = {"goc": pd.DataFrame({"p": goc_p, **{q: goc_q[q] for q in qs}})}
@@ -131,6 +134,61 @@ def predict(d: pd.DataFrame, bs: pd.DataFrame, k: int, cfg: dict) -> dict:
     out["ket_hop"] = pd.DataFrame({"p": comb.mean(axis=1, skipna=False),
                                    **{q: pd.concat([out[m][q] for m in COND], axis=1).mean(axis=1, skipna=False) for q in qs}})
     return {"models": out, "sig": sig, "r": r, "up": up, "states": states}
+
+
+# ----- learned model (trend_plus.ml): logistic regression refitted every 30 days on days already known -----
+def ml_features(d: pd.DataFrame, bs: pd.DataFrame, flags: pd.DataFrame, k: int) -> pd.DataFrame:
+    """16 features at T, all known at T: momentum (as dong_luong), distance to the 200-day mean, MVRV rank, 7-day
+    stretch rank, 30-day volatility and the 11 candle-pattern flags (bot/models/candles.py)."""
+    p = d["p"]
+    sig = np.log(p).diff().rolling(VOL_DAYS, min_periods=VOL_DAYS).std()
+    L = k if k >= 7 else 7
+    X = pd.DataFrame({"mom": np.log(p / p.shift(L)) / (sig * np.sqrt(L)), "ma": p / p.rolling(MA_DAYS, min_periods=MA_DAYS).mean() - 1,
+                      "rank_mv": bs["rank_mv"], "rank7": bs["rank7"], "sig": sig}, index=d.index)
+    return X.join(flags.reindex(d.index))
+
+
+def ml_predict(X: pd.DataFrame, up: pd.Series, k: int) -> pd.Series:
+    """P(up) at every T from a model fitted at the last refit day j ≤ T on the days i with i + k ≤ j."""
+    import warnings
+    from sklearn.linear_model import LogisticRegression
+    Xv, y = X.to_numpy(dtype=float), up.to_numpy(dtype=float)
+    okX, n = np.isfinite(Xv).all(axis=1), len(y)
+    out = np.full(n, np.nan)
+    lab = np.flatnonzero(okX & np.isfinite(y))
+    if len(lab) <= ML_MIN:
+        return pd.Series(out, index=X.index)
+    j = lab[ML_MIN] + k
+    while j < n:
+        tr = lab[lab <= j - k]
+        if len(tr) >= ML_MIN and len(np.unique(y[tr])) == 2:
+            mu, sd = Xv[tr].mean(axis=0), Xv[tr].std(axis=0)
+            sd = np.where(sd > 0, sd, 1.0)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                lr = LogisticRegression(C=1.0, max_iter=1000).fit((Xv[tr] - mu) / sd, y[tr])
+            rows = np.arange(j, min(n, j + ML_REFIT))
+            rows = rows[okX[rows]]
+            if len(rows):
+                out[rows] = lr.predict_proba((Xv[rows] - mu) / sd)[:, 1]
+        j += ML_REFIT
+    return pd.Series(out, index=X.index)
+
+
+def evaluate_ml(pr: dict, pml: pd.Series, k: int, cfg: dict) -> dict:
+    """The learned model against the base rate, scored like evaluate (Brier, stationary bootstrap, both halves)."""
+    goc, r, up, idx = pr["models"]["goc"]["p"], pr["r"], pr["up"], pr["r"].index
+    ok = (idx >= pd.Timestamp(str(cfg["eval_from"]))) & r.notna().to_numpy() & goc.notna().to_numpy() & pml.notna().to_numpy()
+    n = int(ok.sum())
+    if n < 2 * k + 10:
+        return {"n": n}
+    y, pg, pm = up.to_numpy()[ok], goc.to_numpy()[ok], pml.to_numpy()[ok]
+    bg, bm = (pg - y) ** 2, (pm - y) ** 2
+    gain, half = bg - bm, n // 2
+    g = gain[measure.stationary_indices(n, k, N_BOOT, np.random.default_rng(SEED))].mean(axis=1)
+    return {"n": n, "from": idx[ok][0].strftime("%Y-%m-%d"), "brier": float(bm.mean()), "brier_goc": float(bg.mean()), "hit": float(((pm > 0.5) == (y == 1)).mean()),
+            "hit_goc": float(((pg > 0.5) == (y == 1)).mean()), "dir_gain": float(gain.mean()), "dir_ci": [float(np.quantile(g, 0.025)), float(np.quantile(g, 0.975))],
+            "dir_p": float(max((g <= 0).mean(), 1 / N_BOOT)), "dir_halves": bool(gain[:half].mean() > 0 and gain[half:].mean() > 0)}
 
 
 # ----- scoring -----
@@ -170,8 +228,11 @@ def evaluate(pr: dict, k: int, cfg: dict) -> dict:
         pm = mods[m]["p"].to_numpy()[ok]
         qr = np.column_stack([mods[m][q].to_numpy()[ok] for q in qs]) * sc[:, None]
         br[m], pb[m] = (pm - y) ** 2, pinball(qr, rr, qs)
+        q90 = np.column_stack([mods[m][q].to_numpy()[ok] for q in BAND90]) * sc[:, None]
+        c90 = float(((rr >= q90[:, 0]) & (rr <= q90[:, 1])).mean())
         res["models"][m] = {"brier": float(br[m].mean()), "pinball": float(pb[m].mean()), "hit": float(((pm > 0.5) == (y == 1)).mean()),
                             "cover80": float(((rr >= qr[:, 0]) & (rr <= qr[:, -1])).mean()),
+                            "cover90": c90, "cover90_ci": list(wilson(round(c90 * max(1, n // k)), max(1, n // k))),
                             "brier_halves": [float(br[m][:half].mean()), float(br[m][half:].mean())],
                             "pinball_halves": [float(pb[m][:half].mean()), float(pb[m][half:].mean())]}
     boot = measure.stationary_indices(n, k, N_BOOT, np.random.default_rng(SEED))
@@ -216,19 +277,58 @@ STATE_NAMES = {"dong_luong": {0: "giam", 1: "tang"}, "ma200": {0: "duoi", 1: "tr
 
 
 # ----- everything -----
+def bitstamp_frame(end: pd.Timestamp | None = None) -> pd.DataFrame:
+    """trend_plus.bitstamp: the same frame with the Bitstamp daily close in place of Coin Metrics (MVRV unchanged)."""
+    from bot.models import candles as cd
+    b = cd.load(end)
+    cm = load(end)
+    return pd.DataFrame({"p": b["close"], "mvrv": cm["mvrv"].reindex(b.index)}, index=b.index)
+
+
+def check_bitstamp(cfg: dict, end: pd.Timestamp | None = None) -> dict:
+    """Rerun the registered trend scoring on Bitstamp prices; per horizon the verdict and the band coverage."""
+    d = bitstamp_frame(end)
+    bs = base_states(d, cfg)
+    ev = {k: evaluate(predict(d, bs, k, cfg), k, cfg) for k in [int(x) for x in cfg["horizons_days"]]}
+    verdicts(ev)
+    out = {}
+    for k, e in ev.items():
+        if not e.get("models"):
+            continue
+        best = max(TESTED, key=lambda m: e["models"][m]["dir_gain"])
+        out[str(k)] = {"n": e["n"], "dir_model": e["dir_model"], "mag_model": e["mag_model"], "goc_hit": e["models"]["goc"]["hit"],
+                       "cover80": e["models"][e["mag_model"]]["cover80"], "cover90": e["models"][e["mag_model"]]["cover90"],
+                       "best": best, "best_gain": e["models"][best]["dir_gain"], "best_holm": e["models"][best]["dir_holm"]}
+    return out
+
+
 def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
     """Everything the page shows (window TR); `end` cuts the data (frozen fixtures for the page tests)."""
+    from bot.models import candles as cd
     cfg = spec()
     d = load(end)
     bs = base_states(d, cfg)
-    qs = [float(q) for q in cfg["quantiles"]]
+    qs = [float(q) for q in cfg["quantiles"]] + list(BAND90)
     T = d["p"].dropna().index[-1]
-    ev, now_rows, preds = {}, [], {}
+    cdf = cd.load(end)
+    flags = cd.ml_flags(cd.detect(cdf)).where(cdf["close"].notna())    # a missing Bitstamp candle → no flags that day
+    ev, now_rows, preds, ml, pml = {}, [], {}, {}, {}
     for k in [int(x) for x in cfg["horizons_days"]]:
         pr = predict(d, bs, k, cfg)
         preds[k] = pr
         ev[k] = evaluate(pr, k, cfg)
+        pml[k] = ml_predict(ml_features(d, bs, flags, k), pr["up"], k)
+        ml[k] = evaluate_ml(pr, pml[k], k, cfg)
     verdicts(ev)
+    adj = holm({k: x["dir_p"] for k, x in ml.items() if "dir_p" in x})       # Holm of its own over the 16 horizons
+    for k, x in ml.items():
+        if k in adj:
+            x["dir_holm"] = adj[k]
+            x["dir_edge"] = bool(adj[k] < 0.05 and x["dir_halves"] and x["dir_gain"] > 0)
+            e = ev[k]
+            cur = e["models"][e["dir_model"]]["dir_gain"] if e.get("models") and e["dir_model"] != "goc" else 0.0
+            if x["dir_edge"] and x["dir_gain"] > cur:
+                e["dir_model"] = "hoc_may"
     for k, pr in preds.items():
         sk = float(pr["sig"].loc[T] * np.sqrt(k))
         row = {"k": k, "target": (T + pd.Timedelta(days=k)).strftime("%Y-%m-%d"), "models": {}}
@@ -236,6 +336,8 @@ def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
             x = pr["models"][m].loc[T]
             row["models"][m] = {"p": None if pd.isna(x["p"]) else float(x["p"]),
                                 **{f"q{round(q * 100)}": None if pd.isna(x[q]) else float(np.exp(x[q] * sk) - 1) for q in qs}}
+        pm = pml[k].loc[T] if T in pml[k].index else np.nan
+        row["models"]["hoc_may"] = {**row["models"]["goc"], "p": None if pd.isna(pm) else float(pm)}
         e = ev[k]
         dm, mm = e.get("dir_model", "goc"), e.get("mag_model", "goc")
         pdir = row["models"][dm]["p"]
@@ -246,9 +348,12 @@ def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
         now_rows.append(row)
     states_now = {m: STATE_NAMES[m].get(int(v)) if pd.notna(v := (momentum_state(d["p"], 7).loc[T] if m == "dong_luong" else bs[m].loc[T])) else None
                   for m in COND}
+    cs = cd.run(write=False, end=end)
     out = {"version": version(cfg), "anchor": T.strftime("%Y-%m-%d"), "close": float(d["p"].loc[T]), "sigma": float(preds[1]["sig"].loc[T]),
            "states": states_now, "now": now_rows,
-           "eval": {str(k): e for k, e in ev.items()}, "tests": len(TESTED) * len(ev), "cross": cross_check(d["p"], T)}
+           "eval": {str(k): e for k, e in ev.items()}, "tests": len(TESTED) * len(ev), "cross": cross_check(d["p"], T),
+           "ml": {str(k): x for k, x in ml.items()}, "bitstamp": check_bitstamp(cfg, end),
+           "candles": {k: cs[k] for k in ("anchor", "today", "patterns", "tests", "from", "edges")}}
     out["log"] = score_log(d["p"])
     if write:
         (DATA / "results").mkdir(exist_ok=True)
