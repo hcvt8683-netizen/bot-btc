@@ -106,8 +106,7 @@
     const S = st.S, last = S.price.length - 1;
     st.asOf = last;
     $('date').max = S.dates[last]; $('date').min = '2016-01-01'; $('date').value = S.dates[last];
-    $('price').textContent = usd(S.price[last]);
-    $('when').textContent = st.raw.live ? tx('web.ui.gia_truc_tiep') : tx('web.ui.gia_dong_cua_0', fmtDate(S.dates[last]));
+    if (!st.raw.live) { $('price').textContent = usd(S.price[last]); $('when').textContent = tx('web.ui.gia_dong_cua_0', fmtDate(S.dates[last])); }
     renderSets();
     await doSearch();
     await doCompare();
@@ -491,7 +490,9 @@
     $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
     $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell; $('plan-sell').hidden = !sell;
     if ($('cp-sec')) renderCalib();
+    renderEntry();
     renderHome();
+    requestAnimationFrame(redraw);
     if (sell && st.sd) requestAnimationFrame(drawSellChart);
     if (!sell && st.a) requestAnimationFrame(drawChart);
   }
@@ -723,7 +724,11 @@
       ke_hoach_giai_ngan: PLAN ? { ...PLAN, so_tien_nguoi_dung: amt > 0 ? { so_tien: amt, don_vi: pl.unit, bat_dau: $('plan-start').value } : null } : null,
       gia_cho_mua_va_ngay_re_nhat: EN ? { ngay_goc: EN.anchor, gia_dong_bitstamp: EN.price, do_dao_dong_ngay: EN.sigma, phien_ban: EN.version,
         gia_thap_nhat_k_ngay_toi: EN.rows.map(({ z, ...r }) => r), kiem_chung_lich_su: EN.check, mua_ngay_hay_cho: EN.wait, ngay_re_nhat_7_ngay: EN.cheapest,
-        kiem_chung_truc_tiep: EN.log, gia_nguoi_dung_muon_mua: target() > 0 ? { gia: target(), so_voi_gia_luc_tra: target() / refPrice() - 1 } : null } : null,
+        kiem_chung_truc_tiep: EN.log, gia_nguoi_dung_muon_mua: targetOf('buy') > 0 ? { gia: targetOf('buy'), so_voi_gia_luc_tra: targetOf('buy') / refPrice() - 1 } : null } : null,
+      gia_cho_ban_va_ngay_dat_nhat: EX ? { ngay_goc: EX.anchor, gia_dong_bitstamp: EX.price, do_dao_dong_ngay: EX.sigma, phien_ban: EX.version,
+        gia_cao_nhat_k_ngay_toi: EX.rows.map(({ z, ...r }) => r), kiem_chung_lich_su: EX.check, ban_ngay_hay_cho: EX.wait, ngay_dat_nhat_7_ngay: EX.highest,
+        kiem_chung_truc_tiep: EX.log, gia_nguoi_dung_muon_ban: targetOf('sell') > 0 ? { gia: targetOf('sell'), so_voi_gia_luc_tra: targetOf('sell') / refPrice() - 1 } : null } : null,
+      gia_truc_tiep_24_gio: live.day ? { mo_cua: live.day.open, cao: live.day.high, thap: live.day.low, dang_truc_tiep: streaming() } : null,
       ho_so_nguoi_dung: { thoi_gian_nam_giu: pick('cp-horizon'), chiu_giam_tam_thoi: pick('cp-drawdown'), ty_trong_btc: pick('cp-share') },
     };
   }
@@ -862,7 +867,7 @@
     $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
     $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
       s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
-    if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
+    if (KN) { $('updated').textContent = tx('web.home.kn_time', vnTime(KN.generated_at)); $('updated').hidden = false; }
     $('stale').hidden = !stale;
     if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));
   }
@@ -970,6 +975,7 @@
     const th = el('thead'); th.append(h); $('t-rb-zones').replaceChildren(th, tb);
     const S = RB.scenarios, rng = (r) => (r == null ? '—' : Math.round(r[0]) === Math.round(r[1]) ? rk(r[0]) : `${rk(r[0])}–${rk(r[1])}`);
     $('rb-scn-title').textContent = S ? tx('web.rb.scn_title', S.k) : '';
+    $('rb-scn-lead').textContent = S ? tx('web.rb.scn_lead', usd(W.close), fmtDate(W.date), S.k) : '';
     if (S) {
       const sh = el('tr');
       ['col_price', 'col_change', 'col_fng', 'col_200w', 'col_mvrv', 'col_sell'].forEach((k, i) => sh.append(el('th', i < 3 ? 'r' : '', tx('web.rb.' + k))));
@@ -1175,35 +1181,45 @@
     renderPlan();
   }
 
-  // ================================================================ GIÁ & NGÀY MUA (KN.entry, bot/models/entry_timing.py)
-  // Máy chủ gửi 99 phân vị của z = log(giá thấp nhất k ngày tới / giá mốc) / (σ√k); trang lấy giá lúc tra làm mốc.
+  // ================================================================ GIÁ & NGÀY MUA / BÁN (KN.entry: bot/models/entry_timing.py, KN.exit: bot/models/exit_timing.py)
+  // Máy chủ gửi 99 phân vị của z = log(giá thấp nhất (bên mua) hoặc cao nhất (bên bán) k ngày tới / giá mốc) / (σ√k); trang lấy giá lúc tra làm mốc.
   const EN = KN && KN.entry && KN.entry.rows && KN.entry.rows.length ? KN.entry : null;
-  const enRow = (k) => (EN ? EN.rows.find((r) => r.k === k) : null);
-  const refPrice = () => (st.raw.live ? st.raw.live.price : EN ? EN.price : null);
+  const EX = KN && KN.exit && KN.exit.rows && KN.exit.rows.length ? KN.exit : null;
+  const isSell = () => st.mode === 'sell';
+  const SD = () => (isSell() ? EX : EN);  // số liệu của chế độ đang chọn
+  const K = (key, ...a) => tx((isSell() ? 'web.ex.' : 'web.en.') + key, ...a);  // chữ của chế độ đang chọn (cùng khóa ở web.en và web.ex)
+  const sgn = () => (isSell() ? 1 : -1);  // bên mua đặt thấp hơn, bên bán đặt cao hơn giá hiện tại
+  const enRow = (k) => { const D = SD(); return D ? D.rows.find((r) => r.k === k) : null; };
+  const refPrice = () => (st.raw.live ? st.raw.live.price : EN || EX ? (EN || EX).price : null);
   const QUICK = [0.01, 0.02, 0.03, 0.05, 0.08, 0.1], HEAT = [0, 0.01, 0.02, 0.03, 0.05, 0.08, 0.1], WEEK = [1, 2, 3, 4, 5, 6, 7];
-  const en = { pct: 0.03, price: null };
-  const target = () => (en.pct != null ? refPrice() * (1 - en.pct) : en.price);
+  const en = { buy: { pct: 0.03, price: null }, sell: { pct: 0.03, price: null } }, cur = () => en[isSell() ? 'sell' : 'buy'];
+  const targetOf = (side) => { const s = en[side]; return s.pct != null ? refPrice() * (1 + (side === 'sell' ? 1 : -1) * s.pct) : s.price; };
+  const target = () => targetOf(isSell() ? 'sell' : 'buy');
+  const beyond = (X, L) => (isSell() ? X > L : X < L);  // giá đặt nằm ở phía phải chờ (thấp hơn khi mua, cao hơn khi bán)
   const utcDay = () => new Date(Date.now()).toISOString().slice(0, 10);
   const addDays = (s, k) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + k); return d.toISOString().slice(0, 10); };
-  // Lúc tra được coi như giá đóng ngày gốc (đăng ký trước, mục entry.touch.live): ngày thứ k tính từ hôm nay (giờ UTC), kể cả khi số liệu chậm một ngày.
-  const dayK = (k) => { const t = utcDay(), a1 = addDays(EN.anchor, 1); return addDays(t > a1 ? t : a1, k - 1); };
+  // Lúc tra được coi như giá đóng ngày gốc (đăng ký trước, mục touch.live): ngày thứ k tính từ hôm nay (giờ UTC), kể cả khi số liệu chậm một ngày.
+  const dayK = (k) => { const t = utcDay(), a1 = addDays(SD().anchor, 1); return addDays(t > a1 ? t : a1, k - 1); };
   const dm = (s) => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
   const wdOf = (s) => new Intl.DateTimeFormat('vi-VN', { weekday: 'short', timeZone: 'UTC' }).format(new Date(s + 'T00:00:00Z'));
   const dayLab = (s) => (s === utcDay() ? tx('web.en.today') : `${wdOf(s)} ${dm(s)}`);
   const dayFull = (s) => (s === utcDay() ? tx('web.en.today_full', `${wdOf(s)} ${dm(s)}`) : `${wdOf(s)} ${dm(s)}`);
   const kusd = (x) => (x == null || !isFinite(x) ? '—' : tx('web.home.kilo', nf(1).format(x / 1000)));
-  // P(giá thấp nhất k ngày tới ≤ X): nội suy tuyến tính giữa 99 phân vị; ngoài 1–99% thì giữ ở hai đầu (như bot/models/entry_timing.py)
+  const pcx = (x) => pc(x, Math.abs(x * 100 - Math.round(x * 100)) < 1e-6 ? 0 : 1);  // 3% hoặc 3,4%
+  // Khả năng giá chạm X trong k ngày: bên mua P(z ≤ z*), bên bán P(z ≥ z*); nội suy tuyến tính giữa 99 phân vị, ngoài 1–99% thì giữ ở hai đầu
   function touchP(X, k) {
-    const r = enRow(k), L = refPrice();
+    const r = enRow(k), L = refPrice(), D = SD();
     if (!r || !(X > 0) || !(L > 0)) return null;
-    const z = Math.log(X / L) / (EN.sigma * Math.sqrt(k)), q = r.z;
-    if (z < q[0]) return { p: 0.01, lt: true };
-    if (z > q[98]) return { p: 0.99, gt: true };
-    for (let i = 1; i < 99; i++) if (z <= q[i]) { const d = q[i] - q[i - 1]; return { p: (i + (d > 0 ? (z - q[i - 1]) / d : 1)) / 100 }; }
-    return { p: 0.99, gt: true };
+    const z = Math.log(X / L) / (D.sigma * Math.sqrt(k)), q = r.z;
+    let F = null, end = 0;
+    if (z < q[0]) { F = 0.01; end = -1; } else if (z > q[98]) { F = 0.99; end = 1; }
+    else for (let i = 1; i < 99; i++) if (z <= q[i]) { const d = q[i] - q[i - 1]; F = (i + (d > 0 ? (z - q[i - 1]) / d : 1)) / 100; break; }
+    if (F == null) { F = 0.99; end = 1; }
+    if (isSell()) { F = 1 - F; end = -end; }
+    return { p: F, lt: end < 0, gt: end > 0 };
   }
   const pT = (o) => (o == null ? '—' : o.lt ? tx('web.en.lt1') : o.gt ? tx('web.en.gt99') : pc(o.p));
-  const bandAt = (k, q) => { const r = enRow(k), L = refPrice(); return r && L ? L * Math.exp(r.z[q - 1] * EN.sigma * Math.sqrt(k)) : null; };  // q = phân vị 1..99
+  const bandAt = (k, q) => { const r = enRow(k), L = refPrice(); return r && L ? L * Math.exp(r.z[q - 1] * SD().sigma * Math.sqrt(k)) : null; };  // q = phân vị 1..99
   function rrect(g, x, y, w, h, r) { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, Math.min(r, Math.abs(h) / 2, w / 2)); else g.rect(x, y, w, h); g.fill(); }
   function niceTicks(lo, hi, n) {
     const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) || raw, out = [];
@@ -1212,24 +1228,28 @@
   }
 
   function renderEntry() {
-    $('en-none').hidden = !!EN;
-    for (const id of ['en-a', 'en-b', 'en-c']) $(id).hidden = !EN;
-    if (!EN) return;
-    const L = refPrice(), X = target(), ok = X > 0 && isFinite(X), inp = $('en-target'), today = utcDay();
-    if (en.pct != null && document.activeElement !== inp) inp.value = nf(0).format(Math.round(X));
+    const D = SD();
+    $('tab-entry-lab').textContent = tx(isSell() ? 'web.page.tab_exit' : 'web.page.tab_entry');
+    for (const [id, key] of [['en-a-title', 'a_title'], ['en-a-lead', 'a_lead'], ['en-target-lab', 'target_label'], ['en-heat-title', 'heat_title'], ['en-check-title', 'check_title'],
+      ['en-c-title', 'c_title'], ['en-c-lead', 'c_lead'], ['en-c-check-title', 'c_check_title'], ['en-b-title', 'b_title'], ['en-b-lead', 'b_lead'], ['en-none', 'none']]) $(id).textContent = K(key);
+    $('en-none').hidden = !!D;
+    for (const id of ['en-a', 'en-b', 'en-c']) $(id).hidden = !D;
+    if (!D) return;
+    const L = refPrice(), X = target(), ok = X > 0 && isFinite(X), inp = $('en-target'), today = utcDay(), s = cur();
+    if (document.activeElement !== inp) inp.value = ok ? nf(0).format(Math.round(X)) : inp.value;
     $('en-quick').replaceChildren(...QUICK.map((x) => {
-      const b = el('button', null, spc(-x)); b.type = 'button'; b.setAttribute('aria-pressed', String(en.pct === x));
-      b.addEventListener('click', () => { en.pct = x; en.price = null; renderEntry(); renderHome(); requestAnimationFrame(redraw); });
+      const b = el('button', null, spc(sgn() * x)); b.type = 'button'; b.setAttribute('aria-pressed', String(s.pct === x));
+      b.addEventListener('click', () => { s.pct = x; s.price = null; renderEntry(); renderHome(); requestAnimationFrame(redraw); });
       return b;
     }));
     const ans = $('en-answer');
-    if (!ok) ans.replaceChildren(el('p', 'warn', tx('web.en.answer_bad')));
-    else if (X >= L) ans.replaceChildren(el('p', null, tx('web.en.answer_above', usd(L))));
-    else ans.replaceChildren(el('div', 'muted', tx('web.en.answer', usd(X), spc(X / L - 1, 1), usd(L))), el('div', 'big num', pT(touchP(X, 7))),
-      el('div', null, tx('web.en.answer_more', pT(touchP(X, 1)), pT(touchP(X, 3)), pT(touchP(X, 30)))));
-    $('en-bars-title').textContent = tx('web.en.bars_title', ok ? usd(X) : '—');
-    $('en-bars').replaceChildren(...EN.rows.map((r) => {
-      const o = !ok ? null : X >= L ? { p: 1 } : touchP(X, r.k);
+    if (!ok) ans.replaceChildren(el('p', 'warn', K('answer_bad')));
+    else if (!beyond(X, L)) ans.replaceChildren(el('p', null, K('answer_now', usd(L))));
+    else ans.replaceChildren(el('div', 'muted', K('answer', usd(X), spc(X / L - 1, 1), usd(L))), el('div', 'big num', pT(touchP(X, 7))),
+      el('div', null, K('answer_more', pT(touchP(X, 1)), pT(touchP(X, 3)), pT(touchP(X, 30)))));
+    $('en-bars-title').textContent = K('bars_title', ok ? usd(X) : '—');
+    $('en-bars').replaceChildren(...D.rows.map((r) => {
+      const o = !ok ? null : !beyond(X, L) ? { p: 1 } : touchP(X, r.k);
       const row = el('div', 'bar'), lab = el('span', null, tx('web.en.bar_lab', r.k)), tr = el('span', 'tr'), i = el('i');
       lab.title = tx('web.en.bar_until', fmtDate(dayK(r.k))); i.style.width = (o ? o.p * 100 : 0) + '%'; tr.append(i);
       row.append(lab, tr, el('b', null, pT(o)));
@@ -1238,14 +1258,14 @@
     // bảng nhiệt: khả năng chạm từng mức theo từng kỳ hạn
     const h = el('tr');
     h.append(el('th', null, tx('web.en.col_level')));
-    EN.rows.forEach((r) => h.append(el('th', null, tx('web.en.col_k', r.k))));
+    D.rows.forEach((r) => h.append(el('th', null, tx('web.en.col_k', r.k))));
     const tb = el('tbody');
     for (const x of HEAT) {
-      const tr = el('tr', x === 0 ? 'base' : ''), P = L * (1 - x), c0 = el('td', 'nowrap');
-      c0.append(x ? usd(P) : tx('web.en.level_now', usd(P)));
-      if (x) c0.append(el('span', 'sub', spc(-x)));
+      const tr = el('tr', x === 0 ? 'base' : ''), P = L * (1 + sgn() * x), c0 = el('td', 'nowrap');
+      c0.append(x ? usd(P) : K('level_now', usd(P)));
+      if (x) c0.append(el('span', 'sub', spc(sgn() * x)));
       tr.append(c0);
-      for (const r of EN.rows) {
+      for (const r of D.rows) {
         const o = touchP(P, r.k), td = el('td', null, pT(o));
         if (o) td.style.background = `color-mix(in srgb, var(--brand) ${Math.round(o.p * 55)}%, transparent)`;
         tr.append(td);
@@ -1253,8 +1273,8 @@
       tb.append(tr);
     }
     const th = el('thead'); th.append(h); $('t-en-heat').replaceChildren(th, tb);
-    const notes = [tx('web.en.note_method', pc(EN.sigma, 1)), tx('web.en.note_live', fmtDate(EN.anchor)), tx('web.en.note_fill'), tx('web.en.note_utc'), tx('web.en.note_direction'), tx('web.fc.note_ref')];
-    if (Math.round((Date.parse(today) - Date.parse(EN.anchor)) / 86400000) > 2) notes.unshift(tx('web.en.stale', fmtDate(EN.anchor)));
+    const notes = [K('note_method', pc(D.sigma, 1)), K('note_live', fmtDate(D.anchor)), K('note_fill'), tx('web.en.note_utc'), K('note_direction'), tx('web.fc.note_ref')];
+    if (Math.round((Date.parse(today) - Date.parse(D.anchor)) / 86400000) > 2) notes.unshift(tx('web.en.stale', fmtDate(D.anchor)));
     $('en-a-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
     renderEntryCheck();
     renderDays();
@@ -1262,12 +1282,12 @@
   }
 
   function renderEntryCheck() {
-    const C = EN.check || {}, c7 = C[7], c30 = C[30];
-    $('en-check-sum').textContent = c7 && c30 && c7.n ? tx('web.en.check_sum', fmtDate(c7.from), fmtDate(c7.to), pc(c7.cover80), pc(c30.cover80)) : '';
+    const D = SD(), C = D.check || {}, c7 = C[7], c30 = C[30];
+    $('en-check-sum').textContent = c7 && c30 && c7.n ? K('check_sum', fmtDate(c7.from), fmtDate(c7.to), pc(c7.cover80), pc(c30.cover80)) : '';
     const xs = [0.02, 0.05], h = el('tr');
-    [tx('web.en.col_ck'), tx('web.en.col_cover'), ...xs.map((x) => tx('web.en.col_x', pc(x))), tx('web.en.col_brier')].forEach((t, i) => h.append(el('th', i ? 'r' : '', t)));
+    [tx('web.en.col_ck'), K('col_cover'), ...xs.map((x) => K('col_x', pc(x))), tx('web.en.col_brier')].forEach((t, i) => h.append(el('th', i ? 'r' : '', t)));
     const tb = el('tbody'), d3 = (x) => (x == null || !isFinite(x) ? '—' : nf(3).format(x));
-    for (const r of EN.rows) {
+    for (const r of D.rows) {
       const c = C[r.k]; if (!c || !c.n) continue;
       const tr = el('tr'), cov = el('td', 'r num ' + (c.trusted ? '' : 'bad'), pc(c.cover80));
       cov.append(el('span', 'sub', tx('web.en.cover_sub', pc(c.cover80_ci[0]), pc(c.cover80_ci[1]), c.n_eff) + (c.trusted ? '' : ' · ' + tx('web.en.untrusted'))));
@@ -1277,21 +1297,23 @@
       tb.append(tr);
     }
     const th = el('thead'); th.append(h); $('t-en-check').replaceChildren(th, tb);
-    const lg = EN.log || { matured: 0, versions: {} }, v = (lg.versions || {})[EN.version];
-    $('en-log').textContent = !lg.matured ? tx('web.en.log_none')
-      : tx('web.en.log_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null));
+    const lg = D.log || { matured: 0, versions: {} }, v = (lg.versions || {})[D.version];
+    $('en-log').textContent = !lg.matured ? K('log_none')
+      : K('log_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null));
   }
 
-  const daysAhead = () => EN.cheapest.days.map((x) => ({ ...x, date: dayK(x.pos) }));
+  // ngày rẻ nhất (bên mua) hoặc có giá cao nhất (bên bán) trong 7 ngày tới, ngày tính từ hôm nay
+  const dayData = () => (isSell() ? EX && EX.highest : EN && EN.cheapest);
+  const daysAhead = () => dayData().days.map((x) => ({ ...x, date: dayK(x.pos) }));
   function renderDays() {
-    const C = EN.cheapest; if (!C) return;
+    const C = dayData(); if (!C) return;
     const d = daysAhead(), best = d.reduce((a, b) => (b.share > a.share ? b : a)), mids = d.slice(1, -1).map((x) => x.share);
-    const p1 = el('p'); p1.append(el('b', null, tx('web.en.c_sum_top', dayFull(best.date), pc(best.share), nf(1).format(best.share * d.length), pc(Math.min(...mids)), pc(Math.max(...mids)))));
-    const nb = C.none_below;
-    $('en-c-sum').replaceChildren(p1, el('p', null, tx('web.en.c_why')),
-      el('p', null, C.standout.length ? tx('web.en.c_standout', C.standout.map((j) => tx('web.en.c_pos', j)).join(', ')) : tx('web.en.c_standout_none')),
-      el('p', null, tx('web.en.c_meaning')), el('p', 'muted', tx('web.en.c_none_below', fmtDate(EN.anchor), nb < 0.0101 ? tx('web.en.lt1') : pc(nb))));
-    $('en-days-legend').replaceChildren(...[['--brand', 1, tx('web.en.c_bar')], ['--ink', 0.6, tx('web.en.c_ref')]].map(([v, o, t]) => { const s = el('span'), i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; if (v === '--ink') i.style.height = '2px'; s.append(i, t); return s; }));
+    const p1 = el('p'); p1.append(el('b', null, K('c_sum_top', dayFull(best.date), pc(best.share), nf(1).format(best.share * d.length), pc(Math.min(...mids)), pc(Math.max(...mids)))));
+    const nb = isSell() ? C.none_above : C.none_below;
+    $('en-c-sum').replaceChildren(p1, el('p', null, K('c_why')),
+      el('p', null, C.standout.length ? K('c_standout', C.standout.map((j) => tx('web.en.c_pos', j)).join(', ')) : K('c_standout_none')),
+      el('p', null, K('c_meaning')), el('p', 'muted', K('c_none', fmtDate(SD().anchor), nb < 0.0101 ? tx('web.en.lt1') : pc(nb))));
+    $('en-days-legend').replaceChildren(...[['--brand', 1, K('c_bar')], ['--ink', 0.6, tx('web.en.c_ref')]].map(([v, o, t]) => { const s = el('span'), i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; if (v === '--ink') i.style.height = '2px'; s.append(i, t); return s; }));
     const h = el('tr');
     h.append(el('th', null, tx('web.en.col_pos')));
     C.halves.forEach((x) => { const c = el('th', 'r', tx('web.en.col_half', fmtDate(x.from), fmtDate(x.to))); c.append(el('span', 'sub', tx('web.en.half_sub', x.n_eff))); h.append(c); });
@@ -1306,23 +1328,28 @@
   }
 
   function renderWait() {
-    const Wt = EN.wait; if (!Wt) return;
+    const Wt = SD().wait; if (!Wt) return;
     const rows = Wt.rows, xs = [...new Set(rows.map((r) => r.x))], ks = [...new Set(rows.map((r) => r.k))], at = (x, k) => rows.find((r) => r.x === x && r.k === k);
-    const cho = rows.filter((r) => r.verdict === 'cho'), ngay = rows.filter((r) => r.verdict === 'ngay').length, cfgName = (r) => tx('web.en.cfg', pc(r.x), r.k);
-    const p1 = el('p'); p1.append(el('b', null, cho.length ? tx('web.en.b_sum_some', cho.length, cho.map(cfgName).join('; '), ngay) : tx('web.en.b_sum_none', rows.length, ngay)));
+    const cho = rows.filter((r) => r.verdict === 'cho'), ngay = rows.filter((r) => r.verdict === 'ngay').length, cfgName = (r) => K('cfg', pc(r.x), r.k);
+    const p1 = el('p'); p1.append(el('b', null, cho.length ? K('b_sum_some', cho.length, cho.map(cfgName).join('; '), ngay) : K('b_sum_none', rows.length, ngay)));
     const sum = [p1], ex = at(0.02, 7);
-    if (ex && ex.mean < 0) sum.push(el('p', null, tx('web.en.b_why', pc(ex.x), ex.k, pc(ex.fill), tx('web.en.worse', spc(Math.abs(ex.mean), 1).replace('+', '')))));
-    if (!cho.length) sum.push(el('p', null, tx('web.en.b_meaning')));
+    if (isSell()) {
+      if (ex) sum.push(el('p', null, tx('web.ex.b_why', pc(ex.x), ex.k, pc(ex.fill), spc(Math.abs(ex.mean) < 5e-5 ? 0 : ex.mean, 2))));
+      sum.push(el('p', null, tx('web.ex.b_meaning', pc(Math.max(...rows.map((r) => Math.abs(r.mean))), 1))));
+    } else {
+      if (ex && ex.mean < 0) sum.push(el('p', null, tx('web.en.b_why', pc(ex.x), ex.k, pc(ex.fill), tx('web.en.worse', spc(Math.abs(ex.mean), 1).replace('+', '')))));
+      if (!cho.length) sum.push(el('p', null, tx('web.en.b_meaning')));
+    }
     $('en-b-sum').replaceChildren(...sum);
     const h = el('tr');
-    h.append(el('th', null, tx('web.en.col_x_b')));
+    h.append(el('th', null, K('col_x_b')));
     ks.forEach((k) => h.append(el('th', null, tx('web.en.col_k_b', k))));
     const tb = el('tbody'), TONE = { cho: 'good', ngay: 'bad', chua: 'muted' }, TINT = { cho: '--jade', ngay: '--cinnabar' };
     for (const x of xs) {
       const tr = el('tr');
-      tr.append(el('td', 'nowrap', spc(-x)));
+      tr.append(el('td', 'nowrap', spc(sgn() * x)));
       for (const k of ks) {
-        const r = at(x, k), td = el('td', r ? TONE[r.verdict] : '', r ? spc(r.mean, 2) : '—');
+        const r = at(x, k), td = el('td', r ? TONE[r.verdict] : '', r ? spc(Math.abs(r.mean) < 5e-5 ? 0 : r.mean, 2) : '—');
         if (r) {
           td.append(el('span', 'sub', tx('web.en.cell_sub', pc(r.fill))));
           td.title = tx('web.en.cell_title', spc(r.mean, 2), spc(r.ci[0], 2), spc(r.ci[1], 2), spc(r.median, 1), pc(r.better), spc(r.p10, 1), nf(3).format(r.p_holm));
@@ -1334,15 +1361,18 @@
     }
     const th = el('thead'); th.append(h); $('t-en-wait').replaceChildren(th, tb);
     const r0 = rows[0], leg = el('li');
-    ['cho', 'ngay', 'chua'].forEach((v) => leg.append(el('span', 'pill ' + TONE[v], tx('web.en.v_' + v)), ' '));
-    $('en-b-notes').replaceChildren(leg, el('li', null, tx('web.en.b_note_cells') + ' ' + tx('web.en.b_note_stats', Wt.n_configs, fmtDate(r0.from), fmtDate(r0.split), fmtDate(r0.to))), el('li', null, tx('web.en.b_note_fees')));
+    ['cho', 'ngay', 'chua'].forEach((v) => leg.append(el('span', 'pill ' + TONE[v], K('v_' + v)), ' '));
+    $('en-b-notes').replaceChildren(leg, el('li', null, K('b_note_cells') + ' ' + K('b_note_stats', Wt.n_configs, fmtDate(r0.from), fmtDate(r0.split), fmtDate(r0.to))), el('li', null, K('b_note_fees')));
   }
 
-  // biểu đồ: cột giá thấp nhất từng ngày (đoạn 25–75% đậm, 10–90% nhạt), đường giá hiện tại và giá muốn mua
+  // biểu đồ: cột giá thấp nhất (bên mua) hoặc cao nhất (bên bán) từng ngày (đoạn 25–75% đậm, 10–90% nhạt), đường giá hiện tại và giá muốn đặt
   function drawFan() {
-    const cv = $('h-fan'); if (!EN || !cv.clientWidth) return;
-    const { g, W, H, c } = canvasSetup(cv), L = refPrice(), X = target(), rows = WEEK.map(enRow).filter(Boolean), today = utcDay();
-    const lo = Math.min(...rows.map((r) => bandAt(r.k, 10)), X > 0 && X < L ? X : Infinity) * 0.996, hi = L * 1.004;
+    const cv = $('h-fan'), D = SD();
+    $('h-fan-title').textContent = K('fan_title'); $('h-fan-lead').textContent = K('fan_lead'); $('h-fan-ic').textContent = isSell() ? '↥' : '↧';
+    if (!D || !cv.clientWidth) return;
+    const { g, W, H, c } = canvasSetup(cv), L = refPrice(), X = target(), rows = WEEK.map(enRow).filter(Boolean), today = utcDay(), up = isSell(), show = X > 0 && beyond(X, L);
+    const ends = rows.map((r) => bandAt(r.k, up ? 90 : 10));
+    const lo = (up ? L : Math.min(...ends, show ? X : Infinity)) * 0.996, hi = (up ? Math.max(...ends, show ? X : 0) : L) * 1.004;
     const PL = 58, PR = 12, PT = 12, PB = 40, ph = H - PT - PB, cw = (W - PL - PR) / rows.length, y = (p) => PT + ((hi - p) / (hi - lo)) * ph;
     g.strokeStyle = c('--line'); g.fillStyle = c('--muted'); g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     const ticks = niceTicks(lo, hi, 4), step = ticks.length > 1 ? ticks[1] - ticks[0] : 1000, narrow = cw < 72;
@@ -1355,7 +1385,6 @@
       g.textAlign = 'center'; g.textBaseline = 'top'; g.fillStyle = day === today ? c('--brand-ink') : c('--ink'); g.font = `600 ${narrow ? 10.5 : 12}px ${c('--font')}`;
       g.fillText(narrow ? dm(day) : dayLab(day), cx, H - PB + 8); g.font = `${narrow ? 10.5 : 12}px ${c('--font')}`; g.fillStyle = c('--muted');
       if (!narrow) g.fillText(tx('web.fc.k_days', r.k), cx, H - PB + 23);
-      g.globalAlpha = 1;
     });
     const line = (p, col, dash, label, below) => {
       const yy = Math.round(y(p)) + 0.5; g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash(dash); g.beginPath(); g.moveTo(PL, yy); g.lineTo(W - PR, yy); g.stroke(); g.setLineDash([]);
@@ -1363,15 +1392,15 @@
       g.fillStyle = c('--panel'); g.globalAlpha = 0.85; g.fillRect(W - PR - tw - 6, below ? yy + 2 : yy - 17, tw + 6, 15); g.globalAlpha = 1;
       g.fillStyle = col; g.fillText(label, W - PR - 3, below ? yy + 3 : yy - 3); g.font = `12px ${c('--font')}`;
     };
-    line(L, c('--ink'), [], `${tx('web.en.fan_now')} ${usd(L)}`, false);
-    if (X > 0 && X < L) line(X, c('--blue'), [6, 4], `${tx('web.en.fan_target')} ${usd(X)}`, true);
+    line(L, c('--ink'), [], `${tx('web.en.fan_now')} ${usd(L)}`, up);
+    if (show) line(X, c('--blue'), [6, 4], `${K('fan_target')} ${usd(X)}`, !up);
     const sw = (v, o, t, hgt) => { const s = el('span'), i = el('i'); i.style.background = `var(${v})`; i.style.opacity = o; if (hgt) i.style.height = hgt; s.append(i, t); return s; };
-    $('h-fan-legend').replaceChildren(sw('--brand', 0.25, tx('web.en.fan_80')), sw('--brand', 0.7, tx('web.en.fan_50')), sw('--ink', 1, tx('web.en.fan_mid'), '2px'), sw('--ink', 1, tx('web.en.fan_now'), '2px'), sw('--blue', 1, tx('web.en.fan_target'), '2px'));
+    $('h-fan-legend').replaceChildren(sw('--brand', 0.25, tx('web.en.fan_80')), sw('--brand', 0.7, tx('web.en.fan_50')), sw('--ink', 1, tx('web.en.fan_mid'), '2px'), sw('--ink', 1, tx('web.en.fan_now'), '2px'), sw('--blue', 1, K('fan_target'), '2px'));
   }
 
-  // biểu đồ cột: tỷ lệ mỗi ngày trong 7 ngày tới là ngày rẻ nhất; mini = bản nhỏ trong thẻ tổng quan
+  // biểu đồ cột: tỷ lệ mỗi ngày trong 7 ngày tới là ngày rẻ nhất (bên mua) hoặc có giá cao nhất (bên bán); mini = bản nhỏ trong thẻ tổng quan
   function drawDays(cv, mini) {
-    const C = EN && EN.cheapest; if (!C || !cv || !cv.clientWidth) return;
+    const C = dayData(); if (!C || !cv || !cv.clientWidth) return;
     const { g, W, H, c } = canvasSetup(cv), d = daysAhead(), best = d.reduce((a, b) => (b.share > a.share ? b : a)), today = utcDay();
     const top = Math.max(0.2, best.share * 1.18), PL = mini ? 0 : 40, PR = mini ? 0 : 8, PT = mini ? 14 : 22, PB = mini ? 16 : 40, ph = H - PT - PB, cw = (W - PL - PR) / d.length;
     const y = (v) => PT + ph - (v / top) * ph;
@@ -1395,7 +1424,7 @@
 
   // ----- Tổng quan: các thẻ số chính theo chế độ Mua / Bán -----
   function renderHome() {
-    const sell = st.mode === 'sell', cards = [], stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, ex = KN ? KN.amount_example_usd : 100;
+    const sell = isSell(), cards = [], stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, ex = KN ? KN.amount_example_usd : 100;
     const card = (tone, lab, val, sub, go) => {
       const k = el('div', 'kpi ' + tone); k.append(el('span', 'lab', lab), el('div', 'val num', val));
       if (sub) k.append(el('span', 'sub', sub));
@@ -1406,41 +1435,121 @@
       const npass = RB ? Object.values(RB.acceptance.criteria).filter((x) => x.pass).length : null, safe = !KN || stale || KN.mode === 'safe';
       cards.push(card(safe ? 'good' : 'mid', tx('web.home.rec_lab'), safe ? tx('web.home.rec_val') : tx('web.home.rec_val_model', nf(1).format(m)),
         npass != null && safe ? tx('web.home.rec_sub', nf(1).format(m), usd(ex * m), usd(ex), npass) : tx('web.home.rec_sub_plain', nf(1).format(m), usd(ex * m), usd(ex)), 'check'));
-      if (EN) {
-        const X = target(), L = refPrice(), drop = en.pct != null ? en.pct : 1 - X / L;
-        cards.push(card('info', tx('web.home.touch_lab', pc(drop, Math.abs(drop * 100 - Math.round(drop * 100)) < 1e-6 ? 0 : 1), usd(X)), X < L ? pT(touchP(X, 7)) : pc(1), tx('web.home.touch_sub', X < L ? pT(touchP(X, 30)) : pc(1)), 'entry'));
-        const best = daysAhead().reduce((a, b) => (b.share > a.share ? b : a)), k = card('mid', tx('web.home.day_lab'), dayLab(best.date), tx('web.home.day_sub', pc(best.share)), 'entry');
-        const cv = el('canvas'); cv.setAttribute('height', '64'); k.insertBefore(cv, k.querySelector('.go')); cards.push(k);
-      }
     } else {
       const W = RB && RB.week, lv = W ? W.sell_level : null;
       cards.push(card(lv === 'ban' ? 'bad' : lv === 'chot' ? 'mid' : 'good', tx('web.home.sell_lab'), lv ? tx('web.rb.level_' + lv) : '—', W ? tx('web.home.sell_sub', W.sell_groups, RB.sell_trusted) : '', 'check'));
-      const CB = KN && KN.calib && KN.calib['4'] ? KN.calib : null;
-      if (CB) cards.push(card('mid', tx('web.home.drop_lab'), pc(1 - CB['4'].now.p), tx('web.home.drop_sub', ...['13', '26', '52'].map((h) => (CB[h] ? pc(1 - CB[h].now.p) : '—')))
-        + (Object.values(CB).some((x) => x.pick) ? '' : ' ' + tx('web.home.drop_nopick')), 'fc'));
     }
-    const F = KN && KN.forecast && KN.forecast.rows ? KN.forecast : null, r7 = F && F.rows.find((r) => r.k === 7), r30 = F && F.rows.find((r) => r.k === 30);
-    if (r7 && r30) cards.push(card('info', tx('web.home.band_lab'), tx('web.home.band_val', kusd(r7.q10), kusd(r7.q90)), tx('web.home.band_sub', usd(r7.q50), usd(r30.q10), usd(r30.q90)), 'fc'));
+    if (SD()) {
+      const X = target(), L = refPrice(), gap = cur().pct != null ? cur().pct : Math.abs(X / L - 1), w = beyond(X, L);
+      cards.push(card('info', tx(sell ? 'web.home.touch_sell_lab' : 'web.home.touch_lab', pcx(gap), usd(X)), w ? pT(touchP(X, 7)) : pc(1), tx('web.home.touch_sub', w ? pT(touchP(X, 30)) : pc(1)), 'entry'));
+      const best = daysAhead().reduce((a, b) => (b.share > a.share ? b : a));
+      const k = card('mid', tx(sell ? 'web.home.day_sell_lab' : 'web.home.day_lab'), dayLab(best.date), tx(sell ? 'web.home.day_sell_sub' : 'web.home.day_sub', pc(best.share)), 'entry');
+      const cv = el('canvas'); cv.setAttribute('height', '64'); k.insertBefore(cv, k.querySelector('.go')); cards.push(k);
+    }
+    const CB = KN && KN.calib && KN.calib['4'] ? KN.calib : null, F = KN && KN.forecast && KN.forecast.rows ? KN.forecast : null;
+    const r7 = F && F.rows.find((r) => r.k === 7), r30 = F && F.rows.find((r) => r.k === 30);
+    if (sell && CB) cards.push(card('mid', tx('web.home.drop_lab'), pc(1 - CB['4'].now.p), tx('web.home.drop_sub', ...['13', '26', '52'].map((h) => (CB[h] ? pc(1 - CB[h].now.p) : '—')))
+      + (Object.values(CB).some((x) => x.pick) ? '' : ' ' + tx('web.home.drop_nopick')), 'fc'));
+    else if (r7 && r30) cards.push(card('info', tx('web.home.band_lab'), tx('web.home.band_val', kusd(r7.q10), kusd(r7.q90)), tx('web.home.band_sub', usd(r7.q50), usd(r30.q10), usd(r30.q90)), 'fc'));
     $('h-kpis').replaceChildren(...cards);
     requestAnimationFrame(() => document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)));
   }
 
   function redraw() {
     drawFan();
-    if (EN) { drawDays($('en-days'), false); document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)); }
+    if (dayData()) { drawDays($('en-days'), false); document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)); }
   }
   function redrawAll() { redraw(); if (st.full) drawChart(); if (st.cmp) drawOptCharts(); if (st.mode === 'sell' && st.sdFull) drawSellChart(); if (st.a) drawIndCharts(); }
   for (const id of ['h-fan', 'en-days']) new ResizeObserver(() => requestAnimationFrame(redraw)).observe($(id).parentElement);
   new ResizeObserver(() => requestAnimationFrame(() => document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)))).observe($('h-kpis'));
-  $('en-target').addEventListener('input', () => { en.pct = null; en.price = parseAmount($('en-target').value); renderEntry(); renderHome(); requestAnimationFrame(redraw); });
-  $('en-target').addEventListener('change', () => { if (en.price > 0) $('en-target').value = nf(0).format(Math.round(en.price)); });
+  $('en-target').addEventListener('input', () => { const s = cur(); s.pct = null; s.price = parseAmount($('en-target').value); renderEntry(); renderHome(); requestAnimationFrame(redraw); });
+  $('en-target').addEventListener('change', () => { const s = cur(); if (s.price > 0) $('en-target').value = nf(0).format(Math.round(s.price)); });
+  // ----- giá thời gian thực: luồng WebSocket Binance (24 giờ: mở, cao, thấp, giá cuối) + đường giá 24 giờ (nến 15 phút) -----
+  // Đầu trang đổi theo từng lần giá nhảy; các công cụ tính lại theo giá mới tối đa 10 giây một lần. Mất luồng thì lấy giá REST 15 giây một lần và nối lại.
+  const WS_URLS = ['wss://stream.binance.com:9443/ws/btcusdt@miniTicker', 'wss://data-stream.binance.vision/ws/btcusdt@miniTicker'];
+  const live = { ws: null, url: 0, lastMsg: 0, retry: 1000, heavyAt: 0, heavyT: null, spark: null, day: null, shown: null };
+  const hms = (t) => new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(new Date(t));
+  const streaming = () => !!live.ws && live.ws.readyState === 1 && Date.now() - live.lastMsg < 15000;
+  function renderQuote(flash) {
+    const L = st.raw.live && st.raw.live.price; if (!(L > 0)) return;
+    const p = $('price'); p.textContent = usd(L);
+    if (flash && live.shown != null && L !== live.shown) { p.classList.remove('up', 'down'); void p.offsetWidth; p.classList.add(L > live.shown ? 'up' : 'down'); }
+    live.shown = L;
+    const c = $('chg'), D = live.day, ref = EN || EX;
+    // 24 giờ khi có luồng hoặc nến 15 phút; không thì so với giá đóng ngày gốc (lệch quá 25% là hai nguồn không khớp, nên ẩn)
+    const ch = D ? L / D.open - 1 : ref ? L / ref.price - 1 : null;
+    c.hidden = ch == null || !(Math.abs(ch) < 0.25);
+    if (ch != null) { c.className = 'chg num ' + (ch >= 0 ? 'up' : 'down'); c.textContent = D ? tx('web.home.chg24', spc(ch, 2)) : tx('web.home.chg', spc(ch, 1), dm(ref.anchor)); }
+    $('hl').hidden = !D;
+    if (D) $('hl').textContent = tx('web.home.hl24', usd(Math.max(D.high, L)), usd(Math.min(D.low, L)));
+    const on = streaming();
+    $('live-dot').hidden = !on;
+    $('when').textContent = on ? tx('web.home.live', hms(live.lastMsg)) : tx('web.home.live_rest', hms(st.raw.live.at || Date.now()));
+    drawSpark();
+  }
+  // tính lại công cụ theo giá mới, không quá một lần mỗi 10 giây
+  function heavySoon() {
+    const run = () => { live.heavyAt = Date.now(); live.heavyT = null; renderEntry(); renderHome(); requestAnimationFrame(redraw); };
+    const wait = 10000 - (Date.now() - live.heavyAt);
+    if (wait <= 0) run(); else if (!live.heavyT) live.heavyT = setTimeout(run, wait);
+  }
   function onLive() {
-    const L = st.raw.live.price;
-    $('price').textContent = usd(L);
+    if (!st.raw.live.at) st.raw.live.at = Date.now();
     if (!st.S) $('when').textContent = tx('web.ui.gia_truc_tiep');
-    // % so với giá đóng ngày gốc; lệch quá 25% là hai nguồn giá không khớp nhau (không phải biến động thật), nên ẩn
-    if (EN) { const ch = L / EN.price - 1, c = $('chg'); c.hidden = !(Math.abs(ch) < 0.25); c.className = 'chg num ' + (ch >= 0 ? 'up' : 'down'); c.textContent = tx('web.home.chg', spc(ch, 1), dm(EN.anchor)); }
-    renderEntry(); renderHome(); requestAnimationFrame(redraw);
+    renderQuote(false);
+    heavySoon();
+  }
+  function startStream() {
+    if (window.BOT_NO_WS || typeof WebSocket === 'undefined') return;  // bài kiểm tra tắt luồng để số liệu cố định
+    let ws;
+    try { ws = new WebSocket(WS_URLS[live.url % WS_URLS.length]); } catch (e) { return; }
+    live.ws = ws;
+    ws.onmessage = (ev) => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      const c = Number(m.c); if (!(c > 0)) return;
+      live.lastMsg = Date.now(); live.retry = 1000;
+      live.day = { open: Number(m.o), high: Number(m.h), low: Number(m.l) };
+      st.raw.live = { price: c, at: live.lastMsg };
+      if (!st.status.live || !st.status.live.ok) setStatus('live', true, 'Binance');
+      if (live.spark && live.spark.length) live.spark[live.spark.length - 1][1] = c;
+      renderQuote(true);
+      heavySoon();
+    };
+    ws.onclose = () => {
+      if (live.ws !== ws) return;
+      live.ws = null; live.url++;
+      renderQuote(false);
+      setTimeout(startStream, live.retry); live.retry = Math.min(60000, live.retry * 2);
+    };
+    ws.onerror = () => { try { ws.close(); } catch (e) { /* bỏ qua */ } };
+  }
+  // đường giá 24 giờ qua (nến 15 phút Binance); dùng cả làm mốc 24 giờ khi chưa có luồng
+  async function loadSpark() {
+    const start = Date.now() - 86400000;
+    for (const base of URLS.kl) {
+      try {
+        const j = await getJSON(`${base}?symbol=BTCUSDT&interval=15m&startTime=${start}&limit=96`, 15000);
+        if (!Array.isArray(j) || !j.length) continue;
+        live.spark = j.map((k) => [Number(k[0]), Number(k[4])]);
+        if (!streaming()) live.day = { open: Number(j[0][1]), high: Math.max(...j.map((k) => Number(k[2]))), low: Math.min(...j.map((k) => Number(k[3]))) };
+        renderQuote(false);
+        return;
+      } catch (e) { /* thử nguồn kế */ }
+    }
+  }
+  function drawSpark() {
+    const cv = $('spark'), S = live.spark;
+    cv.hidden = !(S && S.length > 2);
+    if (cv.hidden || !cv.clientWidth) return;
+    const W = cv.clientWidth, H = baseH(cv), dpr = window.devicePixelRatio || 1;
+    cv.style.height = H + 'px'; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const v = S.map((x) => x[1]), lo = Math.min(...v), hi = Math.max(...v), up = v[v.length - 1] >= v[0], col = up ? '#5FD3A5' : '#FF9C86';
+    const x = (i) => 2 + (i / (v.length - 1)) * (W - 6), y = (p) => 3 + (hi === lo ? 0.5 : (hi - p) / (hi - lo)) * (H - 6);
+    g.beginPath(); v.forEach((p, i) => (i ? g.lineTo(x(i), y(p)) : g.moveTo(x(i), y(p))));
+    g.strokeStyle = col; g.lineWidth = 1.6; g.lineJoin = 'round'; g.stroke();
+    g.lineTo(x(v.length - 1), H); g.lineTo(x(0), H); g.closePath(); g.fillStyle = col; g.globalAlpha = 0.14; g.fill(); g.globalAlpha = 1;
+    g.beginPath(); g.arc(x(v.length - 1), y(v[v.length - 1]), 2.6, 0, Math.PI * 2); g.fillStyle = col; g.fill();
   }
 
   // ----- điện thoại: mỗi dòng bảng hiện thành một thẻ, mỗi ô kèm tên cột (data-label từ dòng tiêu đề; CSS table.stack ở page.html) -----
@@ -1505,5 +1614,8 @@
   applyMode();
   showTab(location.hash.slice(1));
   loadAll();
-  setInterval(loadLive, 60 * 1000);
+  startStream();
+  loadSpark();
+  setInterval(() => { if (!streaming()) loadLive(); }, 15 * 1000);
+  setInterval(loadSpark, 15 * 60 * 1000);
 })();

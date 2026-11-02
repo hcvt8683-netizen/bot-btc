@@ -398,3 +398,19 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 **Sau lần chạy đầu (không đổi phương pháp, kết quả không đổi):** thêm tham số `end` cho `run()` để dựng dữ liệu mẫu cố định cho bài kiểm tra giao diện; phiên bản mã đổi theo (nhật ký `data/entry/` chưa có dòng nào nên không ảnh hưởng). Trang web coi lúc tra như giá đóng ngày gốc (đúng mục `entry.touch.live`), nên các ngày được đếm từ hôm nay (giờ UTC) kể cả khi số liệu chậm một ngày.
 
 **Trang web làm mới:** đầu trang có giá trực tiếp lớn và % so với giá đóng; chia 7 thẻ (Tổng quan, Giá & ngày mua, Giải ngân, Dự báo, Kiểm định, Phân tích cũ, Hỏi Claude); thẻ tổng quan có 4 thẻ số chính và biểu đồ giá thấp nhất 7 ngày tới; nút nền sáng / tối; phần phân tích cũ chuyển vào thẻ riêng kèm cảnh báo (bước A2 mới làm phần thu gọn, chưa gỡ hay tính lại). Phần tổng quan, giá chờ mua và dự báo hiện ngay khi mở trang, không phải chờ phân tích cũ tải xong. Báo cáo tải về, gói claude.ai và hồ sơ gửi Claude có thêm phần giá chờ mua.
+
+## Bên bán: giá chờ bán, bán ngay hay chờ, ngày có giá cao nhất; giá thời gian thực (02/11/2026)
+
+**Yêu cầu:** bên bán có bộ công cụ như bên mua (khi chọn "Bên bán" trang vẫn hiện công cụ mua); giá trên trang cập nhật liên tục.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `exit`, commit `f58a558`, trước khi tính): mặt kia của mục `entry` trên giá **cao nhất** ngày Bitstamp: (A) giá cao nhất trong 1–7 và 30 ngày và khả năng chạm mức cao hơn; (B) bán ngay hay đặt lệnh chờ bán cao hơn x% (1, 2, 3, 5, 8%) trong k ngày (1, 3, 7, 30), không khớp thì bán ở giá đóng ngày thứ k, Holm trên 20 cấu hình; (C) vị trí ngày có giá cao nhất trong 7 ngày tới. Module riêng `bot/models/exit_timing.py` (không sửa `entry_timing.py`, nên phiên bản nhật ký bên mua giữ nguyên).
+
+**Kiểm tra rò rỉ:** `tests/test_exit.py`; đã cài thử hai lỗi nhìn trước (`z.shift(k - 1)`, `shift(days - 1)`): cả hai bị bắt, rồi khôi phục.
+
+**Kết quả** (`data/results/exit.json`, đi tới mỗi ngày từ 01/01/2016, dữ liệu đến 01/11/2026):
+- (A) Dải 8/10 của giá cao nhất trúng 81,4% (1 ngày) đến 82,9% (30 ngày), trong 75–85% ở mọi kỳ hạn. Bot hơi thận trọng: 7 ngày mức +2% nói 73,3%, thực tế 75,8%; +5% nói 46,4%, thực tế 48,8% (xu hướng tăng dài hạn của BTC). Brier tốt hơn cách không chỉnh độ dao động ở 1–7 ngày; ở 30 ngày kém hơn một chút (0,134 so với 0,132).
+- (B) Gần như ngang nhau: 19/20 cách chưa có lợi thế; "đặt cao hơn 8%, chờ 1 ngày" hơn bán ngay rõ ràng nhưng rất nhỏ (+0,17%, chỉ khớp 4% số lần). Không cách nào kém hơn rõ ràng. Lợi trung bình của các cách từ −0,06% đến +1,34%.
+- (C) Ngày đầu (23,0% và 24,4%) và ngày cuối (25,0% và 21,0%) hay có giá cao nhất ở cả hai nửa giai đoạn, cao hơn hẳn 1/7; các ngày giữa 9–13%.
+- Không thay hệ thống bán đã đăng ký (Giữ / Chốt lời một phần / Bán phần lớn).
+
+**Trang web:** thẻ "Giá & ngày mua" đổi thành "Giá & ngày bán" ở chế độ Bán (ô giá muốn bán, mức +1%…+10%, bảng nhiệt, biểu đồ giá cao nhất, bán ngay hay chờ); thẻ tổng quan bên bán có giá chờ bán và ngày có giá cao nhất. Đầu trang nhận giá qua luồng WebSocket Binance (`btcusdt@miniTicker`): giá nhảy từng giây, % và cao/thấp 24 giờ, đường giá 24 giờ (nến 15 phút); các công cụ tính lại theo giá mới tối đa 10 giây một lần; mất luồng thì nối lại và lấy giá REST 15 giây một lần. Bài kiểm tra ảnh chụp tắt luồng (`window.BOT_NO_WS`). Bảng kịch bản ở thẻ Kiểm định có thêm dòng "Cách đọc".

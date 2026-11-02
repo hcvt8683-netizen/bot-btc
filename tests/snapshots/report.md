@@ -136,6 +136,45 @@ Mua ngay hay chờ (thử lại mọi ngày từ 01/01/2016 đến 25/10/2026; d
 - Ngày hay rẻ nhất, đúng ở cả hai nửa giai đoạn từ 2016: Ngày thứ 1.
 - Không phải dự báo hướng giá: giá có thể chạm mức thấp rồi tăng lại, hoặc giảm tiếp.
 
+### Giá chờ bán và ngày có giá cao nhất (đo độ dao động, không đoán hướng giá)
+Giá cao nhất trong k ngày tới, tính từ giá đóng 80.006 $ ngày 26/10/2026 (Bitstamp):
+| Thời gian | Ngày đích | Khoảng 50% | Khoảng 80% | Giá cao nhất trong dải 8/10 |
+|---|---|---|---|---|
+| 1 ngày | 27/10/2026 | 80.260 $ – 81.103 $ | 80.112 $ – 81.832 $ | 81% (Wilson 80%–83%, 3951 lần độc lập) |
+| 2 ngày | 28/10/2026 | 80.389 $ – 81.604 $ | 80.171 $ – 82.513 $ | 82% (Wilson 80%–84%, 1975 lần độc lập) |
+| 3 ngày | 29/10/2026 | 80.487 $ – 81.989 $ | 80.205 $ – 83.199 $ | 82% (Wilson 80%–84%, 1316 lần độc lập) |
+| 4 ngày | 30/10/2026 | 80.585 $ – 82.295 $ | 80.239 $ – 83.883 $ | 82% (Wilson 79%–84%, 987 lần độc lập) |
+| 5 ngày | 31/10/2026 | 80.661 $ – 82.642 $ | 80.268 $ – 84.416 $ | 82% (Wilson 79%–84%, 789 lần độc lập) |
+| 6 ngày | 01/11/2026 | 80.736 $ – 82.856 $ | 80.294 $ – 84.827 $ | 82% (Wilson 79%–85%, 657 lần độc lập) |
+| 7 ngày | 02/11/2026 | 80.811 $ – 83.063 $ | 80.321 $ – 85.122 $ | 82% (Wilson 79%–85%, 563 lần độc lập) |
+| 30 ngày | 25/11/2026 | 82.172 $ – 87.396 $ | 80.875 $ – 94.734 $ | 83% (Wilson 76%–89%, 130 lần độc lập) |
+
+Khả năng giá chạm mức cao hơn giá đóng (trong k ngày):
+| Thời gian | 0% | +1% | +2% | +3% | +5% | +8% | +10% |
+|---|---|---|---|---|---|---|---|
+| 1 ngày | > 99% | 35% | 13% | 5% | 1% | < 1% | < 1% |
+| 2 ngày | > 99% | 53% | 25% | 11% | 4% | 1% | < 1% |
+| 3 ngày | > 99% | 61% | 34% | 17% | 6% | 2% | 1% |
+| 4 ngày | > 99% | 66% | 41% | 23% | 9% | 3% | 2% |
+| 5 ngày | > 99% | 70% | 45% | 28% | 12% | 4% | 3% |
+| 6 ngày | > 99% | 73% | 50% | 32% | 14% | 5% | 3% |
+| 7 ngày | > 99% | 75% | 54% | 36% | 17% | 6% | 4% |
+| 30 ngày | > 99% | 91% | 82% | 73% | 52% | 31% | 23% |
+
+Bán ngay hay chờ (thử lại mọi ngày từ 01/01/2016 đến 25/10/2026; dương = chờ bán được giá tốt hơn):
+| Đặt cao hơn | Chờ tối đa 1 ngày | Chờ tối đa 3 ngày | Chờ tối đa 7 ngày | Chờ tối đa 30 ngày |
+|---|---|---|---|---|
+| +1% | -0,02% (Chưa có lợi thế, khớp 63%) | -0,05% (Chưa có lợi thế, khớp 79%) | -0,06% (Chưa có lợi thế, khớp 87%) | +0,01% (Chưa có lợi thế, khớp 94%) |
+| +2% | +0,00% (Chưa có lợi thế, khớp 39%) | +0,01% (Chưa có lợi thế, khớp 63%) | +0,00% (Chưa có lợi thế, khớp 76%) | +0,18% (Chưa có lợi thế, khớp 90%) |
+| +3% | +0,06% (Chưa có lợi thế, khớp 26%) | +0,09% (Chưa có lợi thế, khớp 49%) | +0,18% (Chưa có lợi thế, khớp 66%) | +0,40% (Chưa có lợi thế, khớp 86%) |
+| +5% | +0,12% (Chưa có lợi thế, khớp 12%) | +0,26% (Chưa có lợi thế, khớp 31%) | +0,41% (Chưa có lợi thế, khớp 49%) | +0,74% (Chưa có lợi thế, khớp 77%) |
+| +8% | +0,18% (Chờ có lợi hơn, khớp 4%) | +0,39% (Chờ có lợi hơn, khớp 15%) | +0,61% (Chưa có lợi thế, khớp 31%) | +1,35% (Chưa có lợi thế, khớp 65%) |
+
+- Chỉ kết luận khi đã hiệu chỉnh Holm cho 20 cách thử (p < 0,05) và cùng chiều ở cả hai nửa giai đoạn (01/01/2016 → 29/05/2021 và 29/05/2021 → 25/10/2026).
+- Ngày dễ có giá cao nhất: 27/10/2026, 24% số lần (gấp 1,7 lần mức như nhau). Các ngày giữa chỉ khoảng 10% đến 12%.
+- Ngày hay có giá cao nhất, đúng ở cả hai nửa giai đoạn từ 2016: Ngày thứ 1, Ngày thứ 7.
+- Không phải dự báo hướng giá: giá có thể chạm mức cao rồi giảm lại, hoặc tăng tiếp. Không thay mức Giữ / Chốt lời một phần / Bán phần lớn ở thẻ Kiểm định.
+
 ### Kế hoạch giải ngân một khoản tiền (lợi nhuận 1 năm sau lần mua đầu, theo lịch sử)
 | Cách giải ngân | Trung vị | 10% xấu nhất | Xấu nhất | Tỷ lệ lỗ | Giảm sâu nhất | Thắng giải ngân một lần |
 |---|---|---|---|---|---|---|

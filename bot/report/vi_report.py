@@ -194,6 +194,16 @@ def _entry() -> dict | None:
         return None
 
 
+def _exit() -> dict | None:
+    """Selling price and day at lookup time: highest price of the next days, wait or sell now, highest of the next 7 days
+    (bot/models/exit_timing.py; the daily log is written by `python -m bot.cli exit`). None on failure."""
+    try:
+        from bot.models import exit_timing
+        return exit_timing.run(write=False)
+    except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
+        return None
+
+
 def build(now: dt.datetime | None = None, write: bool = True) -> dict:
     now = now or dt.datetime.now(dt.timezone.utc).replace(tzinfo=None, microsecond=0)
     summary = json.loads(SUMMARY.read_text(encoding="utf-8")) if SUMMARY.exists() else None
@@ -216,7 +226,7 @@ def build(now: dt.datetime | None = None, write: bool = True) -> dict:
            "reasons": reasons, "amount_example_usd": site.get("amount_example_usd", 100),
            "stale_data_days": int((cfg().get("risk") or {}).get("stale_data_days", 3)),
            "events": events, "events_meta": events_meta, "event_delay": bool([r for r in cfg()["model"].get("layer_c") or [] if r == "event_window"]),
-           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild(), "calib": _calib(now), "entry": _entry()}
+           "freshness": fresh, "evidence": _evidence(summary) if summary else None, "plan": _plan(), "forecast": _forecast(), "rebuild": _rebuild(), "calib": _calib(now), "entry": _entry(), "exit": _exit()}
     if write:
         OUT.write_text(json.dumps(rec, ensure_ascii=False, indent=1), encoding="utf-8")
     return rec

@@ -109,6 +109,7 @@ async def _render(page_path: pathlib.Path, data: dict, vw: int, scheme: str) -> 
         pg = await ctx.new_page()
         errs: list[str] = []
         pg.on("pageerror", lambda e: errs.append(str(e)))
+        await pg.add_init_script("window.BOT_NO_WS = true")  # no live Binance stream: the numbers must not move between runs
         await pg.clock.set_fixed_time(FIXED_NOW)
         await pg.route("**/*", route)
         await pg.goto(page_path.as_uri())
