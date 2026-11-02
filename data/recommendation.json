@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-02T07:00:22Z",
+ "generated_at": "2026-11-02T07:54:33Z",
  "multiplier": 1.0,
  "mode": "safe",
  "layer": null,
@@ -43,22 +43,25 @@
    "error": ""
   },
   "binance_funding": {
-   "last": null,
-   "ok": false,
-   "age_days": null,
-   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
+   "last": "2026-10-31",
+   "ok": true,
+   "age_days": 2,
+   "error": "",
+   "via": "data.binance.vision"
   },
   "binance_oi": {
-   "last": null,
-   "ok": false,
-   "age_days": null,
-   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
+   "last": "2026-11-02",
+   "ok": true,
+   "age_days": 0,
+   "error": "",
+   "via": "data.binance.vision"
   },
   "binance_basis": {
-   "last": null,
-   "ok": false,
-   "age_days": null,
-   "error": "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
+   "last": "2026-11-01",
+   "ok": true,
+   "age_days": 1,
+   "error": "",
+   "via": "data.binance.vision"
   },
   "stablecoins": {
    "last": "2026-11-02",
@@ -68,9 +71,9 @@
   },
   "fred_DTWEXBGS": {
    "last": "2026-10-23",
-   "ok": false,
+   "ok": true,
    "age_days": 10,
-   "error": "không tải được, đang dùng bản gần nhất"
+   "error": ""
   },
   "fred_DFII10": {
    "last": "2026-10-29",

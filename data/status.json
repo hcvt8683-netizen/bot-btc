@@ -39,25 +39,39 @@
    "snapshot": "đã có bản hôm nay"
   },
   "binance_funding": {
-   "ok": false,
-   "errors": [
-    "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)"
-   ],
-   "trace": "       ^^^^^^^^^\n  File \"/home/runner/work/bot-btc/bot-btc/bot/data/fetchers/binance.py\", line 60, in fetch_funding\n    j = http.get_json(f\"{FUNDING}?symbol=BTCUSDT&startTime={s}&limit=1000\")\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)\n"
+   "ok": true,
+   "via": "data.binance.vision",
+   "primary_error": "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&startTime=1567296000000&limit=1000)",
+   "source": "binance_funding",
+   "errors": [],
+   "warnings": [],
+   "last": "2026-10-31",
+   "rows": 183,
+   "snapshot": "2026-11-02.parquet"
   },
   "binance_oi": {
-   "ok": false,
-   "errors": [
-    "FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)"
-   ],
-   "trace": "  ^^^^^^^^^\n  File \"/home/runner/work/bot-btc/bot-btc/bot/data/fetchers/binance.py\", line 79, in fetch_oi\n    return parse_oi(http.get_json(f\"{OI_HIST}?symbol=BTCUSDT&period=1d&limit=500\"))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)\n"
+   "ok": true,
+   "via": "data.binance.vision",
+   "primary_error": "FetchError: HTTP 451 (https://fapi.binance.com/futures/data/openInterestHist?symbol=BTCUSDT&period=1d&limit=500)",
+   "source": "binance_oi",
+   "errors": [],
+   "warnings": [],
+   "last": "2026-11-02",
+   "rows": 14,
+   "snapshot": "2026-11-02.parquet"
   },
   "binance_basis": {
-   "ok": false,
-   "errors": [
-    "FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)"
+   "ok": true,
+   "via": "data.binance.vision",
+   "primary_error": "FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)",
+   "source": "binance_basis",
+   "errors": [],
+   "warnings": [
+    "1 khoảng trống (lớn nhất 2 ngày): 27/10/2026→29/10/2026"
    ],
-   "trace": "ot-btc/bot/data/fetchers/binance.py\", line 87, in fetch_basis\n    j = http.get_json(f\"{DAPI_CONT}?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d\"\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nbot.data.http.FetchError: HTTP 451 (https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&startTime=1596240)\n"
+   "last": "2026-11-01",
+   "rows": 13,
+   "snapshot": "2026-11-02.parquet"
   },
   "stablecoins": {
    "ok": true,
@@ -71,17 +85,16 @@
    "snapshot": "đã có bản hôm nay"
   },
   "fred_DTWEXBGS": {
-   "ok": false,
+   "ok": true,
    "source": "fred_DTWEXBGS",
-   "errors": [
-    "dữ liệu cũ: dòng mới nhất 23/10/2026, đã 10 ngày"
-   ],
+   "errors": [],
    "warnings": [
     "2 khoảng trống (lớn nhất 7 ngày): 05/02/2010→12/02/2010, 21/01/2016→27/01/2016",
     "usd_broad: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 26/03/2020"
    ],
    "last": "2026-10-23",
-   "rows": 5217
+   "rows": 5217,
+   "snapshot": "2026-11-02.parquet"
   },
   "fred_DFII10": {
    "ok": true,
@@ -164,5 +177,5 @@
    "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-02T06:59:42Z"
+ "fetched_at": "2026-11-02T07:53:48Z"
 }
