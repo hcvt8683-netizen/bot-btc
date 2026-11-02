@@ -3,6 +3,7 @@
   "binance_basis": "Binance (hợp đồng tương lai quý)",
   "binance_funding": "Binance (funding rate hợp đồng vĩnh cửu)",
   "binance_oi": "Binance (khối lượng hợp đồng mở)",
+  "binance_perp_1h": "Binance (nến giờ hợp đồng vĩnh cửu)",
   "binance_spot": "Binance (giá và khối lượng ngày)",
   "bitstamp": "Bitstamp (giá ngày từ 2011, để đối chiếu)",
   "coingecko": "CoinGecko (giá 365 ngày gần nhất, để đối chiếu)",

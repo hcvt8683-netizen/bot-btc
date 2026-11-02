@@ -48,6 +48,7 @@ sources:
   binance_funding: {lag_days: 0, archive_lag_days: 33}
   binance_oi: {lag_days: 0, archive_lag_days: 2}
   binance_basis: {lag_days: 0, archive_lag_days: 2}
+  binance_perp_1h: {lag_days: 0, archive_lag_days: 2}
   stablecoins: {lag_days: 1}
   fred: {lag_days: 1}
   fred_monthly: {lag_days: 45}

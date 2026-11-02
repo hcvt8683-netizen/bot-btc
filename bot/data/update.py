@@ -37,6 +37,11 @@ def _fred(series: str) -> Callable[[], pd.DataFrame]:
     return lambda: fred.fetch_one(series)
 
 
+def _since(source: str, days: int = 14) -> dt.date | None:
+    """None (whole history) before the first snapshot of `source`, else the last `days` days."""
+    return None if not pit_store.snapshots(source) else dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=days)
+
+
 SOURCES: list[Source] = [
     Source("coinmetrics", coinmetrics.fetch, ["price", "mcap", "mvrv", "hashrate", "iss_usd"]),
     Source("coinmetrics_ext", coinmetrics_ext.fetch, ["volume_spot_usd", "supply"]),
@@ -47,6 +52,8 @@ SOURCES: list[Source] = [
     Source("binance_funding", binance.fetch_funding, ["funding_rate"], freq="8h", fallback=binance_vision.fetch_funding, recent_days=70),
     Source("binance_oi", binance.fetch_oi, ["oi_usd"], forward_only=True, fallback=binance_vision.fetch_oi),
     Source("binance_basis", binance.fetch_basis, ["fut_close"], fallback=binance_vision.fetch_basis),
+    Source("binance_perp_1h", lambda: binance.fetch_perp_1h(_since("binance_perp_1h")), ["close", "high", "low"], freq="1h",
+           fallback=lambda: binance_vision.fetch_perp_1h(_since("binance_perp_1h"))),
     Source("stablecoins", defillama.fetch, ["stable_usd"]),
     *[Source(f"fred_{s}", _fred(s), [col], freq="M" if s in fred.MONTHLY else "B", stale_days=fred.WEEKLY.get(s))
       for s, col in fred.SERIES.items()],

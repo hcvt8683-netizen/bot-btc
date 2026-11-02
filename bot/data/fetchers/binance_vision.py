@@ -25,6 +25,8 @@ BASE = "https://data.binance.vision/data/futures"
 FUNDING = BASE + "/um/monthly/fundingRate/BTCUSDT/BTCUSDT-fundingRate-{month}.zip"
 METRICS = BASE + "/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-{day}.zip"
 CM_KLINES = BASE + "/cm/daily/klines/{symbol}/1d/{symbol}-1d-{day}.zip"
+PERP_1H_MONTH = BASE + "/um/monthly/klines/BTCUSDT/1h/BTCUSDT-1h-{month}.zip"
+PERP_1H_DAY = BASE + "/um/daily/klines/BTCUSDT/1h/BTCUSDT-1h-{day}.zip"
 DAYS = 14  # daily files read per run: refills two weeks of missed runs (some files answer slowly, ~20 s)
 KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time", "quote_volume", "count",
               "taker_buy_volume", "taker_buy_quote_volume", "ignore"]
@@ -94,6 +96,32 @@ def fetch_oi(days: int = DAYS, today: dt.date | None = None) -> pd.DataFrame:
             rows.append(r)
     out = pd.DataFrame(rows, columns=["date", "oi_btc", "oi_usd"])
     return out.assign(date=_api_dates(out["date"]))
+
+
+def fetch_perp_1h(start: dt.date | None = None, today: dt.date | None = None) -> pd.DataFrame:
+    """Hourly BTCUSDT perpetual candles like fapi `klines` 1h (`time` = open time). From `start` (default 2020-01-01, the
+    first archived month): whole months from the monthly files, the rest day by day (a month appears after it ends)."""
+    t = _today(today)
+    d = start or dt.date(2020, 1, 1)
+    parts = []
+    while d < t:
+        month_end = (pd.Period(d, "M") + 1).start_time.date()
+        whole = d.day == 1 and month_end <= t
+        f = _get(PERP_1H_MONTH.format(month=str(pd.Period(d, "M"))), KLINE_COLS) if whole else None
+        if f is not None:
+            parts.append(f)
+            d = month_end
+            continue
+        if (f := _get(PERP_1H_DAY.format(day=d.isoformat()), KLINE_COLS)) is not None:
+            parts.append(f)
+        d += dt.timedelta(days=1)
+    if not parts:
+        return pd.DataFrame(columns=["time", "open", "high", "low", "close", "volume", "quote_volume"])
+    raw = pd.concat(parts, ignore_index=True)
+    out = pd.DataFrame({"time": pd.to_datetime(raw["open_time"].astype("int64"), unit="ms")})
+    for c in ["open", "high", "low", "close", "volume", "quote_volume"]:
+        out[c] = pd.to_numeric(raw[c], errors="coerce")
+    return out.drop_duplicates("time").sort_values("time").reset_index(drop=True)
 
 
 def _last_friday(year: int, month: int) -> dt.date:

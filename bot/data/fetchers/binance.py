@@ -12,6 +12,8 @@ from bot.data import http
 
 SPOT = ["https://api.binance.com/api/v3/klines", "https://data-api.binance.vision/api/v3/klines"]
 FUNDING = "https://fapi.binance.com/fapi/v1/fundingRate"
+PERP_KLINES = "https://fapi.binance.com/fapi/v1/klines"
+HOUR_MS = 3_600_000
 OI_HIST = "https://fapi.binance.com/futures/data/openInterestHist"
 DAPI_CONT = "https://dapi.binance.com/dapi/v1/continuousKlines"
 DAY_MS = 86_400_000
@@ -78,6 +80,28 @@ def parse_oi(rows: list[dict]) -> pd.DataFrame:
 def fetch_oi() -> pd.DataFrame:
     """Daily open interest; Binance keeps only ~30 days, so this must be recorded forward every day."""
     return parse_oi(http.get_json(f"{OI_HIST}?symbol=BTCUSDT&period=1d&limit=500"))
+
+
+def perp_frame(rows: list[list]) -> pd.DataFrame:
+    """Hourly perpetual candles keyed by `time` = open time (UTC)."""
+    return _klines_df(rows).rename(columns={"date": "time"})
+
+
+def fetch_perp_1h(start: str | None = None, end_ms: int | None = None) -> pd.DataFrame:
+    """Hourly candles of the BTCUSDT perpetual from `start` (default 2020-01-01, where the archive begins); drops the open candle."""
+    s = int(pd.Timestamp(start or "2020-01-01").value // 1_000_000)
+    now = int(pd.Timestamp.utcnow().value // 1_000_000) if end_ms is None else end_ms
+    rows: list[list] = []
+    for _ in range(100):
+        j = http.get_json(f"{PERP_KLINES}?symbol=BTCUSDT&interval=1h&startTime={s}&limit=1500")
+        if not j:
+            break
+        rows += j
+        s = j[-1][0] + HOUR_MS
+        if len(j) < 1500:
+            break
+    df = perp_frame(rows)
+    return df[df["time"] + pd.Timedelta(hours=1) <= pd.Timestamp(now, unit="ms")].drop_duplicates("time").reset_index(drop=True)
 
 
 def fetch_basis(start: str = "2020-08-01") -> pd.DataFrame:
