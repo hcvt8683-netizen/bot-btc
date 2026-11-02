@@ -158,6 +158,21 @@ plan:
   signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
   episodes: "số đợt độc lập = số tuần bắt đầu chia 52 (các cửa sổ 1 năm chồng lấn); Wilson tính theo số đợt"
 
+# Kế hoạch chốt lời dần (bên bán, đối xứng mục plan): bán một lượng BTC theo từng đợt. Đăng ký trước khi tính (02/11/2026, người dùng yêu cầu).
+sell_plan:
+  why: "ở chế độ Bên bán, người dùng muốn biết nên bán một lượng BTC một lần hay chia thành nhiều đợt, như Giải ngân của bên mua"
+  options_weeks: [1, 4, 13, 26, 52]   # 1 = bán hết một lần; còn lại chia đều số BTC, bán mỗi thứ Hai trong N tuần
+  horizon_weeks: 52                   # đọc kết quả 52 tuần sau lần bán đầu (mọi phương án đã bán hết)
+  data_from: 2016-07-09               # như mục plan; toàn bộ từ 2012-11-28 chỉ ghi thêm để tham khảo
+  data_from_full: 2012-11-28
+  execution: "bán ở giá đóng thứ Hai (như mục plan), nhận giá × (1 − trượt giá) rồi trừ phí, phí và trượt giá như bot; tiền đã thu giữ nguyên, lãi 0%"
+  outcome: "lợi nhuận = tổng tiền thu được / (số BTC × giá đóng thứ Hai của tuần bán đầu) − 1 (so với giá lúc quyết định bán); giảm sâu nhất = mức tụt lớn nhất trong năm của tiền đã thu + BTC chưa bán × giá"
+  best: "phương án có trung vị lợi nhuận cao nhất"
+  rule: "đề xuất = trong phương án tốt nhất và các phương án không kém nó đáng kể (khoảng tin cậy 95% của trung vị chênh lệch theo từng tuần bắt đầu, bootstrap khối 52 tuần, chứa 0), chọn phương án có phân vị 10% cao nhất (ít thiệt nhất khi gặp lúc xấu)"
+  vs_once: "tỷ lệ tuần bắt đầu mà phương án thu được nhiều hơn bán hết một lần, Wilson theo số đợt độc lập (số tuần bắt đầu chia 52)"
+  signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
+  page: "chế độ Bên bán, thẻ thay cho Giải ngân: người dùng nhập số BTC muốn bán và ngày bắt đầu; bảng so các phương án, phương án đề xuất, lịch bán theo ngày (số BTC mỗi đợt, tiền thu ước tính theo giá lúc tra); không lưu số BTC"
+
 # Dự báo dải giá BTC theo ngày (tính năng web, để người dùng tự kiểm chứng). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
 forecast:
   price: "giá đóng ngày Coin Metrics (00:00 UTC); ngày gốc = ngày cuối có giá. Ngoại lệ có chủ đích với nguyên tắc giá đóng tuần, vì người dùng cần mốc từng ngày"
