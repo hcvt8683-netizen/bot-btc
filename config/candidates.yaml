@@ -284,3 +284,36 @@ exit:
     compare: "so với 1/7, Wilson theo số cửa sổ 7 ngày không chồng lấn, riêng hai nửa giai đoạn từ check_from; vị trí nào khoảng tin cậy nằm hẳn trên 1/7 ở cả hai nửa mới được nói là 'hay đắt nhất'"
   log: "mỗi ngày ghi một lần các phân vị 10/25/50/75/90% giá cao nhất (A) của ngày gốc mới nhất vào data/exit/exit_log.csv (chỉ thêm dòng, chỉ ghi khi nến cuối của kỳ hạn chưa đóng, không ghi bù); đổi phương pháp = phiên bản mới"
   no_direction: "không phải dự báo hướng giá"
+
+# Long/Short hợp đồng vĩnh cửu: khả năng có lãi sau phí và funding theo kỳ hạn người dùng chọn, theo trạng thái thị trường
+# lúc tra. Đăng ký trước khi tính bất kỳ con số nào (02/11/2026); người dùng đã duyệt kỳ hạn, phí, đòn bẩy và 5 điều kiện.
+perp:
+  why: "người dùng muốn vào lệnh long/short hợp đồng tương lai với khả năng có lãi cao nhất. Phần I cho thấy tín hiệu chưa đoán được hướng giá; mục này đo trung thực từng điều kiện định trước và nói 'Không nên vào lệnh' khi chưa có lợi thế"
+  instrument: "Binance USDT-M BTCUSDT vĩnh cửu: nến giờ UTC (nguồn binance_perp_1h, API fapi hoặc kho data.binance.vision) từ 01/01/2020 (kho bắt đầu từ đây); funding 8 giờ (nguồn binance_funding). Nến ngày = gộp đủ 24 nến giờ của ngày UTC, thiếu giờ nào thì bỏ ngày đó"
+  start: 2020-01-01
+  horizons_hours: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+  horizons_days: [1, 2, 3, 4, 5, 6, 7]
+  decision: "kỳ hạn giờ: mỗi lần nến giờ đóng (t = giờ đóng nến), trạng thái tính trên nến giờ; kỳ hạn ngày: mỗi lần nến ngày đóng (00:00 UTC), trạng thái tính trên nến ngày. Vào lệnh ở giá đóng tại t, đóng lệnh ở giá đóng tại t + kỳ hạn"
+  costs: {fee: 0.0005, slippage: 0.0002}   # mỗi chiều: phí taker 0,05% (người dùng chọn) + trượt giá 0,02%
+  net: "lãi long = giá ra / giá vào − 1 − 2 × (phí + trượt giá) − tổng funding có mốc trong (t, t + kỳ hạn]; lãi short = −(giá ra / giá vào − 1) − 2 × (phí + trượt giá) + cùng tổng funding. Có lãi = lãi > 0 (đòn bẩy 1x)"
+  states:
+    window: 20          # số nến cho xu hướng và độ dao động (nến giờ hoặc nến ngày theo kỳ hạn)
+    lookback_days: 365  # ngưỡng phân vị lấy từ 365 ngày trước t, không gồm t
+    min_days: 180       # cần ít nhất 180 ngày trước t để có ngưỡng; trước đó trạng thái để trống
+    trend: "giá đóng t so với trung bình giá đóng 20 nến gần nhất (gồm t): 'tren' nếu cao hơn, 'duoi' nếu thấp hơn hoặc bằng"
+    funding: "trung bình các mốc funding trong (t − 24 giờ, t]: 'cao' nếu ≥ phân vị 80% của chính chuỗi này (lấy theo từng giờ) trong 365 ngày trước t, 'thap' nếu ≤ phân vị 20%"
+    stretch: "lợi suất của đúng một kỳ hạn vừa qua (giá đóng t / giá đóng t − kỳ hạn − 1): 'tang_manh' nếu ≥ phân vị 90% của chính chuỗi này trong 365 ngày trước t, 'giam_manh' nếu ≤ phân vị 10%"
+    vol: "độ lệch chuẩn lợi suất log của 20 nến gần nhất: 'cao' nếu ≥ phân vị 80% của chính chuỗi này trong 365 ngày trước t, 'binh_thuong' nếu thấp hơn"
+  cells: [moc, trend_tren, trend_duoi, funding_cao, funding_thap, stretch_tang_manh, stretch_giam_manh, vol_cao, vol_binh_thuong]   # mỗi ô 2 phía long/short; moc = mọi thời điểm; không ghép điều kiện
+  period: "mọi thời điểm quyết định có đủ trạng thái và đã biết kết quả, đến nến cuối đã đóng"
+  stats: "tỷ lệ có lãi, lãi trung bình, trung vị, phân vị 10%; số lần không chồng lấn (lấy lần sớm nhất, bỏ các lần nằm trong kỳ hạn của nó, lặp lại) làm cỡ mẫu cho khoảng tin cậy Wilson; hai nửa thời gian, chia ở thời điểm quyết định giữa của kỳ hạn đó (chung cho mọi ô)"
+  verdict: "một ô-phía 'có lợi thế' khi: cận dưới Wilson với z = Φ⁻¹(1 − 0,05/558) (Bonferroni: 31 kỳ hạn × 9 ô × 2 phía) > 50%, lãi trung bình > 0, và ở cả hai nửa tỷ lệ có lãi > 50% và lãi trung bình > 0. Lúc tra: xét các ô khớp trạng thái hiện tại (luôn gồm moc); có ô 'có lợi thế' cho đúng một phía → 'Nên long' hoặc 'Nên short' (nêu ô có cận dưới cao nhất); còn lại → 'Không nên vào lệnh'"
+  display: "khả năng có lãi kèm Wilson 95% theo số lần không chồng lấn, của ô khớp có cận dưới cao nhất (không ô điều kiện nào khớp thì moc); bảng đủ 9 ô × 2 phía của kỳ hạn đã chọn, đánh dấu ô đang khớp"
+  leverage:
+    mmr: 0.004          # tỷ lệ ký quỹ duy trì bậc thấp nhất của BTCUSDT
+    liq: "ký quỹ riêng; bị thanh lý khi trong kỳ hạn giá đi ngược tới ngưỡng m = 1/L − mmr: long nếu giá thấp nhất các nến (t, t + kỳ hạn] ≤ giá vào × (1 − m), short nếu giá cao nhất ≥ giá vào × (1 + m)"
+    grid_pct: [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 7.5, 10, 15, 20, 30, 50]
+    stats: "mỗi ô-phía, mỗi m trong lưới: tỷ lệ bị thanh lý, tỷ lệ có lãi mà không bị thanh lý, trung bình (trên mọi lần) của lãi khi không bị thanh lý (lần bị thanh lý tính 0). Trang nội suy tuyến tính theo m của đòn bẩy người dùng nhập; lãi trên ký quỹ ≈ L × trung bình đó − tỷ lệ thanh lý (mất hết ký quỹ); m ngoài lưới thì ghi rõ"
+  live: "trình duyệt tải nến giờ, nến ngày, funding mới nhất từ fapi.binance.com lúc bấm Chạy để xác định trạng thái; ngưỡng phân vị lấy từ lần chạy Daily gần nhất. Không tải được thì dùng trạng thái lúc chạy Daily và ghi rõ"
+  log: "mỗi ngày ghi một lần, tại nến ngày cuối đã đóng (00:00 UTC), mỗi kỳ hạn: các ô khớp, khả năng có lãi long/short, kết luận, vào data/perp/perp_log.csv (chỉ thêm dòng, không ghi bù); chấm khi đủ kỳ hạn; đổi phương pháp = phiên bản mới. Giai đoạn kiểm tra cuối mới = nhật ký này từ 03/11/2026, chấm lần đầu khi đủ 1 năm"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư; với đòn bẩy, một lần đi ngược có thể mất hết ký quỹ"
