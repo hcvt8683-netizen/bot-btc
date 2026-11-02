@@ -44,7 +44,7 @@ Máy chủ GitHub đặt ở Mỹ. Binance thường trả HTTP 451/403 cho `api
 | Binance dapi (hợp đồng quý) | 200 OK | **bị chặn, HTTP 451** |
 | DefiLlama | 200 OK | OK |
 | FRED (CSV) | 200 OK | OK |
-| Binance data.binance.vision (kho file phái sinh, dự phòng từ 11/2026) | 200 OK (02/11/2026) | chưa thử: lần chạy `Daily` đầu tiên sau khi đưa lên `main` sẽ ghi vào `data/endpoint_check.json` |
+| Binance data.binance.vision (kho file phái sinh, dự phòng từ 11/2026) | 200 OK (02/11/2026) | OK (Daily #19, 02/11/2026): funding, hợp đồng mở, hợp đồng quý tải qua kho |
 
 Từ lần chạy sau, kết quả kiểm tra từng địa chỉ được lưu mỗi ngày trong `data/endpoint_check.json`; trạng thái tải của từng nguồn nằm trong `data/status.json`.
 Bảng kết quả từ máy chủ cũng nằm ở phần tóm tắt (Summary) của mỗi lần chạy `Daily`. Vì Binance chặn hợp đồng tương lai:
