@@ -246,3 +246,41 @@ entry:
     compare: "so với đều nhau 1/7, Wilson theo số cửa sổ 7 ngày không chồng lấn, riêng hai nửa giai đoạn từ check_from. Vị trí nào khoảng tin cậy nằm hẳn trên 1/7 ở cả hai nửa mới được nói là 'hay rẻ nhất'; còn lại 'không ngày nào nổi trội'"
   log: "mỗi ngày ghi một lần các phân vị 10/25/50/75/90% giá thấp nhất (A) của ngày gốc mới nhất vào data/entry/entry_log.csv (chỉ thêm dòng, chỉ ghi khi nến cuối của kỳ hạn chưa đóng, không ghi bù); chấm khi đã có đủ nến; đổi phương pháp = phiên bản mới, thống kê tách theo phiên bản"
   no_direction: "không phải dự báo hướng giá và không thay khuyến nghị mua đều"
+
+# Bên bán: giá chờ bán, bán ngay hay chờ, ngày có giá cao nhất 7 ngày tới (mặt kia của mục entry, cùng cách đo với giá cao nhất ngày).
+# Đăng ký trước khi tính bất kỳ con số nào (02/11/2026).
+exit:
+  why: "người đang giữ BTC muốn biết nên bán (chốt lời) ngày nào, ở giá nào. Cùng cách đo với mục entry nhưng dùng giá cao nhất ngày; không đoán hướng giá, không thay hệ thống bán đã đăng ký (mục sell) và mức Giữ / Chốt lời một phần / Bán phần lớn"
+  price: "nến ngày Bitstamp BTC/USD, giá cao nhất ngày (nhỏ hơn giá đóng hoặc không dương thì coi là thiếu). Ngày gốc T = nến cuối đã đóng; giá mốc = giá đóng T"
+  horizons_days: [1, 2, 3, 4, 5, 6, 7, 30]
+  vol_days: 30
+  window_days: 1461
+  min_obs: 365
+  check_from: 2016-01-01
+  # (A) Giá chờ bán: giá cao nhất trong k ngày tới
+  touch:
+    stat: "z = log(giá cao nhất của các nến T+1..T+k / giá đóng T) / (độ lệch chuẩn lợi suất log ngày (giá đóng) của 30 ngày đến T × √k)"
+    grid: "phân vị 1%, 2%, …, 99% của z cho mỗi kỳ hạn. Xác suất chạm giá X (cao hơn giá mốc) = tỷ lệ z ≥ log(X / giá mốc) / (σ√k) = 1 − (nội suy tuyến tính giữa các phân vị); ngoài 1–99% ghi '< 1%' hoặc '> 99%'"
+    show_quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]
+    show_premiums: [0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.10]
+    live: "như mục entry: trang web dùng giá lúc tra làm giá mốc; σ và phân vị chỉ đổi theo ngày; người dùng nhập giá muốn bán thì tính xác suất chạm theo cùng cách"
+    check: "như mục entry: độ phủ từng phân vị của giá cao nhất, dải 80% = 10–90%; xác suất chạm từng mức trong show_premiums so với tỷ lệ chạm thật; Brier so với cùng cách không chỉnh độ dao động; Wilson theo số cửa sổ không chồng lấn"
+    trust: "kỳ hạn nào dải 80% của giá cao nhất phủ ngoài 75–85% thì trang ghi rõ 'dải chưa đúng tỷ lệ'"
+  # (B) Bán ngay hay chờ giá cao hơn
+  wait:
+    premiums: [0.01, 0.02, 0.03, 0.05, 0.08]
+    days: [1, 3, 7, 30]
+    rule: "tại giá đóng T đặt lệnh chờ bán ở giá đóng T × (1 + x) trong k ngày (nến T+1..T+k). Khớp khi giá cao nhất ngày ≥ giá lệnh, bán đúng giá lệnh; không khớp thì bán ở giá đóng T+k. So với bán ngay ở giá đóng T: lợi = giá bán được / giá đóng T − 1 (dương = chờ được giá tốt hơn). Phí như nhau nên bỏ qua"
+    period: "mọi ngày gốc từ check_from đến ngày cuối đã biết kết quả k ngày"
+    stats: "như mục entry: lợi trung bình, trung vị, phân vị 10%, tỷ lệ khớp, tỷ lệ chờ được giá tốt hơn, lợi trung bình hai nửa giai đoạn"
+    ci: "như mục entry: bootstrap khối dừng (khối trung bình k ngày, 2000 lần, hạt giống 0), p hai phía, số đợt = số ngày chia k"
+    verdict: "'Chờ có lợi hơn' khi p Holm trên 20 cấu hình < 0,05 và lợi trung bình > 0 ở cả hai nửa; 'Bán ngay tốt hơn' khi p Holm < 0,05 và < 0 ở cả hai nửa; còn lại 'chưa có lợi thế'"
+    no_tuning: "chỉ báo cáo đủ 20 cấu hình, không chọn cấu hình tốt nhất để khuyên"
+  # (C) Ngày nào có giá cao nhất trong 7 ngày tới
+  highest_day:
+    days: 7
+    stat: "với mỗi ngày gốc T: vị trí 1..7 của nến có giá cao nhất ngày lớn nhất trong T+1..T+7; thêm 'không ngày nào lên trên giá đóng T' (= 1 − xác suất chạm 0% của A, kỳ hạn 7)"
+    estimate: "tỷ lệ của từng vị trí trong 4 năm trước ngày gốc (chỉ cửa sổ đã biết kết quả)"
+    compare: "so với 1/7, Wilson theo số cửa sổ 7 ngày không chồng lấn, riêng hai nửa giai đoạn từ check_from; vị trí nào khoảng tin cậy nằm hẳn trên 1/7 ở cả hai nửa mới được nói là 'hay đắt nhất'"
+  log: "mỗi ngày ghi một lần các phân vị 10/25/50/75/90% giá cao nhất (A) của ngày gốc mới nhất vào data/exit/exit_log.csv (chỉ thêm dòng, chỉ ghi khi nến cuối của kỳ hạn chưa đóng, không ghi bù); đổi phương pháp = phiên bản mới"
+  no_direction: "không phải dự báo hướng giá"
