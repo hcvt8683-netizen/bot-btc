@@ -421,6 +421,7 @@
    "fresh_err": "{0}: lỗi, {1}",
    "fresh_ok": "{0}: đến {1}",
    "fresh_title": "Độ mới của dữ liệu",
+   "fresh_via": "{0}: đến {1}, lấy từ kho lưu trữ {2} vì API bị chặn ở Mỹ (chậm {3} ngày, vẫn cùng số liệu)",
    "layer_A": "Lớp chu kỳ",
    "layer_B": "Lớp ngắn hạn",
    "layer_C": "Lớp vĩ mô",

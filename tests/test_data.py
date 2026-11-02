@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import datetime as dt
+import io
+import zipfile
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from bot.data import pit_store, quality
-from bot.data.fetchers import alternative, binance, coinmetrics, defillama, events, fred
+from bot.data import http, pit_store, quality, update
+from bot.data.fetchers import alternative, binance, binance_vision, coinmetrics, defillama, events, fred
 from bot.i18n import fmt
 
 
@@ -122,3 +124,100 @@ def test_fed_regime_from_six_month_change():
     fed = pd.DataFrame({"date": days, "fed_upper": rate})
     sundays = pd.DatetimeIndex(["2024-12-29", "2025-03-02", "2025-08-03", "2026-10-25"])
     assert list(wc.fed_regime(fed, sundays)) == ["giu", "giam", "giu", "giu"]
+
+
+def _zip(name: str, text: str) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr(name, text)
+    return buf.getvalue()
+
+
+def _archive(monkeypatch, files: dict[str, bytes]) -> list[str]:
+    """Fake data.binance.vision: listed URLs answer, every other file is not published yet (HTTP 404)."""
+    asked: list[str] = []
+
+    def get(url: str, **kw) -> bytes:
+        asked.append(url)
+        if url in files:
+            return files[url]
+        raise http.FetchError(url, "HTTP 404", 404)
+    monkeypatch.setattr(http, "get", get)
+    return asked
+
+
+def test_archive_funding_same_rows_as_api(monkeypatch):
+    # rows copied from BTCUSDT-fundingRate-2026-10.zip (unsorted here); September is not "published"
+    oct_ = binance_vision.FUNDING.format(month="2026-10")
+    csv = "calc_time,funding_interval_hours,last_funding_rate\n1793462400000,8,0.00010000\n1790812800001,8,0.00007981\n"
+    asked = _archive(monkeypatch, {oct_: _zip("f.csv", csv)})
+    f = binance_vision.fetch_funding(today=dt.date(2026, 11, 2))
+    assert asked == [binance_vision.FUNDING.format(month="2026-09"), oct_]
+    api = binance.parse_funding([{"fundingTime": 1790812800001, "fundingRate": "0.00007981"}, {"fundingTime": 1793462400000, "fundingRate": "0.0001"}])
+    pd.testing.assert_frame_equal(f, api)  # same keys to the millisecond, same values, sorted
+
+
+def test_archive_oi_is_last_row_of_previous_day(monkeypatch):
+    head = "create_time,symbol,sum_open_interest,sum_open_interest_value,count_toptrader_long_short_ratio\n"
+    files = {binance_vision.METRICS.format(day="2026-10-26"): _zip("m.csv", head +  # unsorted, as in the archive
+                 "2026-10-26 23:55:00,BTCUSDT,95514.126,7652201416.500469,3.0\n2026-10-26 00:00:00,BTCUSDT,93704.608,7.5e9,3.0\n"),
+             binance_vision.METRICS.format(day="2026-10-27"): _zip("m.csv", head + "2026-10-27 12:00:00,BTCUSDT,1,1,1\n")}  # day incomplete
+    _archive(monkeypatch, files)
+    oi = binance_vision.fetch_oi(days=3, today=dt.date(2026, 10, 29))  # 28/10 not published yet
+    api = binance.parse_oi([{"timestamp": 1793059200000, "sumOpenInterest": "95514.126", "sumOpenInterestValue": "7652201416.500469"}])
+    pd.testing.assert_frame_equal(oi, api)  # API row of 27/10 = archive 26/10 23:55
+
+
+def test_archive_quarterly_contract_rolls_on_expiry(monkeypatch):
+    q = binance_vision.current_quarter_expiry
+    assert q(dt.date(2026, 9, 24)) == dt.date(2026, 9, 25) and q(dt.date(2026, 9, 25)) == dt.date(2026, 12, 25)
+    assert q(dt.date(2026, 12, 26)) == dt.date(2027, 3, 26) and q(dt.date(2027, 1, 1)) == dt.date(2027, 3, 26)
+    row = "1790208000000,84000,84500,83900,{c},1,1790294399999,1,1,1,1,0\n"
+    header = ",".join(binance_vision.KLINE_COLS) + "\n"
+    _archive(monkeypatch, {
+        binance_vision.CM_KLINES.format(symbol="BTCUSD_260925", day="2026-09-24"): _zip("k.csv", row.format(c=84373.4)),  # no header
+        binance_vision.CM_KLINES.format(symbol="BTCUSD_261225", day="2026-09-25"): _zip("k.csv", header + row.format(c=85026.2) * 2)})
+    b = binance_vision.fetch_basis(days=3, today=dt.date(2026, 9, 26))  # 23/09 missing from the archive
+    assert list(b["date"].dt.strftime("%d/%m")) == ["24/09", "25/09"] and list(b["fut_close"]) == [84373.4, 85026.2]  # = dapi CURRENT_QUARTER
+
+
+def _oi(last: str) -> pd.DataFrame:
+    d = pd.date_range(end=last, periods=20, freq="D")
+    return pd.DataFrame({"date": d, "oi_btc": 9e4, "oi_usd": np.linspace(7e9, 8e9, 20)})
+
+
+def test_update_uses_archive_when_api_is_blocked(monkeypatch):
+    now = dt.datetime(2026, 11, 2, 1)
+
+    def blocked() -> pd.DataFrame:
+        raise http.FetchError("https://fapi.binance.com/futures/data/openInterestHist", "HTTP 451", 451)
+
+    def run(fetch, fallback=None) -> dict:
+        monkeypatch.setattr(update, "SOURCES", [update.Source("binance_oi", fetch, ["oi_usd"], forward_only=True, fallback=fallback)])
+        return update.run(now=now, save=False)["sources"]["binance_oi"]
+
+    e = run(blocked, lambda: _oi("2026-10-28"))  # 5 days old: within 3 + archive_lag_days (2)
+    assert e["ok"] and e["via"] == "data.binance.vision" and "451" in e["primary_error"] and e["last"] == "2026-10-28"
+    e = run(blocked, lambda: _oi("2026-10-27"))
+    assert not e["ok"] and any("cũ" in x for x in e["errors"])
+    assert not run(lambda: _oi("2026-10-28"))["ok"]  # same age straight from the API is stale: the delay applies to the archive only
+    e = run(lambda: _oi("2026-11-01"), lambda: pytest.fail("fallback used although the API answered"))
+    assert e["ok"] and "via" not in e
+    e = run(blocked)
+    assert not e["ok"] and "451" in e["errors"][0]
+
+
+def test_fetch_errors_never_carry_the_api_key():
+    key = "abcd1234abcd1234abcd1234abcd1234"
+    e = http.FetchError(f"https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXBGS&api_key={key}&file_type=json", "HTTP 400", 400)
+    assert key not in str(e) and key not in e.url and "api_key=***&file_type=json" in str(e)  # status.json is published
+
+
+def test_fred_weekly_release_is_not_stale():
+    src = {s.name: s for s in update.SOURCES}
+    assert src["fred_DTWEXBGS"].stale_days == 7 and src["fred_DFII10"].stale_days is None
+    d = pd.bdate_range("2026-06-01", "2026-10-23")
+    usd = pd.DataFrame({"date": d, "usd_broad": np.linspace(120, 121, len(d))})
+    monday = dt.datetime(2026, 11, 2, 1)  # before that Monday's H.10 release the newest row is Friday 23/10, 10 days old
+    assert quality.check(usd, "fred_DTWEXBGS", ["usd_broad"], freq="B", stale_days=7, now=monday).ok
+    assert not quality.check(usd, "fred_DTWEXBGS", ["usd_broad"], freq="B", stale_days=7, now=monday + dt.timedelta(days=2)).ok

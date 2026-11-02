@@ -170,7 +170,7 @@ Mua ngay hay chờ (thử lại mọi ngày từ 01/01/2016 đến 25/10/2026; d
 - Fear & Greed (Alternative.me): đến 28/10/2026
 - Binance (giá và khối lượng ngày): đến 27/10/2026
 - Binance (funding rate hợp đồng vĩnh cửu): đến 28/10/2026
-- Binance (khối lượng hợp đồng mở): đến 28/10/2026
+- Binance (khối lượng hợp đồng mở): đến 27/10/2026, lấy từ kho lưu trữ data.binance.vision vì API bị chặn ở Mỹ (chậm 1 ngày, vẫn cùng số liệu)
 - Binance (hợp đồng tương lai quý): đến 27/10/2026
 - DefiLlama (tổng cung stablecoin): đến 28/10/2026
 - FRED (chỉ số đô la Mỹ rộng): đến 23/10/2026

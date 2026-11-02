@@ -44,11 +44,17 @@ Máy chủ GitHub đặt ở Mỹ. Binance thường trả HTTP 451/403 cho `api
 | Binance dapi (hợp đồng quý) | 200 OK | **bị chặn, HTTP 451** |
 | DefiLlama | 200 OK | OK |
 | FRED (CSV) | 200 OK | OK |
+| Binance data.binance.vision (kho file phái sinh, dự phòng từ 11/2026) | 200 OK (02/11/2026) | chưa thử: lần chạy `Daily` đầu tiên sau khi đưa lên `main` sẽ ghi vào `data/endpoint_check.json` |
 
 Từ lần chạy sau, kết quả kiểm tra từng địa chỉ được lưu mỗi ngày trong `data/endpoint_check.json`; trạng thái tải của từng nguồn nằm trong `data/status.json`.
 Bảng kết quả từ máy chủ cũng nằm ở phần tóm tắt (Summary) của mỗi lần chạy `Daily`. Vì Binance chặn hợp đồng tương lai:
 - Giá và khối lượng spot tự chuyển sang `data-api.binance.vision`; giá lịch sử chính vẫn lấy từ Coin Metrics.
-- Funding, khối lượng hợp đồng mở và basis không lấy được. Cả ba **không dùng trong khuyến nghị**: lớp B không qua kiểm định. Riêng khối lượng hợp đồng mở sẽ không ghi tiếp được. Muốn ghi tiếp, chạy bước dữ liệu trên máy của bạn hoặc một VPS ở Việt Nam (self-hosted runner: Settings → Actions → Runners → New self-hosted runner, rồi đổi `runs-on: self-hosted` cho job `data`).
+- Funding, khối lượng hợp đồng mở và giá hợp đồng quý: từ 30/10 đến 02/11/2026 không lấy được (HTTP 451). Từ bản 11/2026, khi API bị chặn, bot tự đọc kho file công khai `data.binance.vision` (`bot/data/fetchers/binance_vision.py`). Số liệu trong kho trùng hoàn toàn với API (đã so ngày 02/11/2026). Đổi lại, kho chậm hơn:
+  - hợp đồng mở và hợp đồng quý chậm khoảng 1–2 ngày;
+  - funding chỉ có file theo tháng, nên dòng mới nhất có thể cũ tới khoảng 1 tháng.
+  Mục "Độ mới của dữ liệu" trên trang ghi rõ nguồn nào đang lấy từ kho và chậm bao nhiêu ngày. Độ trễ tối đa của kho ghi ở `archive_lag_days` trong `config/bot.yaml`. Cả ba nguồn vẫn **không dùng trong khuyến nghị** (lớp B không qua kiểm định; bước C2 chỉ nghiên cứu từ 11/2027).
+- Nếu sau này kho cũng bị chặn từ Mỹ, chạy bước dữ liệu trên máy của bạn hoặc một VPS ở Việt Nam (self-hosted runner: Settings → Actions → Runners → New self-hosted runner, rồi đổi `runs-on: self-hosted` cho job `data`).
+- FRED chỉ số đô la rộng (`DTWEXBGS`) không lỗi tải. Chuỗi này công bố mỗi tuần một lần (thứ Hai, chiều giờ Mỹ), nên sáng thứ Hai dòng mới nhất đã cũ 10 ngày. Ngưỡng "dữ liệu cũ" của riêng chuỗi này là 11 ngày (`fred.WEEKLY`).
 - Phần tính trực tiếp trên trang (tỷ lệ nên mua, nên bán…) chạy trong trình duyệt của người xem ở Việt Nam, nên **không bị ảnh hưởng**.
 
 ## 4. Những việc bạn phải tự làm trên GitHub (sau khi nói "OK deploy")
@@ -57,7 +63,7 @@ Bảng kết quả từ máy chủ cũng nằm ở phần tóm tắt (Summary) c
 3. **Settings → Actions → General → Workflow permissions: chọn "Read and write permissions"**, để bước "Lưu dữ liệu mới" ghi được vào `main`.
 4. **Settings → Environments → github-pages → Deployment branches and tags: chỉ cho phép `main`** (môi trường này tự xuất hiện sau lần đăng đầu tiên).
 5. Nên làm: **Settings → Branches → Add branch ruleset cho `main`**, bật "Require status checks to pass" và chọn kiểm tra `test` (workflow CI). Khi đó chỉ gộp được mã đã qua kiểm tra.
-6. Không bắt buộc: Settings → Secrets and variables → Actions → New repository secret `FRED_API_KEY` (khóa miễn phí của FRED). Không có khóa thì bot dùng file CSV công khai, kết quả như nhau. Không cần khóa của sàn nào, và bot không bao giờ đặt lệnh.
+6. Không bắt buộc: thêm GitHub Secret `FRED_API_KEY` (khóa miễn phí của FRED), cách làm từng bước ở mục 8. Không có khóa thì bot dùng file CSV công khai, kết quả như nhau. Không cần khóa của sàn nào, và bot không bao giờ đặt lệnh.
 7. Kho phải giữ **công khai**: Pages cho kho riêng tư cần gói trả phí, và trang vẫn công khai.
 
 ## 5. Các bước triển khai (tôi làm sau khi bạn nói "OK deploy")
@@ -73,3 +79,33 @@ Khi gộp, file `index.html` cũ ở thư mục gốc của `main` được gi�
 
 ## 7. Riêng tư
 Trang là công khai. Trang chỉ ghi hệ số mua và số tiền trên mỗi 100 $ ngân sách. Ngân sách, số BTC đang giữ và giá vốn của bạn chỉ nằm trong trình duyệt (ô nhập ở bên bán) hoặc trong `config/personal.yaml` trên máy (không lưu git, chỉ dùng cho `python -m bot.cli report`). Khóa Claude API chỉ lưu trong trình duyệt khi bạn chọn ghi nhớ.
+
+## 8. Thêm khóa FRED (không bắt buộc, miễn phí)
+Không có khóa, bot tải file CSV công khai của FRED, số liệu như nhau. Có khóa, bot dùng API chính thức của FRED, ổn định hơn khi trang CSV chậm hoặc đổi cách trả lời. Khóa **không** làm chỉ số đô la rộng mới hơn, vì chuỗi này chỉ công bố mỗi tuần một lần (mục 3).
+
+Bạn tự làm, không gửi khóa cho ai, kể cả Claude. Không dán khóa vào khung chat hay vào file nào trong dự án.
+
+**Bước 1. Tạo tài khoản FRED**
+1. Mở https://fredaccount.stlouisfed.org/login/secure/
+2. Bấm **Create New Account**. Điền email và mật khẩu (hoặc đăng nhập bằng Google). Xác nhận email nếu FRED gửi thư.
+
+**Bước 2. Lấy khóa API**
+1. Đăng nhập xong, mở https://fredaccount.stlouisfed.org/apikeys (hoặc **My Account → API Keys**).
+2. Bấm **Request API Key**.
+3. Ô mô tả, ghi ngắn, ví dụ: "Bot BTC cá nhân, chỉ đọc số liệu công khai".
+4. Đánh dấu ô đồng ý **Terms of Use**, rồi bấm **Request API key**.
+5. FRED hiện một chuỗi 32 ký tự (chữ thường và số). Sao chép chuỗi này.
+
+**Bước 3. Thêm khóa vào GitHub (GitHub Secret)**
+1. Mở kho https://github.com/hcvt8683-netizen/bot-btc
+2. Bấm thẻ **Settings** (trên cùng) → menu trái **Secrets and variables** → **Actions**.
+3. Bấm **New repository secret**.
+4. Ô **Name**: gõ đúng `FRED_API_KEY`. Ô **Secret**: dán khóa vừa sao chép.
+5. Bấm **Add secret**. GitHub chỉ hiện tên, không bao giờ hiện lại khóa.
+
+**Bước 4. Kiểm tra**
+1. Vào thẻ **Actions** → **Daily** → **Run workflow** → **Run workflow**.
+2. Chạy xong (khoảng 10–20 phút), bấm vào lần chạy → bước "Tải dữ liệu và kiểm tra chất lượng": các dòng `fred_...` phải ghi `OK`. Trong nhật ký, khóa luôn hiện thành `***`.
+3. Trên trang, mục "Độ mới của dữ liệu" có các dòng FRED màu xanh.
+
+Quy trình `Daily` đã đọc sẵn `FRED_API_KEY` (`.github/workflows/daily.yml`), không cần sửa gì thêm. Nếu tải FRED lỗi, thông báo lỗi ghi vào `data/status.json` đã che khóa (`api_key=***`). Muốn bỏ khóa thì xóa Secret; bot tự quay về file CSV.

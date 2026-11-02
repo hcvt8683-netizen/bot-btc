@@ -97,7 +97,11 @@ Dữ liệu mới phải là thứ thị trường chưa phản ánh hết. Mỗ
 - **Xong khi:** có bộ tải chạy hằng ngày; dữ liệu nằm trong `data/raw/`.
 
 ### C2. Phái sinh: funding rate, hợp đồng mở, chênh lệch giá tương lai
-- **Ghi chú:** đã ghi mỗi ngày từ 28/10/2026 (`binance_funding`, `binance_oi`). Chỉ nghiên cứu khi có ít nhất 1 năm dữ liệu (từ khoảng 11/2027).
+- **Ghi chú:** bản ghi đầu ngày 28–29/10/2026 lấy từ máy cá nhân. Từ 30/10 đến 02/11/2026, máy chủ GitHub ở Mỹ bị Binance chặn (HTTP 451) nên không ghi được.
+  - Từ 11/2026, khi API bị chặn, bot đọc kho `data.binance.vision` (`bot/data/fetchers/binance_vision.py`). Kho trùng số liệu với API nhưng chậm hơn: hợp đồng mở và hợp đồng quý chậm 1–2 ngày, funding theo tháng chậm tới khoảng 1 tháng (`archive_lag_days` trong `config/bot.yaml`).
+  - Dòng lấy từ kho có `first_seen` muộn hơn ngày của dòng. Khi nghiên cứu, mô hình chạy trên GitHub phải dùng mốc muộn hơn giữa `available_at` và `first_seen`.
+  - Kho còn có file hợp đồng mở hằng ngày từ khoảng 09/2020 (chưa tải). Muốn dùng lịch sử này phải đăng ký trước cách xử lý độ trễ.
+  - Chỉ nghiên cứu khi có ít nhất 1 năm dữ liệu (từ khoảng 11/2027).
 - **Câu lệnh (dùng từ 11/2027):**
 ```
 Đọc docs/KE_HOACH_CAI_TIEN.md bước C2. Dữ liệu funding rate và hợp đồng mở đã ghi từ 28/10/2026. Đăng ký trước một bộ nhỏ (tối đa 4 cấu hình, mỗi cấu hình có lý do kinh tế) dùng các dữ liệu này cùng chỉ số cũ, chạy lại quy trình Phần C–I với giai đoạn kiểm tra cuối mới (dữ liệu sau ngày đăng ký). Không sửa file bị khóa; dùng module mới.

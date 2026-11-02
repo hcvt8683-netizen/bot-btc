@@ -10,6 +10,9 @@ from bot.data import http
 
 SERIES = {"DTWEXBGS": "usd_broad", "DFII10": "real_yield_10y", "NASDAQCOM": "nasdaq", "M2SL": "m2", "DFEDTARU": "fed_upper"}
 MONTHLY = {"M2SL"}
+# daily values published once a week (H.10, Mondays ~21:15 UTC, Tuesday after a holiday): before the release the newest
+# row is 10–11 days old, so the staleness limit is 7 days + 4 for business-day series (bot/data/quality.py)
+WEEKLY = {"DTWEXBGS": 7}
 
 
 def parse_csv(text: str, series: str) -> pd.DataFrame:

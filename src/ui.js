@@ -861,7 +861,8 @@
     for (const [k, d] of Object.entries(meta.stale || {})) evs.push(el('li', null, tx('web.kn.stale_cal', tx('web.kn.ev_' + k), d ? fmtDate(d) : '—')));
     $('kn-events').replaceChildren(...(evs.length ? evs : [el('li', null, tx('web.kn.events_none'))]), ...(KN && !KN.event_delay ? [el('li', null, tx('web.kn.no_delay'))] : []));
     $('kn-fresh').replaceChildren(...(KN ? Object.entries(KN.freshness).map(([k, s]) => el('li', s.ok ? 'ok' : 'err',
-      s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))) : []));
+      !s.ok ? tx('web.kn.fresh_err', tx('sources.' + k), s.error) : s.via ? tx('web.kn.fresh_via', tx('sources.' + k), fmtDate(s.last), s.via, s.age_days)
+        : tx('web.kn.fresh_ok', tx('sources.' + k), fmtDate(s.last)))) : []));
     if (KN) { $('updated').textContent = tx('web.kn.updated', vnTime(KN.generated_at)); $('updated').hidden = false; }
     $('stale').hidden = !stale;
     if (stale) $('stale').textContent = tx('web.kn.stale_banner', vnTime(KN.generated_at));

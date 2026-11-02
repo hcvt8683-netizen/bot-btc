@@ -1,7 +1,8 @@
 """Binance public market data (read-only, no API key): spot klines, funding rate, open interest, quarterly basis.
 
 `api.binance.com` and `fapi/dapi.binance.com` often answer HTTP 451/403 from US data centers (GitHub runners);
-spot klines fall back to `data-api.binance.vision`. Futures data has no mirror: the caller marks it unavailable.
+spot klines fall back to `data-api.binance.vision`, futures data to the file archive `data.binance.vision`
+(bot/data/fetchers/binance_vision.py, chosen in bot/data/update.py).
 """
 from __future__ import annotations
 

@@ -606,6 +606,7 @@ web:
     no_delay: "Lệnh không bị hoãn: quy tắc hoãn mua sát ngày sự kiện không cải thiện kết quả khi kiểm định."
     fresh_title: "Độ mới của dữ liệu"
     fresh_ok: "{0}: đến {1}"
+    fresh_via: "{0}: đến {1}, lấy từ kho lưu trữ {2} vì API bị chặn ở Mỹ (chậm {3} ngày, vẫn cùng số liệu)"
     fresh_err: "{0}: lỗi, {1}"
     updated: "Cập nhật lúc {0} (giờ Việt Nam)"
     stale_banner: "⚠ Dữ liệu chưa cập nhật, đang hiển thị báo cáo gần nhất ({0}). Khuyến nghị: mua đều như DCA (hệ số 1,0)."

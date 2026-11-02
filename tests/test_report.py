@@ -84,3 +84,13 @@ def test_source_errors_are_shown_in_vietnamese():
         "bị chặn khi tải từ máy chủ GitHub ở Mỹ (HTTP 451); không dùng trong khuyến nghị"
     assert vi_report._friendly("TimeoutError: timed out") == "không tải được, đang dùng bản gần nhất"
     assert vi_report._friendly("") == ""
+
+
+def test_freshness_says_when_the_archive_was_used(tmp_path, monkeypatch):
+    (tmp_path / "status.json").write_text(json.dumps({"sources": {
+        "coinmetrics": {"ok": True, "last": "2026-10-27"},
+        "binance_oi": {"ok": True, "last": "2026-10-27", "via": "data.binance.vision", "primary_error": "FetchError: HTTP 451 (...)"}}}), encoding="utf-8")
+    monkeypatch.setattr(vi_report, "DATA", tmp_path)
+    fresh, bad = vi_report._freshness(NOW)
+    assert fresh["binance_oi"] == {"last": "2026-10-27", "ok": True, "age_days": 1, "error": "", "via": "data.binance.vision"}
+    assert "via" not in fresh["coinmetrics"] and not bad

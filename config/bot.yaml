@@ -38,13 +38,16 @@ site:
   show_personal_budget: false
   amount_example_usd: 100
 # available_at = cuối kỳ của dòng số liệu + lag_days (dòng ngày d kết thúc lúc 00:00 UTC ngày d+1)
+# archive_lag_days: khi API Binance bị chặn (HTTP 451 trên máy chủ GitHub ở Mỹ), bot đọc kho data.binance.vision, chậm hơn API
+# tối đa chừng ấy ngày (file ngày có sau khoảng 1 ngày, file funding theo tháng có sau khi hết tháng 1–2 ngày). Số này nới ngưỡng
+# "dữ liệu cũ"; dòng lấy từ kho có first_seen muộn hơn, nên mô hình chạy trên GitHub phải dùng max(available_at, first_seen).
 sources:
   coinmetrics: {lag_days: 1, required: true}
   fng: {lag_days: 1}
   binance_spot: {lag_days: 0}
-  binance_funding: {lag_days: 0}
-  binance_oi: {lag_days: 0}
-  binance_basis: {lag_days: 0}
+  binance_funding: {lag_days: 0, archive_lag_days: 33}
+  binance_oi: {lag_days: 0, archive_lag_days: 2}
+  binance_basis: {lag_days: 0, archive_lag_days: 2}
   stablecoins: {lag_days: 1}
   fred: {lag_days: 1}
   fred_monthly: {lag_days: 45}

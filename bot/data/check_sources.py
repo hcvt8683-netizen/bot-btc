@@ -15,6 +15,7 @@ ENDPOINTS = {
     "Binance data-api.binance.vision (spot)": "https://data-api.binance.vision/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=1",
     "Binance fapi (funding, OI)": "https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1",
     "Binance dapi (quarterly futures)": "https://dapi.binance.com/dapi/v1/continuousKlines?pair=BTCUSD&contractType=CURRENT_QUARTER&interval=1d&limit=1",
+    "Binance data.binance.vision (futures archive)": "https://data.binance.vision/data/futures/um/monthly/fundingRate/BTCUSDT/BTCUSDT-fundingRate-2026-09.zip",
     "CoinGecko": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
     "DefiLlama": "https://stablecoins.llama.fi/stablecoincharts/all",
     "FRED (CSV)": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10",

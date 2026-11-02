@@ -359,7 +359,8 @@ const B3 = (() => {
     }
     if (kn.freshness) {
       t(tx('web.vr.fresh_title'));
-      Object.entries(kn.freshness).forEach(([k, s]) => t('- ' + (s.ok ? tx('web.kn.fresh_ok', tx('sources.' + k), D(s.last)) : tx('web.kn.fresh_err', tx('sources.' + k), s.error))));
+      Object.entries(kn.freshness).forEach(([k, s]) => t('- ' + (!s.ok ? tx('web.kn.fresh_err', tx('sources.' + k), s.error)
+        : s.via ? tx('web.kn.fresh_via', tx('sources.' + k), D(s.last), s.via, s.age_days) : tx('web.kn.fresh_ok', tx('sources.' + k), D(s.last)))));
       t('');
     }
   }

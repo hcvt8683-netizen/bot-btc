@@ -57,10 +57,11 @@
    "error": ""
   },
   "binance_oi": {
-   "last": "2026-10-28",
+   "last": "2026-10-27",
    "ok": true,
-   "age_days": 0,
-   "error": ""
+   "age_days": 1,
+   "error": "",
+   "via": "data.binance.vision"
   },
   "binance_basis": {
    "last": "2026-10-27",

@@ -128,6 +128,8 @@ def _freshness(now: dt.datetime) -> tuple[dict, bool]:
         last = s.get("last")
         age = (now.date() - dt.date.fromisoformat(last)).days if last else None
         out[name] = {"last": last, "ok": bool(s.get("ok")), "age_days": age, "error": _friendly("; ".join(s.get("errors") or []))}
+        if s.get("via"):  # main API blocked, read from the archive (bot/data/update.py)
+            out[name]["via"] = s["via"]
     for name, conf in cfg()["sources"].items():
         if conf.get("required"):
             s = out.get(name)

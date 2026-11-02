@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -12,11 +13,17 @@ UA = "Mozilla/5.0 (compatible; bot-btc-research/2.0; +https://github.com/hcvt868
 UA_PAGE = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) bot-btc-research"
 
 
+def redact(url: str) -> str:
+    """URL without secrets (e.g. FRED `api_key=`): error texts end up in data/status.json, which is published."""
+    return re.sub(r"(?i)((?:api_?key|key|token|secret)=)[^&]*", r"\1***", url)
+
+
 class FetchError(RuntimeError):
     """Raised when a source cannot be fetched; carries the HTTP status when known."""
 
     def __init__(self, url: str, msg: str, status: int | None = None):
-        super().__init__(f"{msg} ({url[:120]})")
+        url = redact(url)
+        super().__init__(f"{redact(msg)} ({url[:120]})")
         self.url, self.status = url, status
 
 
