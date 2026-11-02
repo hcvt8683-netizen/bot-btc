@@ -419,3 +419,39 @@ trend:
   page: "giá lúc tra (trực tiếp) làm mốc; trạng thái, độ dao động, phân vị tính ở giá đóng ngày gần nhất. Mỗi kỳ hạn: hướng, P(tăng), mức tăng / giảm trung vị và khoảng 80%, mô hình đang dùng, số mô hình cùng chiều; bảng P(tăng) của mọi mô hình; đối chiếu với thẻ Dự báo (dải giá 1–7 và 30 ngày), Xác suất có lãi (4, 13, 26 tuần) và Long/Short; bảng kiểm tra lịch sử từng kỳ hạn"
   log: "mỗi ngày ghi một lần vào data/trend/trend_log.csv (chỉ thêm dòng, không ghi bù, chỉ kỳ hạn chưa tới) P(tăng) của mọi mô hình và phân vị của mô hình đang dùng, theo phiên bản; chấm khi đủ kỳ hạn"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# Mô hình nến, mô hình học máy, khoảng 9/10 lần và kiểm chứng trên giá Bitstamp cho thẻ Xu hướng.
+# Đăng ký trước khi tính bất kỳ con số nào (03/11/2026, người dùng yêu cầu: so với mô hình nến, mô hình độc lập mạnh, dự báo đúng trên 90%).
+candles:
+  why: "người dùng muốn biết các mẫu nến kinh điển dự báo hướng giá tốt đến đâu so với bot. Đúng hướng trên 90% là không thực tế; mục này đo trung thực từng mẫu so với một ngày bất kỳ"
+  data: "nến ngày Bitstamp BTC/USD (mở, cao, thấp, đóng; 00:00 UTC) từ 18/08/2011; mẫu nến nhận ra ở ngày T chỉ bằng các nến đến T"
+  trend_context: "xu hướng trước đó: giảm nếu giá đóng T−1 < trung bình 10 giá đóng T−10..T−1, tăng nếu lớn hơn"
+  definitions: "thân = |đóng − mở|, biên = cao − thấp, bóng trên = cao − max(mở, đóng), bóng dưới = min(mở, đóng) − thấp; nến tăng khi đóng > mở, giảm khi đóng < mở"
+  patterns:   # tên: hướng chờ đợi; định nghĩa theo sách, ngưỡng cố định
+    nhan_chim_tang: "tăng; xu hướng giảm; T−1 là nến giảm, T là nến tăng, mở T ≤ đóng T−1 và đóng T ≥ mở T−1"
+    nhan_chim_giam: "giảm; xu hướng tăng; T−1 nến tăng, T nến giảm, mở T ≥ đóng T−1 và đóng T ≤ mở T−1"
+    bua: "tăng; xu hướng giảm; thân > 0, bóng dưới ≥ 2 × thân, bóng trên ≤ 0,5 × thân"
+    sao_bang: "giảm; xu hướng tăng; thân > 0, bóng trên ≥ 2 × thân, bóng dưới ≤ 0,5 × thân"
+    doji_sau_giam: "tăng; xu hướng giảm; thân ≤ 0,1 × biên, biên > 0"
+    doji_sau_tang: "giảm; xu hướng tăng; thân ≤ 0,1 × biên, biên > 0"
+    sao_mai: "tăng; xu hướng giảm (tính ở T−2); T−2 nến giảm thân ≥ 0,6 × biên của nó; T−1 thân ≤ 0,3 × thân T−2; T nến tăng, đóng T > điểm giữa thân T−2"
+    sao_hom: "giảm; xu hướng tăng (tính ở T−2); T−2 nến tăng thân ≥ 0,6 × biên; T−1 thân ≤ 0,3 × thân T−2; T nến giảm, đóng T < điểm giữa thân T−2"
+    ba_chang_trang: "tăng; T−2, T−1, T đều là nến tăng, mỗi giá đóng cao hơn giá đóng trước, mỗi giá mở nằm trong thân nến trước"
+    ba_qua_den: "giảm; T−2, T−1, T đều là nến giảm, mỗi giá đóng thấp hơn, mỗi giá mở nằm trong thân nến trước"
+    xuyen_tang: "tăng; xu hướng giảm; T−1 nến giảm, mở T < thấp T−1, đóng T > điểm giữa thân T−1 và đóng T < mở T−1"
+    may_den: "giảm; xu hướng tăng; T−1 nến tăng, mở T > cao T−1, đóng T < điểm giữa thân T−1 và đóng T > mở T−1"
+  horizons_days: [1, 3, 7]
+  hit: "đúng hướng = giá đóng T + k cao hơn giá đóng T với mẫu tăng, thấp hơn với mẫu giảm"
+  base: "mốc = tỷ lệ đúng hướng đó của mọi ngày trong cùng giai đoạn chấm (một ngày bất kỳ)"
+  eval_from: 2012-01-01
+  independent: "chỉ đếm các lần xuất hiện cách nhau ít nhất k ngày (lấy lần sớm nhất, bỏ các lần trong k ngày sau, lặp lại)"
+  test: "kiểm định nhị thức một phía: số lần đúng trên số lần độc lập so với mốc; Holm trên 12 mẫu × 3 kỳ hạn = 36; hai nửa chia ở ngày giữa giai đoạn chấm"
+  verdict: "mẫu có lợi thế ở kỳ hạn k khi p Holm < 0,05, tỷ lệ đúng > mốc ở cả hai nửa và có ít nhất 30 lần độc lập; ít hơn 30 lần thì 'chưa đủ dữ liệu'"
+  page: "thẻ Xu hướng, mục Mô hình nến: hôm nay có mẫu nào (theo nến ngày Bitstamp đã đóng gần nhất), mỗi mẫu xuất hiện bao nhiêu lần, đúng hướng bao nhiêu so với một ngày bất kỳ sau 1, 3, 7 ngày, kết luận"
+
+trend_plus:
+  ml: "mô hình học máy (hoc_may): hồi quy logistic L2 (C = 1) dự báo P(tăng) sau k ngày từ 16 đặc trưng tại T: lợi suất L ngày vừa qua chia (độ dao động 30 ngày × √L) với L như dong_luong, giá / trung bình 200 ngày − 1, thứ hạng MVRV (như dinh_gia), thứ hạng lợi suất 7 ngày (như dao_chieu), độ dao động 30 ngày, và 11 cờ mẫu nến của mục candles (doji_sau_giam và doji_sau_tang gộp thành một cờ doji); chuẩn hóa theo dữ liệu huấn luyện; học lại mỗi 30 ngày trên mọi ngày i đã biết kết quả (i + k ≤ ngày học), cửa sổ mở rộng, cần ít nhất 730 ngày; thiếu đặc trưng thì không dự báo ngày đó"
+  ml_eval: "chấm như mục trend (Brier so với goc, bootstrap khối dừng k ngày, 4000 lần, hạt giống 0, hai nửa), Holm riêng trên 16 kỳ hạn; chỉ dùng cho hướng khi p Holm < 0,05 và tốt hơn goc ở cả hai nửa"
+  band90: "khoảng 9/10 lần: phân vị 5% và 95% của z, cùng cách và cùng mô hình biên độ đang dùng của mục trend; chấm độ phủ đi tới từ 2016 (mục tiêu 90%), Wilson theo số cửa sổ k ngày không chồng nhau; trang hiện 'đúng khoảng 9/10 lần' kèm độ phủ thật; kỳ hạn nào độ phủ ngoài 87–93% thì trang ghi rõ"
+  bitstamp: "kiểm chứng trên dữ liệu khác: chạy lại đúng mục trend (tỷ lệ gốc và 5 mô hình, cùng chấm, cùng Holm) trên giá đóng ngày Bitstamp thay cho Coin Metrics; báo cáo kết luận từng kỳ hạn và độ phủ 80%, 90% trên cả hai nguồn; không dùng để chọn mô hình"
+  note: "các phần này thêm sau khi đã thấy kết quả mục trend (02/11/2026: không mô hình nào thắng tỷ lệ gốc về hướng)"
