@@ -54,6 +54,11 @@ def _today(today: dt.date | None) -> dt.date:
     return today or dt.datetime.now(dt.timezone.utc).date()
 
 
+def _api_dates(dates: pd.Series) -> pd.Series:
+    """Dates typed like the API parsers (`to_datetime(ms, unit="ms")`: its resolution changes across pandas versions)."""
+    return pd.to_datetime(pd.Series([pd.Timestamp(d).value // 1_000_000 for d in dates], dtype="int64"), unit="ms")
+
+
 def parse_funding(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame({"time": pd.to_datetime(df["calc_time"].astype("int64"), unit="ms"),
                          "funding_rate": pd.to_numeric(df["last_funding_rate"], errors="coerce")})
@@ -87,7 +92,8 @@ def fetch_oi(days: int = DAYS, today: dt.date | None = None) -> pd.DataFrame:
         m = _get(METRICS.format(day=d.isoformat()))
         if m is not None and len(m) and (r := oi_row(m, d)):
             rows.append(r)
-    return pd.DataFrame(rows, columns=["date", "oi_btc", "oi_usd"]).astype({"date": "datetime64[ms]"})
+    out = pd.DataFrame(rows, columns=["date", "oi_btc", "oi_usd"])
+    return out.assign(date=_api_dates(out["date"]))
 
 
 def _last_friday(year: int, month: int) -> dt.date:
@@ -112,4 +118,5 @@ def fetch_basis(days: int = DAYS, today: dt.date | None = None) -> pd.DataFrame:
         c = _get(CM_KLINES.format(symbol=symbol, day=d.isoformat()), KLINE_COLS)
         if c is not None and len(c):
             rows.append({"date": pd.Timestamp(d), "fut_close": float(c["close"].iloc[0])})
-    return pd.DataFrame(rows, columns=["date", "fut_close"]).astype({"date": "datetime64[ms]"})
+    out = pd.DataFrame(rows, columns=["date", "fut_close"])
+    return out.assign(date=_api_dates(out["date"]))
