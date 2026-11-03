@@ -51,4 +51,6 @@ const assert = (ok, msg) => { if (!ok) { console.error('SAI:', msg); process.exi
   assert(B3.csvWeekly(S, a).startsWith('\ufeffngay,'), 'xuất CSV từng tuần đúng định dạng');
   assert(B3.report(S, a, rec, null, 'thử', true, cmp, sd).includes('## Bên bán'), 'báo cáo có phần bên bán');
   assert(B3.report(S, a, rec, null, 'thử', true, cmp, sd, lv).includes('## Giá đề xuất mua và bán'), 'báo cáo có phần giá đề xuất');
+  const clean = B3.report(S, a, rec, null, 'thử', true, cmp, sd, lv, null, { legacy: false });   // trang dùng cách này từ bước A2
+  assert(!clean.includes('## Bên bán') && !clean.includes('## Giá đề xuất mua và bán') && clean.includes('đã gỡ ngày 03/11/2026'), 'báo cáo của trang không còn phần phân tích cũ chưa kiểm định');
 })();

@@ -95,10 +95,10 @@ Câu lệnh chấm 11/2027:
 
 | Mục | Đợt | Trạng thái | Ghi chú |
 |---|---|---|---|
-| S1 Tóm tắt quyết định | 1 | [ ] | |
-| A2 Gỡ Phân tích cũ | 1 | [ ] | |
-| R1 Giá chờ bán | 1 | [ ] | |
-| L7 test_browser vào CI | 1 | [ ] | |
+| S1 Tóm tắt quyết định | 1 | [x] 03/11/2026 | bảng ở đầu Tổng quan, 8 dòng, nút Mở |
+| A2 Gỡ Phân tích cũ | 1 | [x] 03/11/2026 | gỡ thẻ; báo cáo tải về và gửi Claude bỏ phần chưa kiểm định |
+| R1 Giá chờ bán | 1 | [x] 03/11/2026 | không lệch có hệ thống (docs/R1_GIA_CHO_BAN.md) |
+| L7 test_browser vào CI | 1 | [x] 03/11/2026 | chạy trong CI (22 giây); chưa bật trong Daily, chờ duyệt |
 | F2 Chạm giá theo giờ | 2 | [ ] | ưu tiên của đợt |
 | F1 Dải giá theo giá lúc xem | 2 | [ ] | |
 | F4 Dải giá ngày sự kiện | 2 | [ ] | |

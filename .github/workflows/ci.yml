@@ -32,6 +32,8 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Kiểm tra (đơn vị, ảnh chụp báo cáo và giao diện, không gọi mạng)
         run: make test
+      - name: Kiểm tra cả trang trong trình duyệt với dữ liệu giả (khoảng 22 giây; chưa bật trong Daily)
+        run: python -m pytest -m slow
       - name: Dựng trang
         run: python build.py --site
       - name: Bản trang web để duyệt

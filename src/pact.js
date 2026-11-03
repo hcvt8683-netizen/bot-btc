@@ -394,7 +394,13 @@
   });
   $('pact-updated').textContent = tx('web.pact.updated', vnTime(PACT.made));
   $('pact-why-list').replaceChildren(...['why_1', 'why_2', 'why_3', 'why_4'].map((k) => el('li', null, tx('web.pact.' + k))));
-  window.addEventListener('ls-verdict', () => renderCheck());
+  function publish() {   // bảng Tóm tắt quyết định (Tổng quan, src/ui.js)
+    const d = decision(), at = (h) => (HOLD ? (HOLD.rows.find((r) => r.h === h) || {}).p : null);
+    window.BOT_SUMMARY = Object.assign(window.BOT_SUMMARY || {}, { pa: { action: d.action, clarity: d.c.kind }, hold: HOLD ? { p365: at(365), p730: at(730) } : null });
+    window.dispatchEvent(new Event('bot-summary'));
+  }
+  window.addEventListener('ls-verdict', () => { renderCheck(); publish(); });
+  publish();
   if (window.ResizeObserver) {
     let w = 0;
     new ResizeObserver(() => { const x = $('pact-answer').clientWidth; if (x && x !== w) { w = x; if (view.chart) drawChart(view.chart[0], CAND, view.chart[1]); } }).observe($('pact-answer'));

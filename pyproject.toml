@@ -10,4 +10,5 @@ test = ["pytest>=8", "playwright>=1.45", "pillow>=10"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not slow'"   # bài chậm (tests/test_browser.py) chạy riêng: python -m pytest -m slow
+markers = ["slow: bài kiểm tra trình duyệt cả trang, chạy lâu; CI chạy riêng, không chạy trong make test / Daily"]

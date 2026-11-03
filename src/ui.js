@@ -465,7 +465,7 @@
 
   // ---------- xuất file và Claude ----------
   const sourcesText = () => Object.entries(st.status).filter(([, x]) => x.ok).map(([k]) => ({ live: tx('web.ui.gia_truc_tiep_binance_coingecko'), fng: 'Fear & Greed Alternative.me', cm: 'Coin Metrics', kl: tx('web.ui.binance_gia_khoi_luong_ngay'), cache: tx('web.ui.ban_luu_tren_may') }[k])).filter(Boolean).join(', ');
-  const report = (verified = true) => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN, { verified });
+  const report = (verified = true) => B3.report(st.S, st.a, st.rec, st.vol && { last: st.vol.weeks.filter((x) => x.cls && x.date <= st.a.date).pop() }, sourcesText(), st.asOf === st.S.price.length - 1, st.cmp, st.sd, st.lv, KN, { verified, legacy: false });  // A2: phần cũ đã gỡ
   // Gói cho claude.ai (không cần khóa API): chỉ dẫn chuyên gia + hồ sơ của người dùng + báo cáo có đủ phần đã kiểm định.
   function profileText() {
     const lines = [['cp-horizon', 'ho_so_horizon'], ['cp-drawdown', 'ho_so_drawdown'], ['cp-share', 'ho_so_share']]
@@ -1542,7 +1542,47 @@
     else if (r7 && r30) cards.push(card('info', tx('web.home.band_lab'), tx('web.home.band_val', kusd(r7.q10), kusd(r7.q90)), tx('web.home.band_sub', usd(r7.q50), usd(r30.q10), usd(r30.q90)), 'fc'));
     $('h-kpis').replaceChildren(...cards);
     requestAnimationFrame(() => document.querySelectorAll('#h-kpis canvas').forEach((cv) => drawDays(cv, true)));
+    renderSummary();
   }
+
+  // ----- Tóm tắt quyết định (mục summary, bước S1): mỗi công cụ đang nói gì và tin được tới đâu; chỉ đọc số đã tính -----
+  const STARS = { 5: 'web.home.trust_5', 4: 'web.home.trust_4', 3: 'web.home.trust_3', 2: 'web.home.trust_2' };
+  function renderSummary() {
+    if (!$('h-sum')) return;
+    const sell = isSell(), stale = knStale(), m = !KN || stale ? 1 : KN.multiplier, safe = !KN || stale || KN.mode === 'safe', S = window.BOT_SUMMARY || {};
+    const F = KN && KN.forecast && KN.forecast.rows ? KN.forecast : null, r7 = F && F.rows.find((r) => r.k === 7);
+    const CB = KN && KN.calib && KN.calib['4'] ? KN.calib : null, V = window.LS_VERDICT || null;
+    const rows = [];
+    const W = RB && RB.week, lv = W ? W.sell_level : null;
+    rows.push(['web.home.r_rec', sell ? (lv ? tx('web.rb.level_' + lv) : '—') : safe ? tx('web.home.sum_rec', nf(1).format(m)) : tx('web.home.rec_val_model', nf(1).format(m)), 3, () => showTab('check')]);
+    rows.push(['web.home.r_band', r7 ? tx('web.home.sum_band', usd(r7.q10), usd(r7.q90)) : '—', 5, () => showTab('fc')]);
+    if (SD()) {
+      const L = refPrice(), X = L * (sell ? 1.03 : 0.97);
+      rows.push([sell ? 'web.home.r_touch_sell' : 'web.home.r_touch', tx('web.home.sum_touch', usd(X), pT(touchP(X, 7)), pT(touchP(X, 30))), sell ? 4 : 5, () => showTab('entry')]);
+    }
+    if (CB) {
+      const p = (h) => (CB[h] ? (sell ? 1 - CB[h].now.p : CB[h].now.p) : null);
+      rows.push([sell ? 'web.home.r_calib_sell' : 'web.home.r_calib', tx(sell ? 'web.home.sum_calib_sell' : 'web.home.sum_calib', pc(p('4')), pc(p('26'))), 3, () => showTab('fc')]);
+    }
+    const T = S.trend;
+    rows.push(['web.home.r_trend', T && T.r7 && T.r30 ? tx('web.home.sum_trend', tx('web.tr.lab_' + T.r7.label), pc(T.r7.p), tx('web.tr.lab_' + T.r30.label), pc(T.r30.p)) : '—', 3, () => $('mode-tr').click()]);
+    rows.push(['web.home.r_ls', V ? tx(V.verdict === 'nen_long' ? 'web.home.sum_ls_long' : V.verdict === 'nen_short' ? 'web.home.sum_ls_short' : 'web.home.sum_ls_none', V.long, V.N, V.short) : '—', 2, () => $('mode-ls').click()]);
+    rows.push(['web.home.r_pa', S.pa ? tx('web.home.sum_pa_' + S.pa.action) + ' · ' + tx('web.home.sum_clear_' + S.pa.clarity) : '—', 2, () => $('mode-pa').click()]);
+    rows.push(['web.home.r_hold', S.hold ? tx('web.home.sum_hold', pc(S.hold.p365), pc(S.hold.p730)) : '—', 3, () => { $('mode-pa').click(); const b = document.querySelector('#pact-side [data-s=hodl]'); if (b) b.click(); }]);
+    const head = el('tr');
+    for (const k of ['web.home.th_tool', 'web.home.th_now', 'web.home.th_trust', 'web.home.th_open']) head.append(el('th', null, tx(k)));
+    const thead = el('thead'), tbody = el('tbody'); thead.append(head);
+    for (const [k, val, n, go] of rows) {
+      const tr = el('tr'), st5 = el('td', 'trust t' + n), b = el('button', 'sum-go', tx('web.home.open'));
+      st5.append(el('span', 'stars', '★'.repeat(n) + '☆'.repeat(5 - n)), el('span', 'sub', tx(STARS[n])));
+      b.type = 'button'; b.addEventListener('click', () => { go(); window.scrollTo({ top: 0 }); });
+      const tdb = el('td'); tdb.append(b);
+      tr.append(el('td', null, tx(k)), el('td', null, val), st5, tdb);
+      tbody.append(tr);
+    }
+    $('h-sum').replaceChildren(thead, tbody);
+  }
+  for (const ev of ['bot-summary', 'ls-verdict']) window.addEventListener(ev, () => renderSummary());
 
   function redraw() {
     drawFan();

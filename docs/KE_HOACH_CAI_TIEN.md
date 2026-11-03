@@ -162,7 +162,7 @@ Dữ liệu mới phải là thứ thị trường chưa phản ánh hết. Mỗ
 | Bước | Trạng thái | Ngày | Ghi chú |
 |---|---|---|---|
 | A1 Lịch sự kiện | [ ] | | |
-| A2 Phần phân tích cũ | [ ] | | 02/11/2026: đã chuyển vào thẻ "Phân tích cũ" kèm cảnh báo; chưa gỡ hay tính lại |
+| A2 Phần phân tích cũ | [x] | 03/11/2026 | gỡ hẳn khỏi trang và báo cáo (phương án 1, người dùng duyệt qua kế hoạch đợt 1); mã tính cũ còn giữ cho test_engine.js |
 | A3 Thông báo | [ ] | | |
 | B1 Mua theo độ dao động | [ ] | | |
 | B2 Tái cân bằng tỷ trọng | [ ] | | |

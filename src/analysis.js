@@ -369,15 +369,20 @@ const B3 = (() => {
     }
   }
   function report(S, a, rec, vol, sources, isToday, cmp, sd, lv, kn, opts = {}) {
+    const legacy = opts.legacy !== false;   // false: bỏ phần phân tích cũ chưa kiểm định (bước A2), giữ phần đã kiểm định và số liệu thô
     const L = [], t = (x) => L.push(x);
     t(tx('web.analysis.bao_cao_bot_btc_phan_tich', D(a.date))); t('');
     t(tx('web.analysis.bot_thong_ke_khong_co_tri')); t('');
     t(tx('web.analysis.boi_canh'));
     t(tx('web.analysis.gia_btc_tai_ngay_phan_tich', Math.round(a.price).toLocaleString('vi-VN')) + (isToday ? tx('web.analysis.gia_truc_tiep') : tx('web.analysis.ngay_trong_qua_khu')));
-    t(tx('web.analysis.nguon_0', sources)); t(tx('web.analysis.bo_chi_so_0', a.ids.map(nm).join(', '))); t(tx('web.analysis.giai_doan_cham_diem_tu_0', D(a.from), D(a.date))); t('');
+    t(tx('web.analysis.nguon_0', sources));
+    if (legacy) { t(tx('web.analysis.bo_chi_so_0', a.ids.map(nm).join(', '))); t(tx('web.analysis.giai_doan_cham_diem_tu_0', D(a.from), D(a.date))); }
+    t('');
+    if (legacy) {
     t(tx('web.analysis.ket_luan'));
     t(tx('web.analysis.ty_le_nen_mua_0_khung', a.buy.score.toFixed(0), a.buy.zone.ten, a.buy.score.toFixed(0)));
     t(tx('web.analysis.ty_le_nen_ban_0_khung', a.sell.score.toFixed(0), a.sell.zone.ten, a.sell.score.toFixed(0))); t('');
+    } else { t(tx('web.analysis.legacy_removed')); t(''); }
     if (kn && !isToday) { t(tx('web.kn.md_title')); t(tx('web.kn.md_past_note')); t(''); }
     if (kn && isToday) {
       const stale = (Date.now() - Date.parse(kn.generated_at)) / 86400000 > kn.stale_data_days, m = stale ? 1 : kn.multiplier, ev = kn.evidence;
@@ -399,6 +404,7 @@ const B3 = (() => {
       t(tx('web.kn.md_fresh', vnTime(kn.generated_at))); t('');
     }
     if (kn && isToday && opts.verified !== false) verifiedMd(kn, t);
+    if (legacy) {
     if (lv) {
       t(tx('web.analysis.gia_de_xuat_mua_va_ban', D(lv.date), usdT(lv.price)));
       t(tx('web.analysis.gia_btc_de_bot_chuyen_khung'));
@@ -448,9 +454,10 @@ const B3 = (() => {
       if (sd.sims.length) { t(tx('web.analysis.mo_phong_giu_1_btc_va')); t(tx('web.analysis.bat_dau_giu_nguyen_theo_quy')); t('|---|---|---|---|---|---|');
         sd.sims.forEach((x) => t(`| ${D(x.tu)} | ${Math.round(x.giuGT).toLocaleString('vi-VN')} $ | ${Math.round(x.tcGT).toLocaleString('vi-VN')} $ | ${x.tcBTC.toFixed(3).replace('.', ',')} | ${x.ban}/${x.mua} | ${SP(x.mddH)} / ${SP(x.mdd)} |`)); t(''); }
     }
+    }
     t(tx('web.analysis.gia_tri_chi_so_tai_ngay'));
     a.feats.forEach((f) => { const d = IND.find((x) => x.id === f.id); t(`- ${d.ten}: ${f.v == null ? '—' : (+f.v).toFixed(d.dec).replace('.', ',') + (d.unit || '')}`); });
-    if (a.weights) t(tx('web.analysis.trong_so_trong_mo_hinh_6') + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
+    if (legacy && a.weights) t(tx('web.analysis.trong_so_trong_mo_hinh_6') + a.weights.map((w) => `${nm(w.id)} ${w.w >= 0 ? '+' : ''}${w.w.toFixed(2).replace('.', ',')}`).join('; '));
     t('');
     if (vol && vol.last) { t(tx('web.analysis.khoi_luong_giao_dich')); t(tx('web.analysis.tuan_gan_nhat_da_dong_0', D(vol.last.date), SP(vol.last.chg), vol.last.rv.toFixed(2).replace('.', ','), BOT.VCLS[vol.last.cls].ten)); t(''); }
     t(tx('web.analysis.cau_hoi_goi_y_cho_claude'));

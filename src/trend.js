@@ -328,6 +328,12 @@
     const ro = new ResizeObserver((es) => { for (const e of es) { const w = e.target.clientWidth; if (w && w !== seen.get(e.target)) { seen.set(e.target, w); if (e.target.id === 'tr-fan') drawFan(); else drawHits(); } } });
     ro.observe($('tr-fan')); ro.observe($('tr-hits'));
   }
+  // bảng Tóm tắt quyết định (Tổng quan, src/ui.js) đọc nhãn 7 và 30 ngày từ đây
+  if (TR) {
+    const at = (k) => TR.now.find((x) => x.k === k);
+    window.BOT_SUMMARY = Object.assign(window.BOT_SUMMARY || {}, { trend: { r7: at(7), r30: at(30) } });
+    window.dispatchEvent(new Event('bot-summary'));
+  }
   let start = false;
   try { start = localStorage.getItem(KEY) === 'tr'; } catch (e) { /* bỏ qua */ }
   if (start) setView(true);

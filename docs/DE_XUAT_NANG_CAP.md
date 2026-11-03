@@ -143,8 +143,8 @@ Cách dùng: giống `KE_HOACH_CAI_TIEN.md`, mỗi mục một phiên, sao chép
 | L4 Lịch CPI (A1) | 1 | [x] 03/11/2026 | thêm bộ đọc lịch phát hành BLS, CPI tới 12/2027 |
 | L5 Kiểm chứng dải giá trực tiếp | 1 | [x] 03/11/2026 | |
 | L6 test_browser.py kẹt | 1 | [x] 03/11/2026 | chạy qua; chưa đưa vào pytest (chạy lâu, xem L7) |
-| L7 Đưa test_browser.py vào kiểm tra tự động | 1 | [ ] | chạy khoảng 1 phút, cần tránh làm chậm Daily |
-| R1 Giá chờ bán đánh giá thấp gần đây | 2 | [ ] | xem mục R1 |
+| L7 Đưa test_browser.py vào kiểm tra tự động | 1 | [x] 03/11/2026 | bài pytest `slow`, CI chạy riêng (22 giây); chưa bật trong Daily |
+| R1 Giá chờ bán đánh giá thấp gần đây | 2 | [x] 03/11/2026 | không lệch có hệ thống; bot thận trọng 2–4 điểm (docs/R1_GIA_CHO_BAN.md) |
 | F1 Dải giá theo giá trực tiếp | 2 | [ ] | |
 | F2 Xác suất chạm giá theo giờ | 2 | [ ] | phiên dài |
 | F3 Dao động kỳ vọng (DVOL) | 2 | [ ] | dữ liệu mới |
@@ -153,7 +153,7 @@ Cách dùng: giống `KE_HOACH_CAI_TIEN.md`, mỗi mục một phiên, sao chép
 | T2 Telegram (A3) | 3 | [ ] | |
 | T3 Bán dần | 3 | [x] 03/11/2026 | = L2 |
 | U1 Long/Short tự lấy giá | 4 | [ ] | |
-| U2 Gỡ Phân tích cũ (A2) | 4 | [ ] | |
+| U2 Gỡ Phân tích cũ (A2) | 4 | [x] 03/11/2026 | |
 | U3 Chú giải | 4 | [ ] | |
 
 Đã xong 03/11/2026: L1–L6, T3 (Chốt lời dần), thẻ Xu hướng mới. Thứ tự khuyên dùng tiếp: T1 → U1 → R1 → L7 → F1 → F2; sau đó theo lịch của `KE_HOACH_CAI_TIEN.md`.

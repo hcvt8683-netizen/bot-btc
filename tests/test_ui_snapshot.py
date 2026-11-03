@@ -37,9 +37,9 @@ STYLE_PROBES = {
     "tile_p": ".tile .p", "row_here": "tr.here td", "warn": ".warn", "foot": ".foot", "scroll": ".scroll",
     "hdr": ".hdr", "tab_on": ".tabs button[aria-selected=true]", "kpi": ".kpi", "kpi_val": ".kpi .val", "answer_big": ".answer .big",
 }
-TABS = ["home", "entry", "plan", "fc", "check", "old", "ai"]
+TABS = ["home", "entry", "plan", "fc", "check", "ai"]   # thẻ Phân tích cũ đã gỡ (bước A2)
 # full-page screenshots: (file suffix, mode, tab)
-SHOTS = [("buy", "buy", "home"), ("entry", "buy", "entry"), ("old", "buy", "old"), ("sell", "sell", "home")]
+SHOTS = [("buy", "buy", "home"), ("entry", "buy", "entry"), ("sell", "sell", "home")]
 STYLE_PROPS = ["color", "background-color", "font-family", "font-size", "font-weight", "line-height",
                "border-radius", "padding", "border-top-color", "border-top-width"]
 
