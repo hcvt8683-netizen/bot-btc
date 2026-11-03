@@ -103,8 +103,8 @@
    "warnings": [
     "real_yield_10y: 10 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 10/11/2022"
    ],
-   "last": "2026-10-30",
-   "rows": 5962,
+   "last": "2026-11-02",
+   "rows": 5963,
    "snapshot": "đã có bản hôm nay"
   },
   "fred_NASDAQCOM": {
@@ -193,5 +193,5 @@
    "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-03T17:00:46Z"
+ "fetched_at": "2026-11-03T23:31:48Z"
 }
