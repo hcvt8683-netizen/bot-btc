@@ -192,6 +192,13 @@ def _forecast() -> dict | None:
             o = json.loads(srch.read_text(encoding="utf-8"))
             out["search"] = {k: o[k] for k in ("n_variants", "data_from", "selection", "confirm_from", "current", "best", "switch")} | {
                 "diff": o["confirm"]["diff"], "ci": o["confirm"]["ci"]}
+        reg = DATA / "results" / "forecast_regime.json"
+        if reg.exists():  # the registered comparison that switched the volatility (bot/models/forecast_regime.py)
+            o = json.loads(reg.read_text(encoding="utf-8"))
+            t = o["table"]
+            out["regime"] = {"best": o["best"], "switch": o["switch"], "confirm_from": o["confirm_from"], "diff": o["confirm"]["diff"], "ci": o["confirm"]["ci"],
+                             "cover80": t[o["best"]]["xac_nhan"]["cover80"], "dev_old": t["hien_tai"]["xac_nhan"]["group_dev"],
+                             "dev_new": t[o["best"]]["xac_nhan"]["group_dev"]}
         return out
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None

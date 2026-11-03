@@ -290,10 +290,13 @@ const B3 = (() => {
       F.rows.forEach((r) => { const c = ck(r.k); row([D(r.target), tx('web.fc.k_days', r.k), usdT(r.q50), tx('web.fc.range', usdT(r.q25), usdT(r.q75)), tx('web.fc.range', usdT(r.q10), usdT(r.q90)),
         c ? `${P(c.cover80)} (${tx('web.fc.hist_sub', P(c.cover80_ci[0]), P(c.cover80_ci[1]), c.n_eff)})` : '—']); });
       t('');
-      const lg = F.log || {}, v = (lg.versions || {})[F.version];
-      t('- ' + (lg.matured ? tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, P(v ? v.in80 / v.matured : null), v ? v.in50 : 0, P(v ? v.in50 / v.matured : null))
-        : tx('web.fc.verify_none', lg.first_due ? D(lg.first_due) : '—')));
-      if (F.search) { const Sx = F.search; t('- ' + tx(Sx.switch ? 'web.fc.note_search_switch' : 'web.fc.note_search', Sx.n_variants, D(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, SP1(Sx.diff), SP1(Sx.ci[0]), SP1(Sx.ci[1]))); }
+      const lg = F.log || {}, v = (lg.versions || {})[F.version], Rg = F.regime && F.regime.switch ? F.regime : null;
+      const old = Object.values(lg.versions || {}).reduce((a, x) => ({ matured: a.matured + x.matured, in80: a.in80 + x.in80, in50: a.in50 + x.in50 }), { matured: 0, in80: 0, in50: 0 });
+      t('- ' + (!lg.matured ? tx('web.fc.verify_none', lg.first_due ? D(lg.first_due) : '—')
+        : !v ? tx('web.fc.verify_new', old.matured, old.in80, P(old.in80 / old.matured), old.in50, P(old.in50 / old.matured))
+        : tx('web.fc.verify_sum', v.matured, v.in80, P(v.in80 / v.matured), v.in50, P(v.in50 / v.matured))));
+      if (Rg) t('- ' + tx('web.fc.note_regime', `${Rg.confirm_from.slice(0, 4)}–nay`, P(-Rg.diff, 1), P(-Rg.ci[1], 1), P(-Rg.ci[0], 1), P(Rg.cover80, 1), P(Rg.dev_old, 1), P(Rg.dev_new, 1)));
+      if (F.search) { const Sx = F.search; t('- ' + tx(Sx.switch ? 'web.fc.note_search_switch' : Rg ? 'web.fc.note_search_old' : 'web.fc.note_search', Sx.n_variants, D(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, SP1(Sx.diff), SP1(Sx.ci[0]), SP1(Sx.ci[1]))); }
       t('- ' + tx('web.fc.note_direction', P(ck(7) ? ck(7).above_median : null))); t('');
     }
     // giá chờ mua (kn.entry, giá thấp nhất) và giá chờ bán (kn.exit, giá cao nhất): cùng cách trình bày, khác chiều

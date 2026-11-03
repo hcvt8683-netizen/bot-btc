@@ -8,7 +8,7 @@ Viết sau khi có đủ 5 chế độ (Bên mua, Bên bán, Long/Short, Xu hư�
 
 | Hạng | Thẻ / công cụ | Trả lời câu hỏi | Bằng chứng | Dùng để |
 |---|---|---|---|---|
-| ★★★★★ | **Dự báo dải giá** 1–7 và 30 ngày (thẻ Dự báo) | Giá sau k ngày thường nằm trong khoảng nào | Khoảng 8/10 lần trúng 80–81% từ 2018 (hàng nghìn lần, Wilson 79–82% ở 1 ngày); hồi cứu 24 thời điểm 19/24 | Đặt cắt lỗ ngoài dải, biết rủi ro |
+| ★★★★★ | **Dự báo dải giá** 1–7 và 30 ngày (thẻ Dự báo) | Giá sau k ngày thường nằm trong khoảng nào | Khoảng 8/10 lần trúng 80–81% từ 2018 (hàng nghìn lần, Wilson 79–82% ở 1 ngày); hồi cứu 24 thời điểm 19/24. Từ 03/11/2026 trộn độ dao động 1 năm: đúng tỷ lệ hơn lúc êm / lúc mạnh (`docs/FORECAST_REGIME.md`); 30 ngày lúc êm vẫn chỉ khoảng 69% | Đặt cắt lỗ ngoài dải, biết rủi ro |
 | ★★★★★ | **Khoảng 9/10 lần** (thẻ Xu hướng) | Như trên, rộng hơn | Trúng 89–93% khi kiểm chứng, cả trên giá Bitstamp | Như trên, khi cần chắc hơn |
 | ★★★★½ | **Giá chờ mua** (khả năng chạm) | Đặt lệnh chờ thấp hơn x% thì bao nhiêu % khớp | Đúng tỷ lệ từ 2016 (−2%/7 ngày: nói 71%, thật 72%; −5%: 42% / 43%); hồi cứu 12/24 khi nói 53% | Chọn giá đặt lệnh chờ mua |
 | ★★★★ | **Giá chờ bán** (khả năng chạm) | Đặt lệnh chờ bán cao hơn x% | Dài hạn hơi thận trọng (+2%: nói 73%, thật 76%); **2024–2026 đánh giá thấp rõ** (nói 55%, thật 79%) → mục R1 | Chọn giá chốt lời, cộng thêm biên an toàn |

@@ -1146,11 +1146,16 @@
     const Sx = F.search;
     if (Sx) {
       const args = [Sx.n_variants, fmtDate(Sx.data_from), `${Sx.selection[0].slice(0, 4)}–${Sx.selection[1].slice(0, 4)}`, `${Sx.confirm_from.slice(0, 4)}–nay`, spc(Sx.diff, 1), spc(Sx.ci[0], 1), spc(Sx.ci[1], 1)];
-      notes.splice(1, 0, Sx.switch ? tx('web.fc.note_search_switch', ...args) : tx('web.fc.note_search', ...args));
+      notes.splice(1, 0, Sx.switch ? tx('web.fc.note_search_switch', ...args) : tx(F.regime && F.regime.switch ? 'web.fc.note_search_old' : 'web.fc.note_search', ...args));
     }
+    const Rg = F.regime;
+    if (Rg && Rg.switch) notes.splice(1, 0, tx('web.fc.note_regime', `${Rg.confirm_from.slice(0, 4)}–nay`, pc(-Rg.diff, 1), pc(-Rg.ci[1], 1), pc(-Rg.ci[0], 1),
+      pc(Rg.cover80, 1), pc(Rg.dev_old, 1), pc(Rg.dev_new, 1)));
     $('fc-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
     const lg = F.log || { matured: 0, versions: {}, recent: [] }, v = (lg.versions || {})[F.version];
+    const old = Object.values(lg.versions || {}).reduce((a, x) => ({ matured: a.matured + x.matured, in80: a.in80 + x.in80, in50: a.in50 + x.in50 }), { matured: 0, in80: 0, in50: 0 });
     $('fc-verify-sum').textContent = !lg.matured ? tx('web.fc.verify_none', lg.first_due ? fmtDate(lg.first_due) : '—')
+      : !v ? tx('web.fc.verify_new', old.matured, old.in80, pc(old.in80 / old.matured), old.in50, pc(old.in50 / old.matured))
       : tx('web.fc.verify_sum', v ? v.matured : lg.matured, v ? v.in80 : 0, pc(v ? v.in80 / v.matured : null), v ? v.in50 : 0, pc(v ? v.in50 / v.matured : null))
         + (lg.indep ? ' ' + tx('web.fc.verify_ci', lg.indep.anchors, pc(lg.indep.ci80[0]), pc(lg.indep.ci80[1]), pc(lg.indep.ci50[0]), pc(lg.indep.ci50[1]))
           + (lg.indep.few ? ' ' + tx('web.fc.verify_few') : '') : '');

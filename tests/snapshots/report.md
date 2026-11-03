@@ -94,7 +94,8 @@ Bảng kịch bản là cách bot sẽ đọc nếu giá đi tới mức đó, k
 | 27/11/2026 | 30 ngày | 82.215 $ | 79.085 $ – 86.571 $ | 74.102 $ – 94.575 $ | 80% (Wilson 72%–87%, 106 lần độc lập) |
 
 - Đã đến hạn 2 dự báo: 1 lần (50%) giá thật nằm trong khoảng 80%, 1 lần (50%) trong khoảng 50%. Dải đúng thì hai tỷ lệ này dần tiến về 80% và 50%. Nhật ký: data/forecast/forecast_log.csv (chỉ thêm dòng, không sửa).
-- Đã so 32 cách tính trên giá từ 18/07/2010, chấm bằng điểm phân vị (thưởng dải vừa trúng đúng tỷ lệ vừa hẹp; chỉ nhìn tỷ lệ trúng thì dải càng rộng càng "đúng"). Cách tốt nhất giai đoạn 2014–2021 không hơn rõ rệt cách đang dùng ở giai đoạn 2022–nay (chênh -0,1%, khoảng tin cậy -1,1% đến +0,8%), nên giữ nguyên.
+- Từ 03/11/2026 độ dao động trộn thêm 1 năm (đăng ký trước, mục forecast_regime): chỉ dùng 30 ngày thì dải hẹp quá lúc thị trường êm, rộng quá lúc mạnh. Ở 2022–nay, điểm phân vị tốt hơn 1,4% (khoảng tin cậy 0,8% đến 2,0%), dải 80% vẫn trúng 80,2%, độ lệch tỷ lệ trúng giữa lúc êm và lúc mạnh giảm từ 8,5% xuống 4,5%.
+- Trước đó (29/10/2026) đã so 32 cách tính trên giá từ 18/07/2010, chấm bằng điểm phân vị: cách tốt nhất giai đoạn 2014–2021 không hơn rõ rệt cách chỉ dùng 30 ngày ở giai đoạn 2022–nay (chênh -0,1%, khoảng tin cậy -1,1% đến +0,8%), nên lúc đó giữ nguyên. 32 cách này không có cách nào trộn độ dao động ngắn và dài hạn.
 - Không phải dự báo hướng giá: kiểm định 6 tiêu chí cho thấy tín hiệu của bot chưa có lợi thế. "Giữa" không phải mục tiêu giá; trong lịch sử giá thật cao hơn giữa ở 48% số lần.
 
 ### Giá chờ mua và ngày rẻ nhất (đo độ dao động, không đoán hướng giá)

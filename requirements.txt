@@ -1,4 +1,4 @@
-pandas>=2.2
+pandas>=2.2,<4   # pandas 4 bỏ DatetimeIndex.weekday, đang dùng trong weekly_close.py (file khóa của nhật ký đi tới)
 numpy>=1.26
 scipy>=1.11
 scikit-learn>=1.4

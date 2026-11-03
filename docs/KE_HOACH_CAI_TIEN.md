@@ -6,6 +6,8 @@ Viết ngày 29/10/2026, sau khi bot đạt 0/6 tiêu chí chấp nhận (`docs/
 
 Rà soát toàn bộ ngày 02/11/2026 (lỗi đã thấy và công cụ nên thêm, có câu lệnh từng mục): `docs/DE_XUAT_NANG_CAP.md`.
 
+Yếu điểm xếp từ lớn đến nhỏ sau khi chạy lại toàn bộ và hồi cứu mở rộng, 03/11/2026 (đã sửa: dải giá theo độ dao động, khóa pandas): `docs/KE_HOACH_SUA_LOI.md`.
+
 ## Cách dùng file này
 
 1. Mở Claude Code trong thư mục dự án (`D:\Claude_bot_bit`).

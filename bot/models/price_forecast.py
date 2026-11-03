@@ -1,9 +1,11 @@
 """Daily BTC price bands for the next 1–7 days and 30 days (settings in config/candidates.yaml, section forecast).
 
-Not a direction forecast: the k-day log return, divided by (30-day daily volatility × √k), has a distribution that is
-read from the 4 years before the anchor day (only windows whose outcome is already known), and is scaled back with the
-current volatility. Quantiles 10/25/50/75/90 give the 80% band, the 50% band and the middle. The same rolling
-computation gives the walk-forward check since 2018 (how often the real close fell inside each band), and a daily
+Not a direction forecast: the k-day log return, divided by (daily volatility × √k), has a distribution that is read from
+the 4 years before the anchor day (only windows whose outcome is already known), and is scaled back with the current
+volatility. The volatility blends the 30-day and the 365-day variances half and half (`vol_long_days`, section
+forecast_regime: volatility mean-reverts, so 30 days alone made the band too narrow after calm weeks and too wide after
+turbulent ones); without `vol_long_days` it is the 30-day volatility alone, the method used until 03/11/2026.
+Quantiles 10/25/50/75/90 give the 80% band, the 50% band and the middle. The same rolling computation gives the walk-forward check since 2018 (how often the real close fell inside each band), and a daily
 append-only log lets anyone verify the live forecasts when their day comes.
 """
 from __future__ import annotations
@@ -46,6 +48,9 @@ def bands(p: pd.Series, k: int, cfg: dict, scaled: bool = True) -> pd.DataFrame:
     """Price quantiles for day T + k, for every anchor day T, using prices up to T only."""
     lr = np.log(p).diff()
     sig = lr.rolling(cfg["vol_days"], min_periods=cfg["vol_days"]).std()
+    if cfg.get("vol_long_days"):
+        n = int(cfg["vol_long_days"])
+        sig = np.sqrt((sig ** 2 + lr.rolling(n, min_periods=n).std() ** 2) / 2)
     rk = np.log(p.shift(-k) / p)
     z = rk / (sig * np.sqrt(k)) if scaled else rk
     known = z.shift(k)  # at T: the standardised return of T − k, whose outcome is the price of T

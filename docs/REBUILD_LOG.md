@@ -556,3 +556,31 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - **A2 gỡ Phân tích cũ** (phương án 1): bỏ thẻ khỏi thanh thẻ (địa chỉ `#old` về Tổng quan); báo cáo tải về, gói claude.ai và báo cáo gửi API không còn tỷ lệ nên mua / bán, giá đề xuất, xác suất thắng theo khung, bộ chỉ số, so sánh phương án, bên bán cũ, trọng số mô hình (`B3.report(..., {legacy: false})`, có câu giải thích). Mã tính cũ còn giữ (chạy ẩn) vì `tests/test_engine.js` và chỉ số thô của báo cáo dùng nó.
 - **R1** (mục `exit_calib`, commit `d9ac53b`, chỉ báo cáo): khả năng chạm giá chờ bán **không lệch có hệ thống** ở cả hai nửa giai đoạn ở mọi mức +1 … +8% và kỳ hạn 7 / 30 ngày; trung bình bot thận trọng 2–4 điểm (ví dụ +3% / 7 ngày: nói 63%, thật 66%, Wilson 61–69%); từng năm lệch qua lại (2017 +15 điểm, 2018 −6 điểm); trên / dưới MA 200 ngày gần như nhau. Con số 55% / 79% của hồi cứu 24 thời điểm là nhiễu. Không đổi phương pháp. Báo cáo: `docs/R1_GIA_CHO_BAN.md`.
 - **L7**: `tests/test_browser.py` viết lại thành bài pytest (đánh dấu `slow`, bỏ khỏi `make test` mặc định) chạy cả trang trên dữ liệu giả qua đường tải thật ở 1280 sáng / 390 sáng / 1280 tối: không lỗi trang, không trượt ngang, thẻ cũ đã gỡ, báo cáo không còn phần cũ. Khoảng 22 giây. CI chạy bằng `python -m pytest -m slow`; **chưa bật trong Daily** (chờ người dùng duyệt, đúng câu lệnh L7).
+
+## Hồi cứu mở rộng và dải giá theo nhóm độ dao động (03/11/2026)
+
+**Yêu cầu:** chạy lại bot, đánh giá yếu điểm từ lớn đến nhỏ. Chạy lại dự báo tại các thời điểm quá khứ để xem đúng hay sai. Sửa sao cho chính xác hơn.
+
+**Chạy lại:**
+- `python -m pytest`: 203 bài qua.
+- Tải dữ liệu mới, đủ 12 bước Daily (trên bản sao, không ghi vào nhật ký thật).
+- Công cụ mới `tools/hoi_cuu_mo_rong.py` → `docs/HOI_CUU_MO_RONG.md`: mọi thời điểm không chồng nhau từ 2016–2018, cùng hàm của trang. Chỉ báo cáo.
+
+**Thấy:** dải giá đúng 80% tính chung nhưng lệch theo độ dao động lúc dự báo. 1/3 ngày êm nhất: dải 8/10 trúng 72% (7 ngày), 62% (30 ngày). 1/3 ngày mạnh nhất: 90% và 95%.
+
+**Đăng ký trước** (mục `forecast_regime`, commit `8fd2b9c`, trước khi tính số của hai cách mới):
+- `tron`: trộn đều phương sai 30 và 365 ngày.
+- `theo_nhom`: phân vị theo nhóm 1/3 độ dao động.
+- Chọn trên 2014–2021. Đổi chỉ khi ở 2022 → nay đạt cả ba: khoảng tin cậy của chênh lệch điểm phân vị nằm hẳn dưới 0; dải 80% phủ 75–85%; độ lệch phủ theo nhóm nhỏ hơn.
+
+**Kết quả** (`docs/FORECAST_REGIME.md`, một lần chạy):
+- `tron` tốt hơn ở giai đoạn chọn (0,9788; `theo_nhom` 0,9975).
+- Xác nhận: chênh −1,4% (95%: −2,0% đến −0,8%); phủ 80,2%; độ lệch theo nhóm 4,5% so với 8,5%. **Đạt cả ba.**
+- `price_forecast.bands` dùng `vol_long_days: 365` (mục `forecast`). Nhật ký dự báo sang phiên bản mới.
+- Còn lại: dải 30 ngày lúc êm vẫn khoảng 69%. Giá chờ mua / bán và khoảng của Xu hướng chưa đổi (cần đăng ký riêng).
+
+**Kiểm tra rò rỉ:** `tests/test_forecast_regime.py` (7 bài). Đã cài thử 3 lỗi nhìn trước và cả 3 bị bắt: cửa sổ lấn một ngày, nhóm dùng độ dao động ngày mai, độ dao động 365 ngày tính cả ngày mai. Cài thêm lỗi gắn nhầm nhóm: bị bài tính tay bắt. Đã khôi phục.
+
+**Khác:**
+- Khóa `pandas<4`: `weekly_close.py` (file khóa) dùng `DatetimeIndex.weekday`, sẽ bị bỏ ở pandas 4.
+- Yếu điểm và kế hoạch sửa: `docs/KE_HOACH_SUA_LOI.md`.

@@ -19,6 +19,7 @@ trend                      trend forecast 1–7 days, 1–4 weeks, 1–6 months:
 perp-trade                 long/short with entry, stop-loss, take-profit: write data/results/perp_trade.json, append the month's pick to data/perp_trade/select_log.csv
 price-action               price action criteria vs any day: data/results/price_action.json + docs/PRICE_ACTION.md (--final: the single logged final test)
 pa-sheet                   price action panel of the Price action view: price action now + touch shares by ATR distance → data/results/pa.json
+forecast-regime            price bands by volatility regime vs the bands in use (registered, report only unless it wins) → docs/FORECAST_REGIME.md
 exit-calib                 R1: calibration of the selling-price touch chance by year and 200-day state → docs/R1_GIA_CHO_BAN.md
 long-hold                  buy and hold: share of gains after holding 1 week … 4 years, buying price → data/results/hold.json
 sr-levels                  support / resistance by frame (hours, days, weeks, months): bounce or break vs a placebo level → data/results/sr.json
@@ -151,6 +152,13 @@ def main(argv: list[str] | None = None) -> int:
         c = o["counts"]
         print(f"Price action: {o['n_pairs']} cặp tiêu chí × kỳ hạn; hơn mốc {c['hon']}, kém mốc {c['kem']}, chưa có lợi thế {c['chua']}, "
               f"ít đợt {c['it_dot']}. docs/PRICE_ACTION.md, data/results/price_action.json")
+        return 0
+    if args.command == "forecast-regime":
+        from bot.models import forecast_regime as fr
+        o = fr.run(write=True)
+        print(f"Dải giá theo nhóm độ dao động: tốt hơn ở giai đoạn chọn {o['best']}; xác nhận chênh {o['confirm']['diff']:+.2%} "
+              f"(95%: {o['confirm']['ci'][0]:+.2%} đến {o['confirm']['ci'][1]:+.2%}); " + ("ĐỔI cách tính" if o["switch"] else "giữ nguyên cách đang dùng")
+              + "; docs/FORECAST_REGIME.md")
         return 0
     if args.command == "exit-calib":
         from bot.models import exit_calib as ec

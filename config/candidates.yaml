@@ -178,8 +178,9 @@ forecast:
   price: "giá đóng ngày Coin Metrics (00:00 UTC); ngày gốc = ngày cuối có giá. Ngoại lệ có chủ đích với nguyên tắc giá đóng tuần, vì người dùng cần mốc từng ngày"
   horizons_days: [1, 2, 3, 4, 5, 6, 7, 30]
   quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]   # khoảng 80% = 10–90%, khoảng 50% = 25–75%, giữa = trung vị
-  method: "mô phỏng lịch sử theo biến động: lợi suất log k ngày chia cho (độ lệch chuẩn lợi suất ngày của 30 ngày trước đó × √k), lấy phân vị trong 4 năm trước ngày gốc (chỉ các cửa sổ đã biết kết quả), nhân lại với biến động hiện tại"
+  method: "mô phỏng lịch sử theo biến động: lợi suất log k ngày chia cho (độ dao động × √k), lấy phân vị trong 4 năm trước ngày gốc (chỉ các cửa sổ đã biết kết quả), nhân lại với độ dao động hiện tại. Độ dao động = căn bậc hai của trung bình cộng phương sai lợi suất ngày 30 ngày và 365 ngày trước đó (từ 03/11/2026, theo kết quả đã đăng ký của mục forecast_regime; trước đó chỉ 30 ngày)"
   vol_days: 30
+  vol_long_days: 365   # thêm 03/11/2026 (forecast_regime đạt cả ba điều kiện); bỏ dòng này = cách cũ chỉ dùng 30 ngày
   window_days: 1461
   min_obs: 365
   baseline: "phân vị lợi suất k ngày không chỉnh biến động, cùng cửa sổ (chỉ để so sánh khi kiểm chứng, không hiển thị)"
