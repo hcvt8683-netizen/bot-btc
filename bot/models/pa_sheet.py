@@ -22,6 +22,7 @@ from bot.models import price_action as pa
 STEP, LEVELS = 0.25, 32               # grid 0.25..8 ATR
 SINCE = pd.Timestamp("2016-01-01")
 HOLDS = (7, 30)
+CHART_DAYS = 120   # nến ngày cho đồ thị của bảng (pa_hold.chart), chỉ hiển thị
 OUT = DATA / "results" / "pa.json"
 
 
@@ -105,11 +106,17 @@ def research(path=None) -> dict | None:
             "rows": [{k: r[k] for k in keys} for r in o["rows"]]}
 
 
+def recent(d: pd.DataFrame, n: int = CHART_DAYS) -> list[list]:
+    """The last n closed daily candles [date, open, high, low, close] for the panel's chart (display only)."""
+    x = d.dropna().iloc[-n:]
+    return [[i.strftime("%Y-%m-%d"), *(round(float(v), 2) for v in r)] for i, r in zip(x.index, x[["open", "high", "low", "close"]].to_numpy())]
+
+
 def run(write: bool = True, d: pd.DataFrame | None = None) -> dict:
     d = pa.daily() if d is None else d
     out = {"made": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "since": SINCE.strftime("%Y-%m-%d"),
            "step": STEP, "levels": LEVELS, "state": state(d, pa.spec()), "base": base_rates(d),
-           "touch": {str(H): touch(d, H) for H in HOLDS}, "research": research()}
+           "touch": {str(H): touch(d, H) for H in HOLDS}, "research": research(), "candles": recent(d)}
     if write:
         OUT.parent.mkdir(exist_ok=True)
         OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

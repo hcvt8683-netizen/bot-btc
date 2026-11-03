@@ -229,6 +229,7 @@
     const pass = { long: score('long') === N, short: score('short') === N };
     const near = (sd) => ck[sd].every(([x], i) => x || i === 4);   // mọi tiêu chí trừ tín hiệu
     const verdict = pass.long && !pass.short ? 'nen_long' : pass.short && !pass.long ? 'nen_short' : 'khong';
+    publish({ verdict, long: score('long'), short: score('short'), N, live: !!s.live });
     const vtone = { nen_long: 'good', nen_short: 'bad', khong: 'muted' }[verdict];
     const planSide = view.side || (verdict === 'nen_short' ? 'short' : verdict === 'nen_long' ? 'long' : score('short') > score('long') ? 'short' : 'long');
     const ans = $('lt-answer'), parts = [];
@@ -656,6 +657,13 @@
   if (window.ResizeObserver) {
     let w = 0;
     new ResizeObserver(() => { const x = $('lt-curve').clientWidth; if (x && x !== w) { w = x; drawCurve(); } }).observe($('lt-curve'));
+  }
+  // kết luận 6 tiêu chí cho nút Hold của bảng Kiểm tra điểm vào (src/pact.js, mục pa_hold): trạng thái của Daily, 1x, cho tới khi bấm Chạy
+  function publish(v) { window.LS_VERDICT = v; window.dispatchEvent(new Event('ls-verdict')); }
+  if (LT) {
+    const s0 = tradeState(), N0 = LT.checklist.length, sc = (sd) => checks(sd, s0, 1).filter(([x]) => x).length;
+    const l0 = sc('long'), h0 = sc('short');
+    publish({ verdict: l0 === N0 && h0 !== N0 ? 'nen_long' : h0 === N0 && l0 !== N0 ? 'nen_short' : 'khong', long: l0, short: h0, N: N0, live: false });
   }
   if (LT) renderMethodLT();
   renderMethodOld();

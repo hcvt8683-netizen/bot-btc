@@ -89,3 +89,12 @@ def test_entry_check_verdict():
     assert rs["Pt"] == pytest.approx(260 / 700) and rs["Ps"] == pytest.approx(440 / 700) and rs["verdict"] == "bat_loi"
     assert not ps.check(o, "long", 1000.0, 1100.0, 1200.0, 7)["valid"]
     assert ps.check(o, "long", 1000.0, 999.0, 3000.0, 7)["clamped"]                      # 20 ATR target is outside the grid
+
+
+def test_recent_candles_for_the_chart():
+    """The panel's chart gets the last closed daily candles [date, open, high, low, close], oldest first (display only)."""
+    idx = pd.date_range("2025-01-01", periods=200, freq="D")
+    d = pd.DataFrame({"open": np.arange(200.0) + 1, "high": np.arange(200.0) + 3, "low": np.arange(200.0), "close": np.arange(200.0) + 2}, index=idx)
+    d.iloc[-1] = np.nan                                    # last day not closed yet
+    r = ps.recent(d)
+    assert len(r) == ps.CHART_DAYS and r[-1] == ["2025-07-18", 199.0, 201.0, 198.0, 200.0] and r[0][0] < r[-1][0]

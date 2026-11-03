@@ -22,10 +22,87 @@
     const x = /^\d*$/.test(int) && (int || dec) ? Number((int || '0') + (dec ? '.' + dec : '')) : NaN;
     return isFinite(x) && x > 0 ? x : null;
   };
+  // ----- đồ thị nến dùng chung (bảng này và src/pa.js): nến, vùng tô màu, đường giá có nhãn ở lề phải, rê chuột xem giá -----
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (t, at) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const n0 = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
+  function drawChart(box, cand, o = {}) {
+    const W = box.clientWidth;
+    if (!W || !cand.length) return;
+    const H = o.height || 300, m = { l: 6, r: 128, t: 12, b: 24 }, n = cand.length, cw = (W - m.l - m.r) / n;
+    const lines = (o.lines || []).filter((x) => ok(x.y)), zones = (o.zones || []).filter((z) => ok(z.lo) && ok(z.hi));
+    const vals = [];
+    for (const k of cand) { if (ok(k.h)) vals.push(k.h); if (ok(k.l)) vals.push(k.l); }
+    for (const x of lines) vals.push(x.y);
+    for (const z of zones) vals.push(z.lo, z.hi);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = (hi - lo) * 0.04 || hi * 0.01; lo -= pad; hi += pad;
+    const X = (i) => m.l + (i + 0.5) * cw, Y = (v) => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+    const svg = sv('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}`, class: 'pa-svg', role: 'img', 'aria-label': o.label || '' });
+    const raw = (hi - lo) / 5, mag = 10 ** Math.floor(Math.log10(raw)), step = [1, 2, 2.5, 5, 10].map((x) => x * mag).find((x) => x >= raw);
+    for (let v = Math.ceil(lo / step) * step; v < hi; v += step) {
+      svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), class: 'grid' }));
+      const t = sv('text', { x: m.l + 4, y: Y(v) - 3, class: 'ax' }); t.textContent = n0.format(v); svg.append(t);
+    }
+    for (const z of zones) svg.append(sv('rect', { x: m.l, width: W - m.l - m.r, y: Y(z.hi), height: Math.max(1, Y(z.lo) - Y(z.hi)), class: 'zn ' + z.cls }));
+    const bw = Math.max(1, Math.min(9, cw * 0.66));
+    cand.forEach((k, i) => {
+      if (!ok(k.c) || !ok(k.h) || !ok(k.l)) return;
+      const op = ok(k.o) ? k.o : k.c, cls = k.c >= op ? 'cu' : 'cd';
+      svg.append(sv('line', { x1: X(i), x2: X(i), y1: Y(k.h), y2: Y(k.l), class: 'wk ' + cls }));
+      svg.append(sv('rect', { x: X(i) - bw / 2, width: bw, y: Y(Math.max(op, k.c)), height: Math.max(1, Math.abs(Y(op) - Y(k.c))), class: cls }));
+    });
+    const labs = lines.map((x) => ({ ...x, yy: Y(x.y) })).sort((a, b) => a.yy - b.yy);
+    labs.forEach((x, i) => { x.ly = i ? Math.max(x.yy, labs[i - 1].ly + 18) : Math.max(x.yy, m.t + 8); });
+    const over = labs.length ? labs[labs.length - 1].ly - (H - m.b - 2) : 0;
+    if (over > 0) labs.forEach((x) => { x.ly -= over; });
+    for (const x of labs) {
+      svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: x.yy, y2: x.yy, class: 'pl ' + x.cls }));
+      if (!x.label) continue;
+      const g = sv('g', { class: 'pt ' + x.cls });
+      g.append(sv('rect', { x: W - m.r + 4, y: x.ly - 8, width: m.r - 6, height: 16, rx: 6 }));
+      const t = sv('text', { x: W - m.r + 9, y: x.ly + 4 }); t.textContent = `${x.label} ${n0.format(x.y)}`; g.append(t);
+      svg.append(g);
+    }
+    const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor((W - m.r) / 80))));
+    cand.forEach((k, i) => {   // nhãn ngày / giờ, bỏ nhãn sát hai mép để không bị cắt
+      if (i % every || !k.d || X(i) < 26 || X(i) > W - m.r - 26) return;
+      const t = sv('text', { x: X(i), y: H - 7, 'text-anchor': 'middle', class: 'ax' }); t.textContent = k.d; svg.append(t);
+    });
+    const cross = sv('line', { y1: m.t, y2: H - m.b, class: 'cross', visibility: 'hidden' });
+    svg.append(cross);
+    const tip = el('div', 'tip');
+    svg.addEventListener('pointermove', (ev) => {
+      const r = svg.getBoundingClientRect(), i = Math.max(0, Math.min(n - 1, Math.floor((ev.clientX - r.left - m.l) / cw))), k = cand[i];
+      cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+      tip.textContent = o.tip ? o.tip(k) : `${k.full || k.d}: ${n0.format(k.c)}`;
+      tip.style.display = 'block';
+      const left = X(i) + 12, w = tip.offsetWidth;
+      tip.style.left = (left + w > W - 4 ? Math.max(4, X(i) - w - 12) : left) + 'px'; tip.style.top = '8px';
+    });
+    svg.addEventListener('pointerleave', () => { tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden'); });
+    box.replaceChildren(svg, tip);
+  }
+  window.PA_CHART = drawChart;
+
   if (!PACT) { $('pact-none').hidden = false; $('pact-body').hidden = true; return; }
   const ST = PACT.state, A = ST.atr, W = ST.w, KS = [1, 3, 7, 30];
   const view = { side: 'long' };
   const sideName = (s) => tx(s === 'long' ? 'web.pact.side_long' : 'web.pact.side_short');
+  const CAND = (PACT.candles || []).map(([d, o, h, l, c]) => ({ d: `${d.slice(8, 10)}/${d.slice(5, 7)}`, full: vnDate(d), o, h, l, c }));
+  const tipOf = (k) => tx('web.pact.ch_tip', k.full, usd(k.o), usd(k.h), usd(k.l), usd(k.c));
+  // ----- Long / Short / Hold (mục pa_hold): chỉ đề xuất vào lệnh khi Long/Short đủ 6/6 và hành động giá rõ cùng hướng -----
+  const UP = ['ho_tro', 'cau_truc_tang', 'pin_bar_ho_tro', 'inside_bar_ho_tro', 'pha_vo_gia_duoi'];
+  const DN = ['khang_cu', 'cau_truc_giam', 'pin_bar_khang_cu', 'inside_bar_khang_cu', 'pha_vo_gia_tren'];
+  function clarity() {
+    const u = ST.active.filter((c) => UP.includes(c)), d = ST.active.filter((c) => DN.includes(c));
+    return { kind: u.length && !d.length ? 'up' : d.length && !u.length ? 'down' : u.length ? 'mixed' : 'none', names: [...u, ...d] };
+  }
+  function decision() {
+    const v = window.LS_VERDICT || null, c = clarity();
+    const action = v && v.verdict === 'nen_long' && c.kind === 'up' ? 'long' : v && v.verdict === 'nen_short' && c.kind === 'down' ? 'short' : 'hold';
+    return { action, v, c };
+  }
   const holdName = (H) => tx(H === 7 ? 'web.pact.hold_7' : 'web.pact.hold_30');
 
   // ----- giống hệt bot/models/pa_sheet.py -----
@@ -104,6 +181,7 @@
   const inputs = () => ({ E: parseNum($('pact-entry').value), SL: parseNum($('pact-stop').value), TP: parseNum($('pact-target').value), H: Number($('pact-hold').value) });
 
   function renderCheck() {
+    if (view.side === 'hold') { renderHold(); return; }
     const { E, SL, TP, H } = inputs(), side = view.side, ans = $('pact-answer');
     if (!E) { ans.replaceChildren(el('p', 'warn', tx('web.pact.entry_bad'))); return; }
     const sg = suggest(side, E);
@@ -111,6 +189,8 @@
     $('pact-target').placeholder = tx('web.pact.ph_suggest', n1.format(sg.TP));
     const r = check(side, E, SL, TP, H), parts = [];
     parts.push(el('p', 'kicker', tx('web.pact.v_kicker', sideName(side), usd(E), holdName(H))));
+    const dc = decision();
+    parts.push(el('p', 'muted', tx('web.pact.now_action', tx('web.pact.act_' + dc.action))));
     if (!r.valid) { parts.push(el('p', 'warn', tx(side === 'long' ? 'web.pact.invalid_long' : 'web.pact.invalid_short'))); ans.replaceChildren(...parts); return; }
     parts.push(el('div', 'pact-v ' + vTone(r.verdict), tx('web.pact.v_' + r.verdict)));
     const inS = r.S != null && E <= r.S + W, inR = r.R != null && E >= r.R - W;
@@ -136,10 +216,60 @@
     parts.push(el('p', 'muted', tx('web.pact.base_line', vnDate(PACT.since), holdName(H), tx(side === 'long' ? 'web.pact.base_up' : 'web.pact.base_down'),
       pc(side === 'long' ? b.up : b.down, 0))));
     parts.push(el('p', 'muted', tx('web.pact.caveat')));
+    const box = el('div', 'pact-chart');
+    parts.push(el('p', 'sm', tx('web.pact.ch_title', CAND.length)), box);
     ans.replaceChildren(...parts);
+    const zones = [], lines = [{ y: E, cls: 'e', label: tx('web.pact.ch_e') }, { y: r.SL, cls: 'sl', label: tx('web.pact.ch_sl') }, { y: r.TP, cls: 'tp', label: tx('web.pact.ch_tp') }];
+    if (r.S != null) { zones.push({ lo: r.S - W, hi: r.S + W, cls: 's' }); lines.push({ y: r.S, cls: 's', label: tx('web.pact.ch_s') }); }
+    if (r.R != null) { zones.push({ lo: r.R - W, hi: r.R + W, cls: 'r' }); lines.push({ y: r.R, cls: 'r', label: tx('web.pact.ch_r') }); }
+    view.chart = [box, { lines, zones, tip: tipOf }];
+    drawChart(box, CAND, view.chart[1]);
+  }
+
+  // ----- Hold: đề xuất lúc này, từng lý do, và chờ gì ở mức giá nào -----
+  const li = (good, text) => el('li', good ? 'ok' : null, text);
+  function waitCard(side, L) {
+    const long = side === 'long', c = el('div', 'pact-wcard ' + side);
+    c.append(el('b', null, tx(long ? 'web.pact.wait_long' : 'web.pact.wait_short')));
+    if (L == null) { c.append(el('p', 'muted', tx(long ? 'web.pact.wait_none_s' : 'web.pact.wait_none_r'))); return c; }
+    c.append(el('div', 'lvl', tx(long ? 'web.pact.wait_lvl_s' : 'web.pact.wait_lvl_r', usd(L), spc(L / ST.close - 1), usd(L - W), usd(L + W))));
+    const items = long
+      ? [['ho_tro', tx('web.pact.w_hold_s', usd(L - W), usd(L + W), usd(L))], ['pha_vo_gia_duoi', tx('web.pact.w_fake_s', usd(L - W), usd(L))], ['pin_bar_ho_tro', tx('web.pact.w_pin_s', usd(L + W), usd(L))]]
+      : [['khang_cu', tx('web.pact.w_hold_r', usd(L - W), usd(L + W), usd(L))], ['pha_vo_gia_tren', tx('web.pact.w_fake_r', usd(L + W), usd(L))], ['pin_bar_khang_cu', tx('web.pact.w_pin_r', usd(L - W), usd(L))]];
+    const ol = el('ol');
+    for (const [crit, text] of items) {
+      const x = el('li', null, text), a7 = research(crit, 7), a30 = research(crit, 30);
+      if (a7 && a30) x.append(el('span', 'sub', tx('web.pact.w_hist', pc(a7.hit, 0), pc(a7.base, 0), pc(a30.hit, 0), pc(a30.base, 0))));
+      ol.append(x);
+    }
+    c.append(ol);
+    return c;
+  }
+  function renderHold() {
+    const ans = $('pact-answer'), d = decision(), g = suggest('long', ST.close), R0 = PACT.research, parts = [];
+    parts.push(el('p', 'kicker', tx('web.pact.hold_kicker', vnDate(ST.anchor))));
+    parts.push(el('div', 'pact-v ' + (d.action === 'hold' ? 'mid' : d.action === 'long' ? 'good' : 'bad'), tx('web.pact.hold_v_' + d.action)));
+    const ul = el('ul', 'pact-why'), names = d.c.names.map((c) => tx('web.pact.c_' + c)).join(', ');
+    ul.append(li(!!d.v && d.v.verdict !== 'khong', d.v ? tx('web.pact.why_ls', d.v.long, d.v.N, d.v.short) : tx('web.pact.why_ls_none')),
+      li(d.c.kind === 'up' || d.c.kind === 'down', tx('web.pact.why_pa_' + d.c.kind, names)));
+    if (R0) ul.append(li(R0.counts.hon > 0, tx('web.pact.why_test', R0.counts.hon, R0.n_pairs)));
+    parts.push(ul);
+    const cards = el('div', 'pact-wait');
+    cards.append(waitCard('long', g.S), waitCard('short', g.R));
+    parts.push(cards, el('p', null, tx('web.pact.hold_then')), el('p', 'muted', tx('web.pact.hold_free')), el('p', 'warn', tx('web.pact.hold_99')));
+    const box = el('div', 'pact-chart');
+    parts.push(el('p', 'sm', tx('web.pact.ch_title', CAND.length)), box);
+    ans.replaceChildren(...parts);
+    const zones = [], lines = [{ y: ST.close, cls: 'p', label: tx('web.pact.ch_now') }];
+    if (g.S != null) { zones.push({ lo: g.S - W, hi: g.S + W, cls: 's' }); lines.push({ y: g.S, cls: 's', label: tx('web.pact.ch_s') }); }
+    if (g.R != null) { zones.push({ lo: g.R - W, hi: g.R + W, cls: 'r' }); lines.push({ y: g.R, cls: 'r', label: tx('web.pact.ch_r') }); }
+    view.chart = [box, { lines, zones, tip: tipOf }];
+    drawChart(box, CAND, view.chart[1]);
   }
 
   function renderTrade() {
+    $('pact-trade').hidden = view.side === 'hold';
+    if (view.side === 'hold') return;
     const H = Number($('pact-hold').value), side = view.side, E = ST.close, g = side === 'long' ? 1 : -1;
     $('pact-trade-lead').textContent = tx('web.pact.trade_lead', sideName(side), holdName(H));
     const head = el('tr');
@@ -181,6 +311,7 @@
   function renderAll() { renderCheck(); renderTrade(); }
   function setSide(s) {
     view.side = s;
+    $('pact-box').classList.toggle('hold', s === 'hold');
     document.querySelectorAll('#pact-side button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
   }
   function reset() {
@@ -200,6 +331,12 @@
     renderAll();
   });
   $('pact-updated').textContent = tx('web.pact.updated', vnTime(PACT.made));
+  $('pact-why-list').replaceChildren(...['why_1', 'why_2', 'why_3', 'why_4'].map((k) => el('li', null, tx('web.pact.' + k))));
+  window.addEventListener('ls-verdict', () => renderCheck());
+  if (window.ResizeObserver) {
+    let w = 0;
+    new ResizeObserver(() => { const x = $('pact-answer').clientWidth; if (x && x !== w) { w = x; if (view.chart) drawChart(view.chart[0], CAND, view.chart[1]); } }).observe($('pact-answer'));
+  }
   reset();
   renderNow();
   renderAll();

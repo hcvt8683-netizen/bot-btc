@@ -27,6 +27,7 @@ SIDES = ("R", "S")      # resistance, support
 H_LIMITS = {"1h": (6, 168), "1d": (3, 60)}
 FROM = {"1h": pd.Timestamp("2020-07-01"), "1d": pd.Timestamp("2016-01-01")}
 REACH_EDGES = (0.0, 0.5, 1.0, 2.0, 4.0, np.inf)
+CHART = {"1h": 240, "1d": 400}          # nến gần nhất cho đồ thị khi chưa tải được nến trực tiếp (chỉ hiển thị)
 BOUNCE, BREAK, OPEN = 1, 0, -1          # outcome codes; NaN = not known yet
 
 
@@ -53,7 +54,9 @@ def frames(cfg: dict) -> list[dict]:
 def candles(kind: str, end: pd.Timestamp | None = None) -> pd.DataFrame:
     """High, low, close on a gap-free grid: hourly perpetual candles (index = close time) or Bitstamp daily candles."""
     d = ps.hourly({"start": "2020-01-01"}, end) if kind == "1h" else pa.daily(end)
-    return d[["high", "low", "close"]].astype(float)
+    if "open" not in d.columns:                      # nến giờ lưu không có giá mở: lấy giá đóng nến trước (chỉ để vẽ)
+        d = d.assign(open=d["close"].shift(1))
+    return d[["open", "high", "low", "close"]].astype(float)
 
 
 # ----- levels, only data up to t -----
@@ -230,7 +233,10 @@ def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
     now = {}
     for k, d in data.items():
         T = d["close"].dropna().index[-1]
+        x = d.loc[:T].iloc[-CHART[k]:]
         now[k] = {"anchor": T.strftime("%Y-%m-%d %H:%M"), "close": float(d["close"].loc[T]),
+                  "candles": [[i.strftime("%Y-%m-%d %H:%M"), *(None if pd.isna(v) else round(float(v), 2) for v in r)]
+                              for i, r in zip(x.index, x[["open", "high", "low", "close"]].to_numpy())],
                   "levels": {f"{fr['unit']}|{fr['n']}": now_levels(d, fr, cfg) for fr in frames(cfg) if fr["candles"] == k}}
     out = {"version": version(cfg), "params": {k: cfg[k] for k in ("zone_atr", "bounce_atr", "break_atr")}, "atr_n": ATR_N,
            "tests": len(rows), "from": {k: v.strftime("%Y-%m-%d") for k, v in FROM.items()},

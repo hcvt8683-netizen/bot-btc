@@ -40,7 +40,7 @@
   async function loadLive() {
     const [kh, kd] = await Promise.all([getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1h&limit=500`), getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1d&limit=400`)]);
     const now = Date.now();
-    const closed = (k) => k.filter((r) => Number(r[6]) < now).map((r) => ({ h: Number(r[2]), l: Number(r[3]), c: Number(r[4]), t: Number(r[6]) + 1 }));
+    const closed = (k) => k.filter((r) => Number(r[6]) < now).map((r) => ({ o: Number(r[1]), h: Number(r[2]), l: Number(r[3]), c: Number(r[4]), t: Number(r[6]) + 1 }));
     const h = closed(kh), d = closed(kd);
     if (h.length < 200 || d.length < 30) throw new Error('klines');
     view.live = { '1h': h, '1d': d, price: Number(kh[kh.length - 1][4]), at: h[h.length - 1].t };
@@ -62,34 +62,31 @@
     return r.reach.find((b) => dist >= b.from && (b.to == null || dist < b.to)) || null;
   }
 
-  // ----- thang giá: kháng cự (vùng), giá lúc này, hỗ trợ (vùng), mức bật 1 ATR -----
-  function ladder(lv) {
-    const box = $('sr-ladder'), Hh = box.clientHeight || 360, pad = 26, a = lv.atr, w = SR.params.zone_atr * a;
-    const pts = [lv.R + w, lv.S - w, lv.price, lv.R - SR.params.bounce_atr * a, lv.S + SR.params.bounce_atr * a];
-    let lo = Math.min(...pts), hi = Math.max(...pts);
-    const m = (hi - lo) * 0.06; lo -= m; hi += m;
-    const y = (p) => pad + (hi - p) / (hi - lo) * (Hh - 2 * pad);
-    const parts = [];
-    const zone = (c, a1, b1) => { const z = el('div', 'zone ' + c); z.style.top = y(b1) + 'px'; z.style.height = Math.max(2, y(a1) - y(b1)) + 'px'; parts.push(z); };
-    zone('r', lv.R - w, lv.R + w); zone('s', lv.S - w, lv.S + w);
-    const line = (c, p) => { const l = el('div', 'ln ' + c); l.style.top = y(p) + 'px'; parts.push(l); };
-    const lab = (c, p, left, right) => {
-      const l = el('div', 'lb ' + c); l.style.top = y(p) + 'px';
-      const s1 = el('span'); s1.append(el('b', null, left)); l.append(s1);
-      if (right != null) l.append(el('span', null, right));
-      parts.push(l);
-    };
-    line('t', lv.R - SR.params.bounce_atr * a); line('t', lv.S + SR.params.bounce_atr * a);
-    line('r', lv.R); line('s', lv.S); line('p', lv.price);
-    const tags = [['r', lv.R, tx('web.pa.th_r'), `${usd(lv.R)} · ${spc(lv.R / lv.price - 1)}`], ['p', lv.price, usd(lv.price), null],
-      ['s', lv.S, tx('web.pa.th_s'), `${usd(lv.S)} · ${spc(lv.S / lv.price - 1)}`]];
-    // tránh chồng nhãn: dời nhãn giá lúc này nếu quá gần
-    const ys = tags.map((t) => y(t[1]));
-    if (Math.abs(ys[1] - ys[0]) < 22) ys[1] = ys[0] + 22;
-    if (Math.abs(ys[2] - ys[1]) < 22) ys[1] = ys[2] - 22;
-    tags.forEach((t, i) => { lab(t[0], t[1], t[2], t[3]); parts[parts.length - 1].style.top = ys[i] + 'px'; });
-    lab('t', lv.R - SR.params.bounce_atr * a, '', tx('web.pa.lad_bounce')); lab('t', lv.S + SR.params.bounce_atr * a, '', tx('web.pa.lad_bounce'));
-    box.replaceChildren(...parts);
+  // ----- đồ thị nến của khung (hàm vẽ dùng chung PA_CHART của src/pact.js) -----
+  const two = (x) => String(x).padStart(2, '0');
+  function candlesOf(r) {
+    const hourly = r.candles === '1h', n = hourly ? Math.min(240, Math.max(48, 2 * r.W)) : Math.min(390, Math.max(60, 2 * r.W));
+    const L = view.live && view.live[r.candles];
+    const raw = L ? L.slice(-n).map((k) => ({ t: k.t - (hourly ? 3600000 : 86400000), o: k.o, h: k.h, l: k.l, c: k.c }))
+      : (SR.now[r.candles].candles || []).slice(-n).map(([x, o, h, l, c]) => ({ t: Date.parse(utcIso(x)) - (hourly ? 3600000 : 0), o, h, l, c }));
+    return raw.map((k) => {   // nhãn theo giờ mở nến: nến giờ theo giờ Việt Nam, nến ngày theo ngày UTC
+      const v = new Date(k.t + (hourly ? 7 * 3600000 : 0)), dd = two(v.getUTCDate()), mm = two(v.getUTCMonth() + 1);
+      return { ...k, d: hourly ? `${dd}/${mm} ${two(v.getUTCHours())}h` : n > 200 ? `${mm}/${String(v.getUTCFullYear()).slice(2)}` : `${dd}/${mm}`,
+        full: hourly ? `${two(v.getUTCHours())}:00 ${dd}/${mm}/${v.getUTCFullYear()}` : `${dd}/${mm}/${v.getUTCFullYear()}` };
+    });
+  }
+  function chart(r, lv) {
+    const box = $('sr-chart');
+    if (!window.PA_CHART) return;
+    const cand = candlesOf(r), a = lv.atr, w = SR.params.zone_atr * a, b = SR.params.bounce_atr * a;
+    $('sr-chart-title').textContent = tx(view.live ? 'web.pa.ch_title' : 'web.pa.ch_title_old', `${cand.length} ${tx(r.candles === '1h' ? 'web.pa.ch_hour' : 'web.pa.ch_day')}`, frameName(r.unit, r.n));
+    window.PA_CHART(box, cand, {
+      height: 320, label: frameName(r.unit, r.n),
+      zones: [{ lo: lv.R - w, hi: lv.R + w, cls: 'r' }, { lo: lv.S - w, hi: lv.S + w, cls: 's' }],
+      lines: [{ y: lv.R, cls: 'r', label: tx('web.pa.ch_r') }, { y: lv.S, cls: 's', label: tx('web.pa.ch_s') }, { y: lv.price, cls: 'p', label: tx('web.pa.ch_now') },
+        { y: lv.R - b, cls: 't' }, { y: lv.S + b, cls: 't' }],
+      tip: (k) => tx('web.pact.ch_tip', k.full, usd(k.o), usd(k.h), usd(k.l), usd(k.c)),
+    });
   }
 
   // ----- thẻ kháng cự / hỗ trợ -----
@@ -153,7 +150,7 @@
     const lv = levelsNow(rR);
     if (!ok(lv.R) || !ok(lv.S) || !ok(lv.atr)) { $('sr-cards').replaceChildren(el('p', 'muted', tx('web.pa.none'))); return; }
     $('sr-cards').replaceChildren(card('R', rR, lv), card('S', rS, lv));
-    ladder(lv);
+    chart(rR, lv);
   }
   function renderTable() {
     $('sr-all-title').textContent = tx('web.pa.all_title', tx('web.pa.unit_word_' + view.unit));
@@ -211,7 +208,7 @@
   document.querySelectorAll('#sr-unit button').forEach((b) => b.addEventListener('click', () => { view.unit = b.dataset.u; render(); }));
   if (window.ResizeObserver) {
     let w = 0;
-    new ResizeObserver(() => { const x = $('sr-ladder').clientWidth; if (x && x !== w) { w = x; if (SR && document.body.classList.contains('pa-view')) renderMain(); } }).observe($('sr-ladder'));
+    new ResizeObserver(() => { const x = $('sr-chart').clientWidth; if (x && x !== w) { w = x; if (SR && document.body.classList.contains('pa-view')) renderMain(); } }).observe($('sr-chart'));
   }
   let start = false;
   try { start = localStorage.getItem(KEY) === 'pa'; } catch (e) { /* bỏ qua */ }

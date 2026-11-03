@@ -86,6 +86,21 @@ async def _run(page: pathlib.Path, o: dict, vw: int) -> dict:
         await pg.wait_for_timeout(200)
         res["plan"] = await pg.evaluate("""() => ({ plan: window.LT_PLAN, entry: document.getElementById('pact-entry').value,
             side: document.querySelector('#pact-side button[aria-pressed=true]').dataset.s, answer: document.getElementById('pact-answer').innerText })""")
+        res["chart_trade"] = await pg.evaluate("[...document.querySelectorAll('#pact-answer .pt text')].map((t) => t.textContent.split(' ')[0] + ' ' + t.textContent.split(' ')[1])")
+        res["candles"] = await pg.evaluate("document.querySelectorAll('#pact-answer .pact-chart rect.cu, #pact-answer .pact-chart rect.cd').length")
+        await pg.click("#pact-side [data-s=short]")
+        await pg.wait_for_timeout(150)
+        res["short"] = await pg.inner_text("#pact-answer")
+        await pg.click("#pact-side [data-s=hold]")
+        await pg.wait_for_timeout(200)
+        res["hold"] = await pg.inner_text("#pact-answer")
+        res["hold_ui"] = await pg.evaluate("""() => ({ entry: getComputedStyle(document.getElementById('pact-entry')).display !== 'none' && document.getElementById('pact-entry').offsetParent !== null,
+            trade: document.getElementById('pact-trade').hidden, cards: document.querySelectorAll('#pact-answer .pact-wcard').length,
+            lines: [...document.querySelectorAll('#pact-answer .pt text')].map((t) => t.textContent.split(' ')[0]),
+            why: document.querySelectorAll('#pact-why-list li').length, scroll: document.documentElement.scrollWidth })""")
+        await pg.click("#pact-side [data-s=long]")
+        await pg.wait_for_timeout(150)
+        res["long_again"] = await pg.evaluate("({ entry: document.getElementById('pact-entry').offsetParent !== null, trade: document.getElementById('pact-trade').hidden })")
         await b.close()
         return res
 
@@ -110,4 +125,14 @@ def test_price_action_panel(built, vw):
     assert p["plan"] and p["side"] == p["plan"]["side"]
     assert abs(float(p["entry"].replace(".", "").replace(",", ".")) - p["plan"]["E"]) < 0.06
     assert "Vị trí" in p["answer"] and "Trong lịch sử" in p["answer"]
+    # đồ thị của lệnh: giá vào, cắt lỗ, chốt lời có nhãn, đủ nến ngày của pa.json
+    assert {"Giá vào", "Cắt lỗ", "Chốt lời"} <= set(res["chart_trade"]) and res["candles"] == len(o["candles"]) > 30
+    # Short và Long đều nói đề xuất lúc này; Hold: không vào lệnh, nói vì sao và chờ gì ở mức nào
+    assert "Đề xuất của bot lúc này: Hold" in res["short"] and "short (bán)" in res["short"].lower()
+    h = res["hold"]
+    assert "Hold: đứng ngoài, chờ hành động giá rõ" in h and "Long/Short: Long đạt" in h and "Chờ để Long" in h and "Chờ để Short" in h
+    assert "Không có cách nào đúng hướng 99%" in h and "Lịch sử: đúng hướng sau 7 ngày" in h
+    hu = res["hold_ui"]
+    assert not hu["entry"] and hu["trade"] and hu["cards"] == 2 and "Đóng" in hu["lines"] and hu["why"] == 4 and hu["scroll"] <= vw
+    assert res["long_again"] == {"entry": True, "trade": False}
     assert res["scroll"] <= vw

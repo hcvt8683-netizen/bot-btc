@@ -99,19 +99,22 @@ async def _run(page_path: pathlib.Path, vw: int, fail: bool) -> dict:
             pactHere: !!document.querySelector('#pa-app #pact-sec'), pactInLs: !!document.querySelector('#ls-app #pact-sec') })""")
         res["status"] = await pg.inner_text("#sr-status")
         res["day1"] = await pg.inner_text("#sr-cards")
+        res["chart1"] = await pg.evaluate("""() => ({ candles: document.querySelectorAll('#sr-chart rect.cu, #sr-chart rect.cd').length,
+            labels: [...document.querySelectorAll('#sr-chart .pt text')].map((t) => t.textContent.split(' ')[0]) })""")
         res["honest"] = await pg.inner_text("#sr-honest")
         res["rows_day"] = await pg.evaluate("document.querySelectorAll('#t-sr tbody tr').length")
         await pg.click("#sr-unit [data-u=thang]")
         await pg.click("#sr-ns button:nth-child(6)")
         await pg.wait_for_timeout(200)
         res["month6"] = await pg.inner_text("#sr-cards")
+        res["chart6"] = await pg.evaluate("document.querySelectorAll('#sr-chart rect.cu, #sr-chart rect.cd').length")
         res["table"] = await pg.evaluate("""() => { const t = document.getElementById('t-sr');
             return { rows: t.tBodies[0].rows.length, here: t.querySelectorAll('tr.here').length, stack: t.classList.contains('stack'),
                      label: t.tBodies[0].rows[0].cells[1].dataset.label, overflow: Math.max(0, t.scrollWidth - t.clientWidth) }; }""")
         await pg.click("#t-sr tbody tr:nth-child(2)")
         await pg.wait_for_timeout(200)
         res["picked"] = await pg.evaluate("document.querySelector('#sr-ns button[aria-pressed=true]').textContent")
-        res["ladder"] = await pg.evaluate("document.querySelectorAll('#sr-ladder .lb').length")
+        res["ladder"] = await pg.evaluate("document.querySelectorAll('#sr-chart .pt').length")
         res["scroll_width"] = await pg.evaluate("document.documentElement.scrollWidth")
         await pg.click("#mode-buy")
         await pg.wait_for_timeout(300)
@@ -137,6 +140,8 @@ def test_price_action_view(page_path: pathlib.Path, vw: int) -> None:
     s = SR["summary"]
     assert f"{SR['tests']} khung × phía" in r["honest"] and f"{s['nhu_bat_ky']} như mức bất kỳ" in r["honest"]
     assert r["rows_day"] == 7
+    assert r["chart1"]["candles"] == 48 and {"Kháng", "Hỗ", "Lúc"} <= set(r["chart1"]["labels"])   # 2 × 24 nến giờ
+    assert r["chart6"] == 360                                                                       # 2 × 180 nến ngày
     R6, S6 = levels(DAY, 400, 180)                            # 6 tháng = 180 nến ngày đã đóng
     assert "Kháng cự 6 tháng" in r["month6"] and usd(R6) in r["month6"] and usd(S6) in r["month6"]
     t = r["table"]
