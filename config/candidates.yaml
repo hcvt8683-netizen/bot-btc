@@ -510,3 +510,21 @@ price_action:
   no_tuning: "định nghĩa, ngưỡng, kỳ hạn, m cố định; không thêm / bớt tiêu chí sau khi xem kết quả; báo cáo đủ 48 cặp, không chọn cặp đẹp nhất"
   report: "docs/PRICE_ACTION.md và data/results/price_action.json sinh từ dữ liệu bằng `python -m bot.cli price-action`; mục trong docs/REBUILD_LOG.md"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# Bảng Excel "Kiểm tra điểm vào" theo price action. Người dùng yêu cầu 03/11/2026, SAU khi đã biết kết quả mục price_action
+# (0/48 cặp hơn mốc). Đăng ký trước khi tính bất kỳ con số nào của bảng.
+pa_sheet:
+  why: "người dùng muốn một bảng price action cho biết điểm vào lệnh đã phù hợp chưa, với xác suất cao nhất có thể. Kiểm định price_action không tìm được tiêu chí nào đoán hướng tốt hơn một ngày bất kỳ, nên bảng không phát tín hiệu hướng. Bảng (1) cho biết price action lúc này theo đúng định nghĩa đã đăng ký, (2) với giá vào, cắt lỗ, chốt lời người dùng nhập (hoặc gợi ý), cho biết trong lịch sử giá chạm chốt lời trước hay cắt lỗ trước bao nhiêu lần, so với tỷ lệ cần để hòa vốn"
+  known_before: "kết quả price_action (0/48 cặp hơn mốc), perp_trade (chưa có lợi thế), entry / exit (khả năng chạm một mức giá được dự báo đúng tỷ lệ). Bảng không dùng để chọn tiêu chí hay tham số"
+  file: "dist/BangPriceAction.xlsx (không lưu git), sinh bằng `python -m bot.cli pa-sheet`; tải nến ngày Bitstamp mới nhất, không tải được thì dùng dữ liệu đã lưu và ghi rõ ngày"
+  state: "price action lúc này: ở nến cuối đã đóng L, các tiêu chí và bộ tiêu chí của mục price_action (đúng định nghĩa); cho nến kế tiếp: ATR(L), w = 0,5 × ATR(L), danh sách đỉnh / đáy cục bộ đã biết đến L (j + 5 ≤ L) có j ≥ L − 365, cấu trúc ở L. Bảng chọn hỗ trợ = đáy cao nhất thấp hơn giá vào người dùng nhập, kháng cự = đỉnh thấp nhất cao hơn giá vào (như mục price_action, thay giá đóng T − 1 bằng giá vào). Kèm xác suất giá cao hơn / thấp hơn sau 7 và 30 ngày của một ngày bất kỳ từ 01/01/2016"
+  stops: "mua: cắt lỗ gợi ý = hỗ trợ − w nếu có hỗ trợ, không thì giá vào − 1 ATR; chốt lời gợi ý = kháng cự − w nếu có kháng cự và kháng cự − w > giá vào, không thì giá vào + 2 × khoảng cắt lỗ. Bán: đối xứng (cắt lỗ = kháng cự + w hoặc giá vào + 1 ATR; chốt lời = hỗ trợ + w nếu < giá vào, không thì giá vào − 2 × khoảng cắt lỗ). Người dùng nhập giá riêng thì dùng giá đó"
+  touch:
+    grid_atr: "0,25 đến 8 ATR, bước 0,25 (32 mức) cho khoảng lên và khoảng xuống; khoảng cách của người dùng (theo ATR(L)) làm tròn tới mức gần nhất, ngoài 0,25–8 thì lấy mức biên và ghi rõ"
+    hold_days: [7, 30]
+    rule: "mỗi ngày T từ 01/01/2016 có ATR(T) và đủ H nến sau đã đóng: giá vào = giá đóng T; mức lên = giá đóng T + u × ATR(T), mức xuống = giá đóng T − d × ATR(T); ngày chạm = nến đầu tiên trong T+1..T+H có giá cao nhất ≥ mức lên (giá thấp nhất ≤ mức xuống). Đếm lên trước / xuống trước / cùng một nến / chưa chạm sau H ngày. Cùng một nến tính là chạm cắt lỗ (bảo thủ): lệnh mua tính xuống trước, lệnh bán tính lên trước"
+    data: "nến ngày Bitstamp như mục price_action; mọi ngày từ 01/01/2016 đến nến cuối đã biết kết quả H ngày"
+  verdict: "p = tỷ lệ chạm chốt lời trước trong các lần đã chạm một trong hai; hòa vốn q = khoảng cắt lỗ / (khoảng cắt lỗ + khoảng chốt lời) (chưa tính phí, trượt giá, funding); Wilson 95% với số lần độc lập = số ngày × tỷ lệ đã chạm / H. Cận dưới > q: 'Có lợi về kỳ vọng trong lịch sử'; cận trên < q: 'Bất lợi'; còn lại 'Ngang hòa vốn: không có lợi thế'. Bảng luôn ghi: lợi thế nếu có là của xu hướng giá BTC 2016–2026, không phải của tiêu chí price action (0/48 cặp hơn mốc)"
+  tradeoff: "bảng phụ: cắt lỗ 1 và 2 ATR, chốt lời 0,5 / 1 / 1,5 / 2 / 3 lần khoảng cắt lỗ: p, q và lợi nhuận kỳ vọng theo R = p × (chốt lời / cắt lỗ) − (1 − p), để thấy xác suất thắng cao chưa chắc có lợi"
+  web: "không đưa lên trang (price action không có lợi thế; người dùng đã dặn); bảng là file riêng theo yêu cầu người dùng"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
