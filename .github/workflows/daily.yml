@@ -83,7 +83,18 @@ jobs:
             echo "Không có dữ liệu mới."
           else
             git commit -m "data: cập nhật $(TZ=Asia/Ho_Chi_Minh date +%d/%m/%Y)"
-            git push
+            # main có thể vừa có commit mới trong lúc chạy (ai đó đẩy code): ghép dữ liệu lên main mới rồi đẩy lại, tối đa 3 lần.
+            # Xung đột thì không tự ghi đè (nhật ký chỉ thêm dòng không được mất dòng nào): báo lại, trang vẫn được đăng.
+            for i in 1 2 3; do
+              if git push; then exit 0; fi
+              echo "main vừa đổi; ghép dữ liệu hôm nay lên main mới (lần $i)"
+              if ! git pull --rebase origin main; then
+                git rebase --abort || true
+                echo "⚠ Dữ liệu hôm nay xung đột với main mới nên chưa lưu; trang vẫn được đăng. Chạy lại Daily để lưu." | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            done
+            echo "⚠ Không đẩy được dữ liệu sau 3 lần thử; trang vẫn được đăng." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
       - name: Gói trang để đăng
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
