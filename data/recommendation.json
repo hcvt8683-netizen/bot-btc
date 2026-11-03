@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-03T09:55:36Z",
+ "generated_at": "2026-11-03T14:24:46Z",
  "multiplier": 1.0,
  "mode": "safe",
  "layer": null,
@@ -12,6 +12,11 @@
   {
    "type": "pce",
    "time": "2026-11-04T13:30Z",
+   "flag": false
+  },
+  {
+   "type": "cpi",
+   "time": "2026-11-10T13:30Z",
    "flag": false
   }
  ],
@@ -110,9 +115,9 @@
    "error": ""
   },
   "fred_DFEDTARU": {
-   "last": "2026-11-02",
+   "last": "2026-11-03",
    "ok": true,
-   "age_days": 1,
+   "age_days": 0,
    "error": ""
   },
   "binance_perp_1h": {

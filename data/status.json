@@ -172,8 +172,8 @@
    "warnings": [
     "fed_upper: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 03/11/2022"
    ],
-   "last": "2026-11-02",
-   "rows": 6531,
+   "last": "2026-11-03",
+   "rows": 6532,
    "snapshot": "đã có bản hôm nay"
   },
   "binance_perp_1h": {
@@ -193,5 +193,5 @@
    "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-03T09:53:25Z"
+ "fetched_at": "2026-11-03T14:22:26Z"
 }
