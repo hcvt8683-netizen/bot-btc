@@ -2,6 +2,8 @@
 
 Viết ngày 29/10/2026, sau khi bot đạt 0/6 tiêu chí chấp nhận (`docs/ACCEPTANCE_I.md`). Kết luận hiện tại: **mua đều**. Khuyết điểm gốc: tín hiệu không chọn được thời điểm tốt hơn mua đều. Phần đáng tin: dải giá dự báo trúng đúng tỷ lệ, quy trình kiểm định trung thực.
 
+Đánh giá tổng quan các thẻ (thẻ nào đáng tin, độc lập hay chồng nhau) và kế hoạch cập nhật theo đợt, 03/11/2026: `docs/DANH_GIA_TONG_QUAN.md`.
+
 Rà soát toàn bộ ngày 02/11/2026 (lỗi đã thấy và công cụ nên thêm, có câu lệnh từng mục): `docs/DE_XUAT_NANG_CAP.md`.
 
 ## Cách dùng file này
