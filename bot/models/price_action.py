@@ -375,11 +375,18 @@ def markdown(o: dict, cfg: dict) -> str:
         L.append(f"- {len(bad)} cặp **kém hơn** một ngày bất kỳ (đoán ngược nhiều hơn, cả hai nửa): " + "; ".join(lab(r) for r in bad) + ".")
     L.append(f"- Chưa có lợi thế: {cnt['chua']} cặp; ít đợt, không kết luận: {cnt['it_dot']} cặp.")
     if near["diff"] is not None and near["diff"] > 0:
-        L.append(f"- Gần nhất với \"hơn mốc\": {lab(near)}, đúng {_pp(near['hit'])} so với mốc {_pp(near['base'])} "
-                 f"({near['n']} lần, {near['episodes']} đợt), p trước hiệu chỉnh {_p(near['p'])}, sau Holm {_p(near['p_holm'])}; "
-                 f"nửa đầu {_pp(near['halves'][0]['diff'], True)}, nửa sau {_pp(near['halves'][1]['diff'], True)}.")
+        w = near["wilson"]
+        L.append(f"- Gần nhất với \"hơn mốc\" là {lab(near)}, xếp loại {VERDICT[near['verdict']].replace('**', '')}. Đúng {_pp(near['hit'])} "
+                 f"so với mốc {_pp(near['base'])} ({fmt.num(near['n'])} lần, {near['episodes']} đợt; tính theo đợt chỉ đúng {_pp(near['hit_first'])}, "
+                 f"Wilson {_pp(w[0])}–{_pp(w[1])}), p trước hiệu chỉnh {_p(near['p'])}, sau Holm {_p(near['p_holm'])}; nửa đầu "
+                 f"{_pp(near['halves'][0]['diff'], True)}, nửa sau {_pp(near['halves'][1]['diff'], True)}.")
+    nom = [r for r in rows if r["p"] < 0.05 and r["diff"] is not None]
+    L.append(f"- Trước hiệu chỉnh có {len(nom)}/{o['n_pairs']} cặp p < 0,05 ({sum(r['diff'] > 0 for r in nom)} hơn, "
+             f"{sum(r['diff'] < 0 for r in nom)} kém mốc). Chỉ do may rủi, {o['n_pairs']} phép thử đã cho khoảng "
+             f"{fmt.dec(0.05 * o['n_pairs'], 1)} cặp như vậy, nên chừng đó chưa nói lên lợi thế.")
     sets = [r for r in rows if r["combo"]]
-    L.append("- Bộ tiêu chí (ít nhất 2 trong 5 tiêu chí cùng hướng): " + "; ".join(f"{lab(r)} {VERDICT[r['verdict']]}" for r in sets) + ".")
+    L.append(f"- Bộ tiêu chí (ít nhất 2 trong 5 tiêu chí cùng hướng), {len(sets)} cặp: "
+             + "; ".join(f"{VERDICT[v]} {sum(r['verdict'] == v for r in sets)}" for v in VERDICT if any(r["verdict"] == v for r in sets)) + ".")
     L += ["- \"Mốc\" là tỷ lệ của mọi ngày trong cùng giai đoạn: BTC tăng giá nên một ngày bất kỳ đã có hơn một nửa số lần giá cao hơn "
           "sau k ngày. Tiêu chí tăng phải vượt tỷ lệ đó; tiêu chí giảm phải vượt tỷ lệ giá thấp hơn.",
           "- " + ("Theo đăng ký trước: có cặp hơn mốc, nên có thể đề xuất bộ tiêu chí price action trên trang, nhưng phải hỏi người dùng "
@@ -395,7 +402,10 @@ def markdown(o: dict, cfg: dict) -> str:
           "- Số đợt: tín hiệu cách nhau không quá k ngày gộp thành một đợt (kết quả chồng nhau). Khoảng Wilson 95% tính theo số đợt.",
           f"- Khoảng tin cậy của chênh lệch: bootstrap khối dừng ({N_BOOT} lần, khối trung bình k ngày). p đã hiệu chỉnh Holm trên cả "
           f"{o['n_pairs']} cặp. \"Hơn / kém mốc\" khi p Holm < 0,05 và chênh lệch cùng dấu ở cả hai nửa giai đoạn; dưới {MIN_EPISODES} đợt "
-          f"hoặc dưới {MIN_HALF} đợt ở một nửa thì không kết luận.", "",
+          f"hoặc dưới {MIN_HALF} đợt ở một nửa thì không kết luận.",
+          f"- Với {N_BOOT} lần lấy lại, p nhỏ nhất là {_p(2 / N_BOOT)}, sau Holm trên {o['n_pairs']} cặp là {_p(min(1.0, 2 / N_BOOT * o['n_pairs']))}: "
+          "một cặp chỉ \"hơn mốc\" khi gần như mọi lần lấy lại đều cho chênh lệch dương. Ngưỡng này tương đương đòi hỏi của hiệu chỉnh "
+          "nhiều phép thử, không khắt khe hơn.", "",
           "## Định nghĩa (đăng ký trước)", "",
           f"Mức hỗ trợ / kháng cự: {cfg['levels']}", "",
           "| Tiêu chí | Hướng | Định nghĩa | Số ngày bật (giai đoạn nghiên cứu) |", "|---|---|---|---|"]
@@ -413,7 +423,7 @@ def markdown(o: dict, cfg: dict) -> str:
                  f"({_pp(ci[0], True)} đến {_pp(ci[1], True)}) | {_p(r['p_holm'])} | {_pp(h[0]['diff'], True)} / {_pp(h[1]['diff'], True)} | "
                  f"{VERDICT[r['verdict']]} |")
     fin = o["final"]
-    L += ["", "## Đã biết trước, không thử lại", "", cfg["known_before"], "",
+    L += ["", "## Đã biết trước, không thử lại", "", cfg["known_before"][:1].upper() + cfg["known_before"][1:] + ".", "",
           "## Giai đoạn kiểm tra cuối mới", "",
           f"- Tín hiệu từ {fmt.date(fin['from'])} (ngày đăng ký). Chỉ chạy một lần bằng `python -m bot.cli price-action --final` khi có ít nhất "
           f"{fin['need']} ngày đã biết kết quả 30 ngày (hiện có {fin['days']}); lệnh ghi vào `experiments/final_runs.log` và từ chối lần chạy thứ hai.",
