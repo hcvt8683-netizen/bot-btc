@@ -477,3 +477,27 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 - **Kiểm chứng trên giá Bitstamp** (thay cho Coin Metrics): cùng kết luận ở 16/16 kỳ hạn; khoảng 9/10 lần trúng 89,0–92,5%.
 - Kiểm tra rò rỉ `tests/test_candles.py`: cài thử 2 lỗi nhìn trước (cờ mẫu nến biết sớm một ngày; học máy học trên kết quả chưa biết), cả hai bị bắt. Lần đầu bài kiểm tra học máy chỉ thử ở một ngày nên không bắt được lỗi cài thử; đã sửa để thử ngay sau các ngày học lại.
 - Không đổi kết luận về hướng: trang vẫn dùng tỷ lệ gốc cho hướng.
+
+## Price action: hỗ trợ / kháng cự, cấu trúc, pin bar, inside bar, phá vỡ giả (03/11/2026)
+
+**Yêu cầu:** người dùng hỏi "price action là gì, nếu price action hiệu quả thì xây bộ tiêu chí price action". Kiểm định trung thực trước; chỉ khi qua mới đề xuất (hỏi người dùng) đưa lên trang. Phiên phụ làm trên nhánh `claude/price-action`, không đụng giao diện.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `price_action`, commit `5bb5550`, trước khi tính bất kỳ con số nào): 10 tiêu chí = 5 loại × 2 hướng trên nến ngày Bitstamp: chạm hỗ trợ và giữ / chạm kháng cự và bị đẩy xuống (mức lấy từ đỉnh / đáy cục bộ 5 nến mỗi bên trong 365 ngày, vùng ± 0,5 ATR 14 ngày), cấu trúc tăng / giảm (hai đỉnh và hai đáy đã biết gần nhất cùng cao dần / thấp dần), pin bar tại vùng (bóng dài ≥ 2/3 biên), inside bar có nến mẹ chạm vùng, phá vỡ giả (thủng quá vùng rồi đóng cửa quay lại); thêm bộ tiêu chí "ít nhất 2 trong 5 tiêu chí cùng hướng". Kỳ hạn 1/3/7/30 ngày; mốc = mọi ngày cùng giai đoạn (01/01/2016 → 01/11/2026); Wilson theo đợt độc lập, bootstrap khối dừng 2000 lần, Holm trên 48 cặp, cùng chiều ở hai nửa; dưới 30 đợt (hoặc dưới 5 đợt ở một nửa) thì không kết luận. Không dùng nến giờ hợp đồng vĩnh cửu. Mã `bot/models/price_action.py`, lệnh `python -m bot.cli price-action` (commit `00d60cc`, lưu trước khi chạy trên dữ liệu thật).
+
+**Đã biết trước, không thử lại** (mục `known_before`): 12 mẫu nến (`candles`), 7 mẫu nến của nhánh `claude/eloquent-boyd-80d429`, 5 mô hình xu hướng (`trend`), học máy (`trend_plus`), phá đỉnh / thủng đáy 20 ngày, theo xu hướng, điều chỉnh trong xu hướng, đánh ngược (`perp_trade`). Kỳ vọng ghi trước khi chạy: chưa có lợi thế. Cấu trúc thị trường gần với "theo xu hướng" đã thử nhưng định nghĩa khác (đỉnh / đáy cục bộ), nên vẫn kiểm.
+
+**Cách hiểu chốt trước khi chạy:** khi một cặp vừa đạt Holm vừa có dưới 30 đợt, "ít đợt" thắng (không kết luận), như `bot/backtest/measure.py`.
+
+**Kiểm tra rò rỉ và tính đúng:** `tests/test_price_action.py` (10 bài): định nghĩa từng tiêu chí, đỉnh / đáy chỉ được dùng từ khi nến thứ 5 bên phải đóng, đổi mọi nến sau T không đổi gì đến T, đợt độc lập, bắt được lợi thế giả lập, khóa kiểm tra cuối. Đã cài thử 5 lỗi nhìn trước vào mã nguồn (mức hỗ trợ / kháng cự dùng đỉnh đáy chưa đủ 5 nến bên phải; cấu trúc cũng vậy; vùng dùng ATR của ngày hôm sau; mức chốt theo giá đóng ngày T + 1; "hôm trước" lấy nến hôm sau): cả 5 bị bắt, rồi khôi phục. Một bản viết lại độc lập bằng vòng lặp thô theo đúng lời đăng ký (không dùng hàm nào của module) cho cờ của cả 10 tiêu chí và mọi đỉnh / đáy **trùng khít** với module trên toàn bộ nến 2011–2026 (0 ngày khác).
+
+**Kết quả** (`docs/PRICE_ACTION.md`, `data/results/price_action.json`, nến đến 01/11/2026):
+- **0/48 cặp hơn mốc, 0 kém mốc**; 44 chưa có lợi thế, 4 ít đợt. Bộ tiêu chí ≥ 2/5: 8/8 chưa có lợi thế.
+- Gần nhất: chạm kháng cự rồi 30 ngày sau giá thấp hơn 52,0% số lần so với mốc 42,5%, nhưng chỉ 29 đợt (ít đợt), tính theo đợt chỉ 41,4% (Wilson 25,5–59,3%), Holm 0,096. Cùng tiêu chí sau 7 ngày: 52,6% so với 45,9% (148 đợt), khoảng tin cậy trước hiệu chỉnh +1,7 đến +11,7 điểm nhưng Holm 0,47.
+- 5/48 cặp có p < 0,05 trước hiệu chỉnh (2 hơn, 3 kém mốc); chỉ do may rủi, 48 phép thử đã cho khoảng 2,4 cặp như vậy.
+- Phá vỡ giả nghiêng về ngược điều sách nói (giá hay đi tiếp theo hướng vừa phá): phá vỡ giả phía trên, giá thấp hơn sau 1 ngày chỉ 27,5% so với mốc 47,8% (38 đợt, Holm 0,47). Chưa có ý nghĩa, ghi để biết.
+- Cấu trúc tăng: hơn mốc 0,8–1,1 điểm, nửa đầu dương nửa sau âm; cấu trúc giảm từ −7,3 đến +0,8 điểm: không ổn định. Pin bar tăng tại hỗ trợ kém mốc 8–9 điểm ở 1 và 3 ngày (chưa có ý nghĩa).
+- **Không đưa lên trang** (đúng mục `web` đã đăng ký và lời dặn của người dùng); không sửa `src/ui.js`, `src/page.html`.
+
+**Sau lần chạy đầu (chỉ mô tả, không đổi phương pháp, kết quả không đổi):** báo cáo ghi thêm số cặp p < 0,05 so với may rủi và độ phân giải của bootstrap (p nhỏ nhất 0,001, sau Holm trên 48 cặp là 0,048: một cặp chỉ "hơn mốc" khi gần như mọi lần lấy lại đều cho chênh lệch dương).
+
+**Giai đoạn kiểm tra cuối mới:** tín hiệu từ 03/11/2026 (nến 02/11/2026 không thuộc giai đoạn nào), chạy một lần bằng `python -m bot.cli price-action --final` khi có ít nhất 365 ngày đã biết kết quả 30 ngày (sớm nhất khoảng 12/2027), ghi vào `experiments/final_runs.log`. Vì không cặp nào hơn / kém mốc, lần đó chỉ báo cáo mô tả.
