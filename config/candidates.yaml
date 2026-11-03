@@ -157,6 +157,14 @@ plan:
   rule: "đề xuất = trong phương án ROI cao nhất và các phương án không kém nó đáng kể (khoảng tin cậy 95% của trung vị chênh lệch theo từng tuần bắt đầu, bootstrap khối 52 tuần, chứa 0), chọn phương án có phân vị 10% cao nhất (ít thiệt nhất khi gặp lúc xấu)"
   signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
   episodes: "số đợt độc lập = số tuần bắt đầu chia 52 (các cửa sổ 1 năm chồng lấn); Wilson tính theo số đợt"
+  # Quy tắc ổn định (đăng ký trước 04/11/2026, trước khi tính số nào; người dùng chọn cách "thiết thực, trung thực nhất"; docs/KE_HOACH_SUA_LOI.md mục 3).
+  # Vì sao: 02/11/2026 đề xuất "một lần", 03/11/2026 "chia 52 tuần" chỉ vì thêm 1 tuần dữ liệu (cận dưới khoảng tin cậy của 52 tuần đổi từ +0,7% sang −1,5%).
+  stable:
+    added: 2026-11-04
+    rule: "chỉ nêu một phương án là 'đề xuất' khi mọi phương án khác đều kém phương án ROI cao nhất đáng kể (khoảng tin cậy 95% như mục rule không chứa 0); đề xuất khi đó là phương án ROI cao nhất"
+    tie: "nếu từ 2 phương án trở lên không kém đáng kể: trang nói các cách đó gần như ngang nhau trong lịch sử, liệt kê từng cách với trung vị và 10% xấu nhất, chỉ ra cách có trung vị cao nhất và cách có 10% xấu nhất ít thiệt nhất trong nhóm, không nêu 'đề xuất' và không chọn sẵn lịch (người dùng bấm một cách)"
+    replaces: "câu 'đề xuất' theo mục rule (phân vị 10% cao nhất trong nhóm không kém đáng kể) không còn hiện; best_roi, khoảng tin cậy, bảng và mọi con số giữ nguyên cách tính"
+    report: "đếm theo từng tuần từ 2022-01-02 đến tuần mới nhất, mỗi tuần chỉ dùng dữ liệu có đến tuần đó (như báo cáo chạy ngày thứ Ba sau tuần đó): số lần trang đổi lời theo cách cũ (đề xuất đổi phương án) và theo cách mới (đề xuất đổi phương án, hoặc đổi giữa 'đề xuất' và 'ngang nhau'); đếm riêng số lần nhóm ngang nhau đổi thành viên, và số lần đảo hẳn (đề xuất đổi giữa 'một lần' và 'chia 52 tuần'). Chỉ để báo cáo, không đổi quy tắc theo kết quả"
 
 # Kế hoạch chốt lời dần (bên bán, đối xứng mục plan): bán một lượng BTC theo từng đợt. Đăng ký trước khi tính (02/11/2026, người dùng yêu cầu).
 sell_plan:
@@ -172,6 +180,7 @@ sell_plan:
   vs_once: "tỷ lệ tuần bắt đầu mà phương án thu được nhiều hơn bán hết một lần, Wilson theo số đợt độc lập (số tuần bắt đầu chia 52)"
   signals: "không nghiêng theo tín hiệu: kiểm định 6 tiêu chí (Phần I) không đạt, nên mọi phương án chia đều theo thời gian"
   page: "chế độ Bên bán, thẻ thay cho Giải ngân: người dùng nhập số BTC muốn bán và ngày bắt đầu; bảng so các phương án, phương án đề xuất, lịch bán theo ngày (số BTC mỗi đợt, tiền thu ước tính theo giá lúc tra); không lưu số BTC"
+  stable: "như plan.stable (đăng ký trước 04/11/2026): chỉ nêu 'đề xuất' khi mọi cách bán khác đều thu ít hơn cách tốt nhất đáng kể; nếu không thì nói các cách gần ngang nhau, liệt kê, không chọn sẵn lịch; đếm số lần đổi lời từ 2022-01-02 như plan.stable.report"
 
 # Dự báo dải giá BTC theo ngày (tính năng web, để người dùng tự kiểm chứng). Đăng ký trước khi tính bất kỳ con số nào (29/10/2026).
 forecast:
