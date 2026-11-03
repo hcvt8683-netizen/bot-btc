@@ -17,6 +17,7 @@ exit                       selling price / day tools: append today's band of the
 perp                       long/short on the BTCUSDT perpetual: write data/results/perp.json, append today's calls to data/perp/perp_log.csv
 trend                      trend forecast 1–7 days, 1–4 weeks, 1–6 months: write data/results/trend.json, append today's forecasts to data/trend/trend_log.csv
 perp-trade                 long/short with entry, stop-loss, take-profit: write data/results/perp_trade.json, append the month's pick to data/perp_trade/select_log.csv
+price-action               price action criteria vs any day: data/results/price_action.json + docs/PRICE_ACTION.md (--final: the single logged final test)
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
 from __future__ import annotations
@@ -135,6 +136,17 @@ def main(argv: list[str] | None = None) -> int:
             got = f", thắng {x['p']:.1%}, R trung bình {x['meanR']:+.3f}" if x["n"] else f" (đứng ngoài {x['stand_aside']} tháng)"
             print(f"  Riêng {sd}: {x['n']} lệnh đi tới{got}; tiêu chí c1–c4: "
                   + " ".join(f"{k}={'đạt' if v else 'không'}" for k, v in x["check"].items()))
+        return 0
+    if args.command == "price-action":
+        from bot.models import price_action as pa
+        if args.final:
+            o = pa.run_final()
+            print(f"Price action, kiểm tra cuối từ {o['from']}: xác nhận {o['confirmed']}/{len(o['pairs'])} cặp (data/results/price_action_final.json).")
+            return 0
+        o = pa.run(write=True)
+        c = o["counts"]
+        print(f"Price action: {o['n_pairs']} cặp tiêu chí × kỳ hạn; hơn mốc {c['hon']}, kém mốc {c['kem']}, chưa có lợi thế {c['chua']}, "
+              f"ít đợt {c['it_dot']}. docs/PRICE_ACTION.md, data/results/price_action.json")
         return 0
     if args.command == "final-report":
         from bot.report import final_report
