@@ -194,10 +194,16 @@ def build(out_dir: Path | None = None, now: dt.datetime | None = None) -> dict:
     if pl:
         opt = {o["weeks"]: o for o in pl["options"]}
         nm = lambda n: "giải ngân một lần" if n == 1 else f"chia đều {n} tuần"  # noqa: E731
-        r_, b_ = opt[pl["recommended"]], opt[pl["best_roi"]]
+        b_ = opt[pl["best_roi"]]
+        if pl.get("recommended") is not None:
+            r_ = opt[pl["recommended"]]
+            say = f"đề xuất {nm(r_['weeks'])} (10% xấu nhất {sp(r_['p10'], 0)}, xấu nhất {sp(r_['worst'], 0)}), mọi cách khác kém đáng kể"
+        else:  # plan.stable: a tie, no recommendation
+            say = "ngang nhau với nó (không kém đáng kể), nên không đề xuất cách nào: " + ", ".join(
+                f"{nm(n)} (trung vị {sp(opt[n]['median'], 0)}, 10% xấu nhất {sp(opt[n]['p10'], 0)})" for n in pl.get("tied", []) if n != pl["best_roi"])
         L.append(f"- Giải ngân một khoản tiền (ô trên trang web, {pl['starts']} tuần bắt đầu từ {fmt.date(pl['from'])}, khoảng {pl['episodes']} đợt độc lập): "
-                 f"ROI trung vị cao nhất là {nm(b_['weeks'])} ({sp(b_['median'], 0)} sau 1 năm); đề xuất {nm(r_['weeks'])} (10% xấu nhất {sp(r_['p10'], 0)}, "
-                 f"xấu nhất {sp(r_['worst'], 0)}). Chi tiết: [PLAN.md](PLAN.md).")
+                 f"ROI trung vị cao nhất là {nm(b_['weeks'])} ({sp(b_['median'], 0)} sau 1 năm, 10% xấu nhất {sp(b_['p10'], 0)}); {say}. "
+                 "Chi tiết: [PLAN.md](PLAN.md), [PLAN_ON_DINH.md](PLAN_ON_DINH.md).")
     L.append("")
     # price scenarios now
     k = scn["k"]

@@ -3,7 +3,8 @@
 tests/fixtures/recommendation.json): switching to Trend hides every other part and back; cards per horizon group, fan
 chart, the model heat table, the cross-check with the other tabs and the walk-forward table; no sideways scroll on a phone.
 On the sell side the Giải ngân tab becomes Chốt lời dần with the recommended plan and a dated schedule; on the buy side the
-plan summary no longer shows its "this is also the best" sentence before an amount is entered (L1)."""
+plan summary no longer shows its "this is also the best" sentence before an amount is entered (L1). When the plans are a tie
+(plan.stable) no schedule is chosen until the user clicks one, and the USD box takes "$1000"-style amounts."""
 from __future__ import annotations
 
 import asyncio
@@ -18,7 +19,8 @@ import pytest
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FIX = ROOT / "tests" / "fixtures"
 TR = json.loads((FIX / "trend.json").read_text(encoding="utf-8"))
-SP = json.loads((FIX / "recommendation.json").read_bytes().decode("utf-8"))["sell_plan"]
+KN = json.loads((FIX / "recommendation.json").read_bytes().decode("utf-8"))
+SP, PLAN = KN["sell_plan"], KN["plan"]
 
 
 def usd(x: float) -> str:
@@ -61,6 +63,22 @@ async def _run(page_path: pathlib.Path, vw: int) -> dict:
         await pg.click("[data-tab=plan]")
         await pg.wait_for_timeout(200)
         res["plan_sum"] = await pg.inner_text("#plan-sum")
+        # a tie: no schedule until a plan is picked; USD amounts with a currency sign; too small to split
+        await pg.fill("#plan-amount", "1000")                                # type, then click USD at once (the first click used to be lost)
+        await pg.click("#plan-unit button:nth-child(2)")
+        res["usd_ph"] = await pg.get_attribute("#plan-amount", "placeholder")
+        res["usd_on"] = [await pg.get_attribute("#plan-unit button:nth-child(2)", "aria-pressed"), await pg.input_value("#plan-amount")]
+        await pg.fill("#plan-amount", "$1000")
+        await pg.wait_for_timeout(100)
+        res["usd_before_pick"] = [await pg.inner_text("#plan-sum"), await pg.evaluate("document.getElementById('t-plan-sched').tBodies[0].rows.length"),
+                                  await pg.evaluate("document.getElementById('dl-plan').disabled")]
+        await pg.click("#plan-opts button:nth-child(5)")
+        await pg.wait_for_timeout(100)
+        res["usd_pick"] = [await pg.inner_text("#plan-sum"), await pg.evaluate("document.getElementById('t-plan-sched').tBodies[0].rows.length"),
+                           await pg.inner_text("#t-plan-sched tbody tr:first-child"), await pg.evaluate("document.getElementById('dl-plan').disabled")]
+        await pg.fill("#plan-amount", "0,1 USD")
+        await pg.wait_for_timeout(100)
+        res["usd_small"] = await pg.inner_text("#plan-sum")
         # Trend view
         await pg.click("#mode-tr")
         await pg.wait_for_timeout(400)
@@ -122,6 +140,12 @@ def test_trend_view_and_sell_plan(page_path: pathlib.Path, vw: int) -> None:
     r = asyncio.run(_run(page_path, vw))
     assert r["errors"] == []
     assert "Đây cũng là cách" not in r["plan_sum"]                       # L1: no orphan sentence before an amount
+    assert PLAN["recommended"] is None and "gần như ngang nhau" in r["plan_sum"] and "Đề xuất" not in r["plan_sum"]
+    assert r["usd_ph"] == "Ví dụ 5.000" and r["usd_on"] == ["true", "1.000,00"]
+    before, picked = r["usd_before_pick"], r["usd_pick"]
+    assert "Bấm một cách" in before[0] and before[1] == 1 and before[2] is True     # no schedule chosen for the user
+    assert "Bạn chọn: Chia đều 52 tuần" in picked[0] and "19,23 $" in picked[0] and picked[1] == 52 and "19,23 $" in picked[2] and picked[3] is False
+    assert "Số tiền quá nhỏ để chia 52 lần" in r["usd_small"] and "0,52 $" in r["usd_small"]
     v = r["view"]
     assert v["cls"] == "tr-view" and v["pressed"] == ["false", "false", "false", "true"] and v["tabs"] == "none" and v["ls"] == "none" and v["panels"] == 0 and v["tr"] != "none"
     assert r["price"] == usd(TR["close"])

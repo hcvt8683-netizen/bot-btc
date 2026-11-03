@@ -1031,13 +1031,17 @@
   const pl = { unit: 'vnd', pick: PLAN ? PLAN.recommended : null };
   const UNIT = { vnd: { cents: 1, step: 1000, d: 0, sym: ' ₫' }, usd: { cents: 100, step: 1, d: 2, sym: ' $' } };  // step: each part is a multiple of it (minor units)
   const money = (x) => (x == null || !isFinite(x) ? '—' : nf(UNIT[pl.unit].d).format(x) + UNIT[pl.unit].sym);
-  const approx = (x) => { if (x == null || !isFinite(x) || x === 0) return money(x); const k = 10 ** Math.max(0, Math.floor(Math.log10(Math.abs(x))) - 2); return money(Math.round(x / k) * k); };  // 3 significant digits
+  const approx = (x) => {  // 3 significant digits, without decimals the rounding has already removed (12.600 $, 19,2 $)
+    if (x == null || !isFinite(x) || x === 0) return money(x);
+    const e = Math.floor(Math.log10(Math.abs(x))) - 2, d = Math.min(UNIT[pl.unit].d, Math.max(0, -e));
+    return nf(d).format(e >= 0 ? Math.round(x / 10 ** e) * 10 ** e : Math.round(x * 10 ** d) / 10 ** d) + UNIT[pl.unit].sym;
+  };
   const planName = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n));
   const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const weekday = (s) => new Intl.DateTimeFormat('vi-VN', { weekday: 'long' }).format(new Date(s + 'T12:00:00'));
   function nextMonday() { const d = new Date(); d.setHours(12, 0, 0, 0); while (d.getDay() !== 1) d.setDate(d.getDate() + 1); return isoDay(d); }
-  function parseAmount(s) {
-    const t = String(s || '').replace(/\s/g, '');
+  function parseAmount(s) {  // 1.000.000 / 1,000,000.50 / 5000,5; a currency sign or word ($, USD, ₫, đ, VNĐ) is ignored
+    const t = String(s || '').replace(/usd|vnđ|vnd|[$₫đ\s]/gi, '');
     if (!t) return null;
     const m = t.match(/^(.*?)[.,](\d{1,2})$/), int = (m ? m[1] : t).replace(/[.,]/g, ''), dec = m ? m[2] : '';
     return /^\d*$/.test(int) && (int || dec) ? Number((int || '0') + (dec ? '.' + dec : '')) : NaN;
@@ -1052,40 +1056,55 @@
     }
     return rows;
   }
+  // Choice buttons are built once and only re-marked on each render. Rebuilding them swallowed the first click after typing an
+  // amount: the box lost focus, its 'change' re-rendered, and the button under the mouse was replaced (USD or a plan "did nothing").
+  function segButtons(box, keys, label, on, choose) {
+    if (box.children.length !== keys.length) box.replaceChildren(...keys.map((k) => { const b = el('button', null, label(k)); b.type = 'button'; b.addEventListener('click', () => choose(k)); return b; }));
+    [...box.children].forEach((b, i) => b.setAttribute('aria-pressed', String(on(keys[i]))));
+  }
   function renderPlan() {
     const optEl = $('plan-opts');
-    $('plan-unit').replaceChildren(...['vnd', 'usd'].map((u) => { const b = el('button', null, tx('web.plan.unit_' + u)); b.type = 'button'; b.setAttribute('aria-pressed', String(pl.unit === u));
-      b.addEventListener('click', () => { pl.unit = u; renderPlan(); }); return b; }));
+    segButtons($('plan-unit'), ['vnd', 'usd'], (u) => tx('web.plan.unit_' + u), (u) => pl.unit === u,
+      (u) => { const a = parseAmount($('plan-amount').value); pl.unit = u; if (a > 0) $('plan-amount').value = nf(UNIT[u].d).format(a); renderPlan(); });
+    $('plan-amount').placeholder = tx(pl.unit === 'usd' ? 'web.plan.amount_ph_usd' : 'web.plan.amount_ph');
     if (!PLAN) {
       $('plan-sum').replaceChildren(el('span', 'warn', tx('web.plan.none')));
       for (const id of ['t-plan', 't-plan-sched', 'plan-notes', 'plan-opts']) $(id).replaceChildren();
       $('dl-plan').disabled = true;
       return;
     }
-    const opt = (n) => PLAN.options.find((o) => o.weeks === n), rec = opt(PLAN.recommended), best = opt(PLAN.best_roi);
+    // plan.stable (04/11/2026): "đề xuất" only when every other plan is significantly worse; otherwise a tie the user chooses from
+    const opt = (n) => PLAN.options.find((o) => o.weeks === n), rec = PLAN.recommended == null ? null : opt(PLAN.recommended), best = opt(PLAN.best_roi);
+    const tied = rec ? [] : PLAN.options.filter((o) => (PLAN.tied || []).includes(o.weeks)), pick = pl.pick == null ? null : opt(pl.pick);
     const amount = parseAmount($('plan-amount').value), ok = amount != null && isFinite(amount) && amount > 0, start = $('plan-start').value || nextMonday();
+    const line = (o, key) => {  // the schedule of plan o in one sentence, and what it did in the past
+      const rows = schedule(amount, o.weeks, start), last = rows[rows.length - 1], u = UNIT[pl.unit], p1 = el('p');
+      if (!(rows[0].amount > 0)) return el('p', 'warn', tx('web.plan.too_small', o.weeks, money(u.step / u.cents), money(o.weeks * u.step / u.cents)));
+      p1.append(el('b', null, o.weeks === 1 ? tx(`web.plan.${key}_1`, money(amount), fmtDate(start)) : tx(`web.plan.${key}`, planName(o.weeks), o.weeks, money(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
+        ' ', tx('web.plan.sum_hist', spc(o.median), approx(amount * (1 + o.median)), spc(o.p10), approx(amount * (1 + o.p10)), spc(o.worst), pc(o.loss_share)));
+      return p1;
+    };
     const sum = [];
-    if (amount != null && !ok) sum.push(el('p', 'warn', tx('web.plan.bad_amount')));
-    else if (!ok) sum.push(el('p', null, tx('web.plan.enter')));
-    else {
-      const rows = schedule(amount, rec.weeks, start), last = rows[rows.length - 1], p1 = el('p');
-      p1.append(el('b', null, rec.weeks === 1 ? tx('web.plan.sum_rec_1', money(amount), fmtDate(start)) : tx('web.plan.sum_rec', planName(rec.weeks), rec.weeks, money(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
-        ' ', tx('web.plan.sum_hist', spc(rec.median), approx(amount * (1 + rec.median)), spc(rec.p10), approx(amount * (1 + rec.p10)), spc(rec.worst), pc(rec.loss_share)));
-      sum.push(p1);
+    if (!rec && tied.length) {
+      const hi = tied.reduce((a, b) => (b.median > a.median ? b : a)), safe = tied.reduce((a, b) => (b.p10 > a.p10 ? b : a)), p1 = el('p');
+      p1.append(el('b', null, tx('web.plan.tie_head', tied.map((o) => planName(o.weeks).toLowerCase()).join(', '))), ' ', tx('web.plan.tie_why', PLAN.episodes));
+      sum.push(p1, el('p', null, hi === safe ? tx('web.plan.tie_same', planName(hi.weeks), spc(hi.median), spc(hi.p10))
+        : tx('web.plan.tie_pick', planName(hi.weeks), spc(hi.median), spc(hi.p10), planName(safe.weeks), spc(safe.p10), spc(safe.median))));
     }
-    if (rec !== best) sum.push(el('p', null, tx('web.plan.sum_best_diff', planName(best.weeks), spc(best.median))));
-    else if (ok) sum.push(el('p', null, tx('web.plan.sum_best_same')));   // "đây cũng là…" chỉ có nghĩa khi đã có câu đề xuất phía trước
-    const safer = PLAN.options.filter((o) => o.not_worse && o !== rec && o.worst > rec.worst).sort((a, b) => b.worst - a.worst)[0];
-    if (safer) sum.push(el('p', null, tx('web.plan.safer', planName(safer.weeks), spc(safer.median), spc(safer.worst), spc(rec.worst))));
+    if (amount != null && !ok) sum.push(el('p', 'warn', tx('web.plan.bad_amount', tx('web.plan.ex_' + pl.unit))));
+    else if (!ok) sum.push(el('p', null, tx('web.plan.enter')));
+    else if (rec) sum.push(line(rec, 'sum_rec'), el('p', null, tx('web.plan.sum_best_same')));
+    else sum.push(pick ? line(pick, 'pick_rec') : el('p', 'muted', tx('web.plan.tie_click')));
     $('plan-sum').replaceChildren(...sum);
     const h = el('tr');
     ['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_loss', 'col_mdd', 'col_beat', 'col_value'].forEach((k, i) => h.append(el('th', i ? 'r' : '', tx('web.plan.' + k))));
     const tb = el('tbody');
     for (const o of PLAN.options) {
-      const tr = el('tr', o === rec ? 'here' : ''), n = el('td');
+      const tr = el('tr', o === (rec || pick) ? 'here' : ''), n = el('td');
       n.append(el('b', 'nowrap', planName(o.weeks)));
       if (o === best) n.append(el('span', 'tag', tx('web.plan.tag_best')));
       if (o === rec) n.append(el('span', 'tag', tx('web.plan.tag_rec')));
+      else if (!rec && o !== best && o.not_worse) n.append(el('span', 'tag', tx('web.plan.tag_tie')));
       n.append(el('span', 'sub', o.weeks === 1 ? (o.not_worse ? '' : tx('web.plan.worse')) : tx('web.plan.opt_n_sub', o.weeks) + (o.not_worse ? '' : ' · ' + tx('web.plan.worse'))));
       const beat = el('td', 'r num'), val = el('td', 'r num nowrap', ok ? approx(amount * (1 + o.median)) : '—');
       if (ok) val.append(el('span', 'sub', tx('web.plan.value_sub', approx(amount * (1 + o.p10)))));
@@ -1098,23 +1117,24 @@
     }
     const th = el('thead'); th.append(h); $('t-plan').replaceChildren(th, tb);
     const notes = [tx('web.plan.note_data', PLAN.starts, fmtDate(PLAN.from), fmtDate(PLAN.to), PLAN.episodes, pc(PLAN.cost, 2)), tx('web.plan.note_rule'), tx('web.plan.note_beat')];
+    const S = PLAN.stable;
+    if (S && S.weeks) notes.splice(2, 0, tx('web.plan.note_stable', fmtDate(S.from), fmtDate(S.to), S.weeks, S.old_changes, S.old_flips, S.new_changes, S.tie_weeks));
     if (!PLAN.signals_passed) notes.push(tx('web.plan.note_signals'));
     notes.push(tx('web.plan.note_past'), tx('web.plan.note_ref'));
     $('plan-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
-    optEl.replaceChildren(...PLAN.options.map((o) => { const b = el('button', null, planName(o.weeks)); b.type = 'button'; b.setAttribute('aria-pressed', String(pl.pick === o.weeks));
-      b.addEventListener('click', () => { pl.pick = o.weeks; renderPlan(); }); return b; }));
+    segButtons(optEl, PLAN.options.map((o) => o.weeks), planName, (n) => pl.pick === n, (n) => { pl.pick = n; renderPlan(); });
     const sh = el('tr');
     ['col_n', 'col_date', 'col_amount', 'col_cum', 'col_share'].forEach((k, i) => sh.append(el('th', i > 1 ? 'r' : '', tx('web.plan.' + k))));
     const sb = el('tbody');
-    if (ok) for (const r of schedule(amount, pl.pick, start)) {
+    if (ok && pick) for (const r of schedule(amount, pick.weeks, start)) {
       const tr = el('tr'), dc = el('td', 'nowrap');
       dc.append(fmtDate(r.date), el('span', 'sub', weekday(r.date)));
       tr.append(el('td', 'num', String(r.k)), dc, el('td', 'r num nowrap', money(r.amount)), el('td', 'r num nowrap', money(r.cum)), el('td', 'r num', pc(r.share)));
       sb.append(tr);
     }
-    else { const tr = el('tr'), td = el('td', 'muted', tx('web.plan.enter')); td.colSpan = 5; tr.append(td); sb.append(tr); }
+    else { const tr = el('tr'), td = el('td', 'muted', tx(ok ? 'web.plan.pick_first' : 'web.plan.enter')); td.colSpan = 5; tr.append(td); sb.append(tr); }
     const sth = el('thead'); sth.append(sh); $('t-plan-sched').replaceChildren(sth, sb);
-    $('dl-plan').disabled = !ok;
+    $('dl-plan').disabled = !ok || !pick;
   }
   // ----- Dự báo dải giá theo ngày: số liệu, kiểm chứng lịch sử và nhật ký từ báo cáo tuần (KN.forecast) -----
   function renderForecast() {
@@ -1183,7 +1203,7 @@
     $('plan-start').addEventListener('change', renderPlan);
     $('dl-plan').addEventListener('click', () => {
       const a = parseAmount($('plan-amount').value);
-      if (!PLAN || !(a > 0)) return;
+      if (!PLAN || !(a > 0) || pl.pick == null) return;
       const start = $('plan-start').value || nextMonday(), d = UNIT[pl.unit].d, cell = (x) => (/[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x);
       const head = ['col_n', 'col_date', 'col_amount', 'col_cum', 'col_share'].map((k) => tx('web.plan.' + k));
       const rows = schedule(a, pl.pick, start).map((r) => [String(r.k), r.date, r.amount.toFixed(d), r.cum.toFixed(d), r.share.toFixed(4)]);
@@ -1214,31 +1234,44 @@
       for (const id of ['t-sp', 't-sp-sched', 'sp-notes', 'sp-opts']) $(id).replaceChildren();
       return;
     }
-    const opt = (n) => SP.options.find((o) => o.weeks === n), rec = opt(SP.recommended), best = opt(SP.best);
+    // sell_plan.stable (04/11/2026): "đề xuất" only when every other plan receives significantly less; otherwise a tie
+    const opt = (n) => SP.options.find((o) => o.weeks === n), rec = SP.recommended == null ? null : opt(SP.recommended), best = opt(SP.best);
+    const tied = rec ? [] : SP.options.filter((o) => (SP.tied || []).includes(o.weeks)), pick = sp.pick == null ? null : opt(sp.pick);
     const amount = parseAmount($('sp-amount').value), ok = amount != null && isFinite(amount) && amount > 0, start = $('sp-start').value || nextMonday();
     const ref = KN && (KN.exit || KN.entry), px = st.raw && st.raw.live ? st.raw.live.price : (ref && ref.price) || null;
     const usdOf = (b, r) => (px ? usd(b * px * (1 + r)) : '—');
+    const line = (o, key) => {
+      const rows = spSchedule(amount, o.weeks, start), last = rows[rows.length - 1], p1 = el('p');
+      p1.append(el('b', null, o.weeks === 1 ? tx(`web.sp.${key}_1`, btc(amount), fmtDate(start)) : tx(`web.sp.${key}`, spName(o.weeks), btc(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
+        ' ', tx('web.sp.sum_hist', spc(o.median), spc(o.p10), spc(o.worst), usdOf(amount, o.median), usdOf(amount, o.p10)));
+      return p1;
+    };
     const sum = [];
+    if (!rec && tied.length) {
+      const hi = tied.reduce((a, b) => (b.median > a.median ? b : a)), safe = tied.reduce((a, b) => (b.p10 > a.p10 ? b : a)), p1 = el('p');
+      p1.append(el('b', null, tx('web.sp.tie_head', tied.map((o) => spName(o.weeks).toLowerCase()).join(', '))), ' ', tx('web.sp.tie_why', SP.episodes));
+      sum.push(p1, el('p', null, hi === safe ? tx('web.sp.tie_same', spName(hi.weeks), spc(hi.median), spc(hi.p10))
+        : tx('web.sp.tie_pick', spName(hi.weeks), spc(hi.median), spc(hi.p10), spName(safe.weeks), spc(safe.p10), spc(safe.median))));
+    }
     if (amount != null && !ok) sum.push(el('p', 'warn', tx('web.sp.bad_amount')));
     else if (!ok) sum.push(el('p', null, tx('web.sp.enter')));
-    else {
-      const rows = spSchedule(amount, rec.weeks, start), last = rows[rows.length - 1], p1 = el('p');
-      p1.append(el('b', null, rec.weeks === 1 ? tx('web.sp.sum_rec_1', btc(amount), fmtDate(start)) : tx('web.sp.sum_rec', spName(rec.weeks), btc(rows[0].amount), fmtDate(rows[0].date), fmtDate(last.date))),
-        ' ', tx('web.sp.sum_hist', spc(rec.median), spc(rec.p10), spc(rec.worst), usdOf(amount, rec.median), usdOf(amount, rec.p10)));
-      sum.push(p1);
+    else if (rec) sum.push(line(rec, 'sum_rec'));
+    else sum.push(pick ? line(pick, 'pick_rec') : el('p', 'muted', tx('web.sp.tie_click')));
+    if (rec && rec.weeks > 1) {
+      sum.push(el('p', null, tx('web.sp.sum_why', spc(rec.p10))));
+      const safer = SP.options.filter((o) => o.weeks > 1 && o.weeks < rec.weeks).sort((a, b) => b.p10 - a.p10)[0];
+      if (safer) sum.push(el('p', 'muted', tx('web.sp.sum_risk', spName(safer.weeks), spc(safer.p10))));
     }
-    if (rec.weeks > 1) sum.push(el('p', null, tx('web.sp.sum_why', spc(rec.p10))));
-    const safer = SP.options.filter((o) => o.weeks > 1 && o.weeks < rec.weeks).sort((a, b) => b.p10 - a.p10)[0];
-    if (safer) sum.push(el('p', 'muted', tx('web.sp.sum_risk', spName(safer.weeks), spc(safer.p10))));
     $('sp-sum').replaceChildren(...sum);
     const h = el('tr');
     ['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_below', 'col_mdd', 'col_beat', 'col_value'].forEach((k, i) => h.append(el('th', i ? 'r' : '', tx('web.sp.' + k))));
     const tb = el('tbody');
     for (const o of SP.options) {
-      const tr = el('tr', o === rec ? 'here' : ''), n = el('td');
+      const tr = el('tr', o === (rec || pick) ? 'here' : ''), n = el('td');
       n.append(el('b', 'nowrap', spName(o.weeks)));
       if (o === best) n.append(el('span', 'tag', tx('web.sp.tag_best')));
       if (o === rec) n.append(el('span', 'tag', tx('web.sp.tag_rec')));
+      else if (!rec && o !== best && o.not_worse) n.append(el('span', 'tag', tx('web.sp.tag_tie')));
       n.append(el('span', 'sub', o.weeks === 1 ? '' : tx('web.sp.opt_n_sub', o.weeks) + (o.not_worse ? '' : ' · ' + tx('web.sp.worse'))));
       const beat = el('td', 'r num'), val = el('td', 'r num nowrap', ok ? usdOf(amount, o.median) : '—');
       if (ok) val.append(el('span', 'sub', tx('web.sp.value_sub', usdOf(amount, o.p10))));
@@ -1250,21 +1283,22 @@
     }
     const th = el('thead'); th.append(h); $('t-sp').replaceChildren(th, tb);
     const notes = [tx('web.sp.note_data', SP.starts, fmtDate(SP.from), fmtDate(SP.to), SP.episodes, pc(SP.cost, 2)), tx('web.sp.note_rule'), tx('web.sp.note_value')];
+    const S = SP.stable;
+    if (S && S.weeks) notes.splice(2, 0, tx('web.sp.note_stable', fmtDate(S.from), fmtDate(S.to), S.weeks, S.old_changes, S.new_changes, S.tie_weeks));
     if (!SP.signals_passed) notes.push(tx('web.sp.note_signals'));
     notes.push(tx('web.sp.note_past'));
     $('sp-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
-    $('sp-opts').replaceChildren(...SP.options.map((o) => { const b = el('button', null, spName(o.weeks)); b.type = 'button'; b.setAttribute('aria-pressed', String(sp.pick === o.weeks));
-      b.addEventListener('click', () => { sp.pick = o.weeks; renderSellPlan(); }); return b; }));
+    segButtons($('sp-opts'), SP.options.map((o) => o.weeks), spName, (n) => sp.pick === n, (n) => { sp.pick = n; renderSellPlan(); });
     const sh = el('tr');
     ['col_n', 'col_date', 'col_btc', 'col_cum', 'col_share', 'col_usd'].forEach((k, i) => sh.append(el('th', i > 1 ? 'r' : '', tx('web.sp.' + k))));
     const sb = el('tbody');
-    if (ok) for (const r of spSchedule(amount, sp.pick, start)) {
+    if (ok && pick) for (const r of spSchedule(amount, pick.weeks, start)) {
       const tr = el('tr'), dc = el('td', 'nowrap');
       dc.append(fmtDate(r.date), el('span', 'sub', weekday(r.date)));
       tr.append(el('td', 'num', String(r.k)), dc, el('td', 'r num nowrap', btc(r.amount)), el('td', 'r num nowrap', btc(r.cum)), el('td', 'r num', pc(r.share)), el('td', 'r num nowrap', usdOf(r.amount, 0)));
       sb.append(tr);
     }
-    else { const tr = el('tr'), td = el('td', 'muted', tx('web.sp.enter')); td.colSpan = 6; tr.append(td); sb.append(tr); }
+    else { const tr = el('tr'), td = el('td', 'muted', tx(ok ? 'web.sp.pick_first' : 'web.sp.enter')); td.colSpan = 6; tr.append(td); sb.append(tr); }
     const sth = el('thead'); sth.append(sh); $('t-sp-sched').replaceChildren(sth, sb);
   }
   function initSellPlan() {

@@ -1,43 +1,41 @@
-# Báo cáo bot BTC (bản xây lại), phân tích tại ngày 25/10/2026
+# Báo cáo bot BTC (bản xây lại), phân tích tại ngày 01/11/2026
 
-Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải về, bằng kiểm chứng đi tới: tại mỗi tuần chỉ dùng dữ liệu đã có đến tuần đó. Báo cáo tạo lúc 07:14 29/10/2026 UTC bằng `python -m bot.cli final-report`, từ các file kết quả trong `data/results`. Cách làm từng phần và mọi thay đổi thiết kế: [REBUILD_LOG.md](REBUILD_LOG.md). Bảng chi tiết: [PHU_LUC.md](PHU_LUC.md).
+Bot thống kê, không có trí tuệ AI. Mọi con số tính từ dữ liệu thật tải về, bằng kiểm chứng đi tới: tại mỗi tuần chỉ dùng dữ liệu đã có đến tuần đó. Báo cáo tạo lúc 23:23 03/11/2026 UTC bằng `python -m bot.cli final-report`, từ các file kết quả trong `data/results`. Cách làm từng phần và mọi thay đổi thiết kế: [REBUILD_LOG.md](REBUILD_LOG.md). Bảng chi tiết: [PHU_LUC.md](PHU_LUC.md).
 
 Mỗi con số về khung đi kèm số tuần, số đợt độc lập, khoảng tin cậy bootstrap (95%) và mức chênh so với mốc "mua vào một tuần bất kỳ". Kết quả không có ý nghĩa thống kê ghi "chưa có lợi thế".
 
 ## Bối cảnh
-- Giá đóng tuần (Chủ nhật 23:59 UTC) ngày 25/10/2026: **80.039 $**. Mọi tính toán dùng giá đóng tuần; giá trực tiếp chỉ để hiển thị trên trang.
-- Dữ liệu (ngày cuối của từng nguồn lúc tải, 13:56 29/10/2026): Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành) đến 28/10/2026; Fear & Greed (Alternative.me) đến 29/10/2026; Binance (giá và khối lượng ngày) đến 28/10/2026; DefiLlama (tổng cung stablecoin) đến 29/10/2026; FRED (chỉ số đô la Mỹ rộng) đến 23/10/2026; FRED (lợi suất thực 10 năm) đến 27/10/2026; FRED (Nasdaq Composite) đến 28/10/2026; FRED (cung tiền M2) đến 01/09/2026; Coin Metrics (giờ chốt số liệu, khối lượng giao ngay, nguồn cung) đến 28/10/2026; Bitstamp (giá ngày từ 2011, để đối chiếu) đến 28/10/2026; CoinGecko (giá 365 ngày gần nhất, để đối chiếu) đến 28/10/2026; FRED (trần lãi suất Fed) đến 28/10/2026.
+- Giá đóng tuần (Chủ nhật 23:59 UTC) ngày 01/11/2026: **78.135 $**. Mọi tính toán dùng giá đóng tuần; giá trực tiếp chỉ để hiển thị trên trang.
+- Dữ liệu (ngày cuối của từng nguồn lúc tải, 00:00 04/11/2026): Coin Metrics (giá, vốn hóa, MVRV, hash rate, phát hành) đến 02/11/2026; Fear & Greed (Alternative.me) đến 03/11/2026; Binance (giá và khối lượng ngày) đến 02/11/2026; Binance (funding rate hợp đồng vĩnh cửu) đến 31/10/2026; Binance (khối lượng hợp đồng mở) đến 03/11/2026; Binance (hợp đồng tương lai quý) đến 02/11/2026; DefiLlama (tổng cung stablecoin) đến 03/11/2026; FRED (chỉ số đô la Mỹ rộng) đến 30/10/2026; FRED (lợi suất thực 10 năm) đến 30/10/2026; FRED (Nasdaq Composite) đến 02/11/2026; FRED (cung tiền M2) đến 01/09/2026; Coin Metrics (giờ chốt số liệu, khối lượng giao ngay, nguồn cung) đến 02/11/2026; Bitstamp (giá ngày từ 2011, để đối chiếu) đến 02/11/2026; CoinGecko (giá 365 ngày gần nhất, để đối chiếu) đến 02/11/2026; FRED (trần lãi suất Fed) đến 03/11/2026; Binance (nến giờ hợp đồng vĩnh cửu) đến 02/11/2026.
 - Mô hình đang theo dõi: phiên bản `v1-f46ea015fc`, đóng băng ngày 25/10/2026: bộ S1, còn Giá / MA 200 tuần (bỏ MVRV vì sai dấu).
 - Mốc so sánh bắt buộc: mua đều; quy tắc đơn giản 1 chỉ số (phân vị MVRV, phân vị Giá / MA 200 tuần).
 - Giai đoạn chấm: đi tới lồng nhau (học lại mỗi 13 tuần) có thứ hạng từ 13/02/2022; holdout 01/01/2024 → 25/10/2026 (147 tuần), chạy đúng một lần lúc 2026-10-29T05:32:09Z (mã `af7ccea`).
 
 ## Kết luận
 - **Mua đều, hệ số 1,0.** Mô hình đạt 0/6 tiêu chí chấp nhận định trước (cần đạt cả 6): lợi thế giá vốn dương ở ≥ 75% số năm và trên holdout ✘; cận dưới khoảng tin cậy của lợi thế > 0 ✘; kiểm định hoán vị đã hiệu chỉnh < 0,05 ✘; khung đơn điệu, trọng số đúng dấu ✘; Brier tốt hơn tỷ lệ gốc ✘; thắng cả hai quy tắc đơn giản ✘.
-- Thứ hạng tuần này (vị trí của điểm tuần này so với các tuần ngoài mẫu trước đó, **không phải xác suất có lãi**): mô hình 76 → Cân nhắc mua; quy tắc MVRV 65 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 70 → Cân nhắc mua. Các khung chỉ để tham khảo: kiểm định cho thấy **chưa có lợi thế** (mục "Bộ tiêu chí").
+- Thứ hạng tuần này (vị trí của điểm tuần này so với các tuần ngoài mẫu trước đó, **không phải xác suất có lãi**): mô hình 78 → Cân nhắc mua; quy tắc MVRV 71 → Cân nhắc mua; quy tắc Giá / MA 200 tuần 72 → Cân nhắc mua. Các khung chỉ để tham khảo: kiểm định cho thấy **chưa có lợi thế** (mục "Bộ tiêu chí").
 - Bên bán: 0 nhóm bật → **Giữ**. Số tiêu chí bán đáng tin: 0.
 
 ## Khuyến nghị giải ngân tuần này
 - Hệ số mua: **1,0** (mua đều). Vì sao: tiêu chí chấp nhận không đạt, nên không có cơ sở mua nhiều hay ít hơn mua đều. Hệ số theo khung (chưa qua cổng) tuần này: 1,00: khung Cân nhắc mua có 9 tuần, 1 đợt, chênh +38,3%, chỉ 1 đợt (cần ≥ 3).
-- ⚑ Sự kiện đã xảy ra sau mốc chốt dữ liệu (giá đóng 25/10/2026), tín hiệu chưa tính phản ứng của thị trường: 01:00 29/10/2026 (giờ Việt Nam) Quyết định lãi suất FOMC. Nên chạy lại sau giá đóng tuần kế tiếp (01/11/2026).
-- Sự kiện sắp tới: 19:30 29/10/2026 Chỉ số giá chi tiêu PCE; 15:00 30/10/2026 Đáo hạn quyền chọn BTC hằng tháng; 20:30 04/11/2026 Chỉ số giá chi tiêu PCE.
-- Lịch sự kiện chưa đủ: Chỉ số giá tiêu dùng Mỹ (CPI) chỉ có tới 14/10/2026.
+- Sự kiện sắp tới: 20:30 04/11/2026 Chỉ số giá chi tiêu PCE; 20:30 10/11/2026 Chỉ số giá tiêu dùng Mỹ (CPI).
 - Chế độ lãi suất Fed: **tăng** (từ 20/09/2026). Chỉ dùng để chia nhóm báo cáo. Cảnh báo: chế độ này có dưới 3 đợt trong giai đoạn đánh giá của Bot hiện tại (PA3), Mô hình lồng nhau, Quy tắc Giá/MA 200 tuần.
-- Giải ngân một khoản tiền (ô trên trang web, 486 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập): ROI trung vị cao nhất là giải ngân một lần (+56% sau 1 năm); đề xuất giải ngân một lần (10% xấu nhất -45%, xấu nhất -82%). Chi tiết: [PLAN.md](PLAN.md).
+- Giải ngân một khoản tiền (ô trên trang web, 487 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập): ROI trung vị cao nhất là giải ngân một lần (+56% sau 1 năm, 10% xấu nhất -45%); ngang nhau với nó (không kém đáng kể), nên không đề xuất cách nào: chia đều 13 tuần (trung vị +53%, 10% xấu nhất -48%), chia đều 26 tuần (trung vị +44%, 10% xấu nhất -46%), chia đều 52 tuần (trung vị +26%, 10% xấu nhất -31%). Chi tiết: [PLAN.md](PLAN.md), [PLAN_ON_DINH.md](PLAN_ON_DINH.md).
 
-## Giá đề xuất mua và bán (kịch bản giá sau 4 tuần, tính tại 25/10/2026, giá 80.039 $)
-Mọi chỉ số tính lại theo đường giá giả định. Fear & Greed đổi theo giá bằng mô hình học từ quá khứ (R² 0,71, 450 tuần), kèm khoảng 10–90%. Khoảng của quy tắc MVRV tính thêm theo thay đổi vốn hóa thực (-0,7% đến +4,9% trong 4 tuần). Đây là cách bot sẽ đọc, không phải dự báo; hệ số mua vẫn 1,0.
+## Giá đề xuất mua và bán (kịch bản giá sau 4 tuần, tính tại 01/11/2026, giá 78.135 $)
+Mọi chỉ số tính lại theo đường giá giả định. Fear & Greed đổi theo giá bằng mô hình học từ quá khứ (R² 0,71, 451 tuần), kèm khoảng 10–90%. Khoảng của quy tắc MVRV tính thêm theo thay đổi vốn hóa thực (-0,7% đến +4,9% trong 4 tuần). Đây là cách bot sẽ đọc, không phải dự báo; hệ số mua vẫn 1,0.
 | Giá | So với hiện tại | Fear & Greed (10–90%) | Quy tắc Giá / MA 200 tuần | Quy tắc MVRV (khoảng) | Bên bán (số nhóm) |
 |---|---|---|---|---|---|
-| 56.027 $ | -30% | 21 (7–35) | 95 → Phải mua | 99 (99) → Phải mua | 0 → Giữ |
-| 64.031 $ | -20% | 31 (17–45) | 93 → Phải mua | 97 (96–99) → Phải mua | 0 → Giữ |
-| 72.035 $ | -10% | 41 (27–54) | 83 → Phải mua | 82 (80–89) → Phải mua | 0 → Giữ |
-| 76.037 $ | -5% | 45 (31–58) | 75 → Cân nhắc mua | 76 (76–80) → Phải mua / Cân nhắc mua | 0 → Giữ |
-| 80.039 $ | hiện tại | 49 (35–62) | 72 → Cân nhắc mua | 67 (65–76) → Cân nhắc mua | 0 → Giữ |
-| 84.041 $ | +5% | 53 (38–66) | 67 → Cân nhắc mua | 59 (58–65) → Cân nhắc mua | 0 → Giữ |
-| 88.043 $ | +10% | 56 (42–70) | 62 → Cân nhắc mua | 53 (53–59) → Cân nhắc mua / Không nên mua | 0 → Giữ |
-| 96.047 $ | +20% | 63 (49–76) | 56 → Cân nhắc mua | 50 (47–52) → Không nên mua | 0 → Giữ |
-| 104.051 $ | +30% | 69 (55–82) | 52 → Không nên mua | 37 (37–46) → Không nên mua | 0–1 → Giữ / Chốt lời một phần |
-| 120.058 $ | +50% | 80 (66–93) | 36 → Không nên mua | 16 (13–23) → Không nên mua | 3 → Bán phần lớn |
+| 54.695 $ | -30% | 11 (0–24) | 95 → Phải mua | 99 (99) → Phải mua | 0 → Giữ |
+| 62.508 $ | -20% | 21 (7–34) | 94 → Phải mua | 98 (98–99) → Phải mua | 0 → Giữ |
+| 70.322 $ | -10% | 30 (16–44) | 85 → Phải mua | 85 (83–90) → Phải mua | 0 → Giữ |
+| 74.228 $ | -5% | 34 (20–48) | 79 → Cân nhắc mua | 79 (78–83) → Phải mua / Cân nhắc mua | 0 → Giữ |
+| 78.135 $ | hiện tại | 38 (24–52) | 74 → Cân nhắc mua | 72 (70–78) → Cân nhắc mua | 0 → Giữ |
+| 82.042 $ | +5% | 42 (28–55) | 69 → Cân nhắc mua | 62 (60–71) → Cân nhắc mua | 0 → Giữ |
+| 85.949 $ | +10% | 46 (32–59) | 64 → Cân nhắc mua | 56 (55–62) → Cân nhắc mua | 0 → Giữ |
+| 93.762 $ | +20% | 52 (38–66) | 57 → Cân nhắc mua | 51 (50–53) → Không nên mua | 0 → Giữ |
+| 101.576 $ | +30% | 59 (45–72) | 53 → Không nên mua | 41 (40–46) → Không nên mua | 0 → Giữ |
+| 117.203 $ | +50% | 70 (56–83) | 39 → Không nên mua | 20 (19–28) → Không nên mua | 2 → Chốt lời một phần |
 
 ## Xác suất thắng nếu mua tại ngày phân tích
 **Bot không hiển thị xác suất có lãi.** Xác suất của mô hình tốt hơn tỷ lệ gốc (Brier thấp hơn) ở 1/6 lần đo, và chỉ 0/6 lần có khoảng tin cậy của mức cải thiện nằm hẳn trên 0; cần cả hai mới được hiển thị xác suất.
@@ -197,7 +195,7 @@ Theo năm dương lịch trước holdout (hệ số so sánh): Lồng nhau: 202
 
 Cấu hình có p hiệu chỉnh < 0,05 trên holdout: Quy tắc Giá/MA 200 tuần (chỉ ở một thống kê; khoảng tin cậy bootstrap của lợi thế vẫn chứa 0 và khung không đơn điệu, nên không qua tiêu chí). Vòng trong của mô hình lồng nhau chọn: S1/λ0.3 168 tuần, S2/λ0.3 13 tuần, S2/λ3 13 tuần, S3/λ0.3 13 tuần; 286/519 tuần không có cấu hình nào tốt hơn tỷ lệ gốc (mua đều).
 
-## Bên bán: nên giữ hay chốt lời (ngày 25/10/2026)
+## Bên bán: nên giữ hay chốt lời (ngày 01/11/2026)
 - Mức hiện tại: **Giữ** (0 nhóm bật). Một hệ thống: 0 nhóm → Giữ, 1–2 → Chốt lời một phần, ≥ 3 → Bán phần lớn.
 - Quy tắc bán X% một lần khi đợt tín hiệu bắt đầu, mua lại khi giá ≤ 80% giá bán hoặc sau 52 tuần, so với giữ nguyên:
 | Quy tắc | Chu kỳ | Tài sản so với giữ nguyên | Số lần bán | Mua lại rẻ hơn / đã mua lại |
@@ -223,27 +221,27 @@ Cấu hình có p hiệu chỉnh < 0,05 trên holdout: Quy tắc Giá/MA 200 tu�
 
 - Kết luận: bên bán **chưa có lợi thế đáng tin**; mức Giữ / Chốt lời một phần / Bán phần lớn chỉ để tham khảo, không khuyên tỷ lệ bán.
 
-## Giá trị chỉ số tại ngày phân tích (25/10/2026)
+## Giá trị chỉ số tại ngày phân tích (01/11/2026)
 | Chỉ số | Giá trị | Phân vị trong 4 năm trước | Thuộc 5% đắt nhất? |
 |---|---|---|---|
-| MVRV | 1,48 | 38% | không |
-| MVRV Z-Score | 0,84 | 40% | không |
-| Pi Cycle (tỉ số MA 111/2×MA 350) | 0,49 | 29% | không |
-| Giá / MA 200 tuần | 1,19 | 34% | không |
-| Mayer Multiple | 1,10 | 48% | không |
-| RSI 14 tuần | 68 | 68% | không |
-| Puell Multiple | 1,12 | 55% | không |
-| Giảm từ đỉnh | -35,9% | 46% | không |
-| Khối lượng tương đối | 0,70 | 26% | không |
-| Fear & Greed | 54 | 54% | không |
-| Biến động 30 ngày | 0,25 | 5% | không |
-| Độ lệch so với MA 20 tuần | +11,4% | 58% | không |
+| MVRV | 1,45 | 33% | không |
+| MVRV Z-Score | 0,78 | 37% | không |
+| Pi Cycle (tỉ số MA 111/2×MA 350) | 0,50 | 30% | không |
+| Giá / MA 200 tuần | 1,16 | 31% | không |
+| Mayer Multiple | 1,07 | 41% | không |
+| RSI 14 tuần | 64 | 64% | không |
+| Puell Multiple | 1,05 | 47% | không |
+| Giảm từ đỉnh | -37,4% | 43% | không |
+| Khối lượng tương đối | 0,69 | 25% | không |
+| Fear & Greed | 34 | 29% | không |
+| Biến động 30 ngày | 0,29 | 12% | không |
+| Độ lệch so với MA 20 tuần | +7,6% | 52% | không |
 
 ## Khối lượng giao dịch
-- Khối lượng giao dịch giao ngay tương đối (so với trung bình gần đây) tại 25/10/2026: 0,70, phân vị 4 năm 26%. Không dùng trong mô hình (không có trong bộ nào được đăng ký).
+- Khối lượng giao dịch giao ngay tương đối (so với trung bình gần đây) tại 01/11/2026: 0,69, phân vị 4 năm 25%. Không dùng trong mô hình (không có trong bộ nào được đăng ký).
 
 ## Kiểm định đi tới
-- Nhật ký `data/forward/v1-f46ea015fc/forward_log.csv`: 1 tuần từ 25/10/2026 đến 25/10/2026, 0 tuần ghi muộn. Đủ kỳ hạn để chấm: 26 tuần: 0, 52 tuần: 0.
+- Nhật ký `data/forward/v1-f46ea015fc/forward_log.csv`: 2 tuần từ 25/10/2026 đến 01/11/2026, 0 tuần ghi muộn. Đủ kỳ hạn để chấm: 26 tuần: 0, 52 tuần: 0.
 - Đây là phép thử ngoài mẫu thật duy nhất (holdout đã có người xem khi làm bot cũ). Chấm lại sau 26 và 52 tuần; không sửa mô hình trong thời gian theo dõi.
 
 ## Câu hỏi gợi ý cho Claude

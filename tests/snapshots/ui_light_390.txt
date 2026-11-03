@@ -299,7 +299,7 @@ Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là côn
 --- plan ---
 ₫Kế hoạch giải ngân một khoản tiền
 
-Nhập số tiền bạn muốn đưa vào BTC. Bot so các cách giải ngân trên giá thật trong quá khứ (mua mỗi tuần ở giá đóng thứ Hai, có tính phí), đề xuất cách có lợi nhuận tốt nhất theo lịch sử và lập lịch theo ngày.
+Nhập số tiền bạn muốn đưa vào BTC. Bot so các cách giải ngân trên giá thật trong quá khứ (mua mỗi tuần ở giá đóng thứ Hai, có tính phí). Bot chỉ đề xuất khi một cách hơn hẳn trong lịch sử; nếu không, bot nói thẳng các cách ngang nhau để bạn chọn, rồi lập lịch theo ngày.
 
 Số tiền muốn giải ngân
 Đơn vị
@@ -307,13 +307,15 @@ VNĐ
 USD
 Bắt đầu từ ngày
 
-Nhập số tiền để xem đề xuất và lịch giải ngân.
+Trong lịch sử, các cách giải ngân một lần, chia đều 13 tuần, chia đều 26 tuần gần như ngang nhau, nên bot không đề xuất cách nào. Chênh lệch giữa chúng không có ý nghĩa thống kê (chỉ khoảng 9 đợt độc lập); thêm một tuần dữ liệu có thể đảo thứ tự.
 
-Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất −64% thay vì −82%.
+Trong nhóm này, Giải ngân một lần vừa lãi trung vị cao nhất (+56%) vừa ít thiệt nhất khi gặp lúc xấu (10% xấu nhất −45%), nhưng hơn các cách kia không đáng kể.
+
+Nhập số tiền để xem kết quả theo số tiền của bạn và lịch giải ngân.
 
 So sánh các cách giải ngân (giá trị 1 năm sau lần mua đầu)
 
-Giải ngân một lầnROI cao nhấtĐề xuất
+Giải ngân một lầnROI cao nhất
 +56%
 −45%
 −82%
@@ -331,7 +333,7 @@ mỗi tuần 1/4 số tiền · kém ROI cao nhất đáng kể
 43%
 Wilson 19%–73%
 —
-Chia đều 13 tuần
+Chia đều 13 tuầnKhông kém đáng kể
 mỗi tuần 1/13 số tiền
 +53%
 −48%
@@ -341,7 +343,7 @@ mỗi tuần 1/13 số tiền
 41%
 Wilson 19%–73%
 —
-Chia đều 26 tuần
+Chia đều 26 tuầnKhông kém đáng kể
 mỗi tuần 1/26 số tiền
 +44%
 −46%
@@ -362,7 +364,8 @@ mỗi tuần 1/52 số tiền · kém ROI cao nhất đáng kể
 Wilson 12%–65%
 —
 Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Mua ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần mua, tiền chưa mua không tính lãi.
-Cách chọn, định trước khi tính: ROI cao nhất là cách có trung vị cao nhất. Đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không kém ROI cao nhất đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
+Cách chọn, định trước khi tính: ROI cao nhất là cách có trung vị cao nhất. Bot chỉ đề xuất khi mọi cách khác đều kém nó đáng kể (khoảng tin cậy 95% của chênh lệch không chứa 0); nếu từ 2 cách trở lên không kém đáng kể, bot nói chúng ngang nhau và để bạn chọn. Quy tắc này dùng từ 04/11/2026; trước đó bot luôn chọn một cách, nên đề xuất có lúc đảo ngược chỉ sau 1 tuần.
+Kiểm tra lại từng tuần từ 02/01/2022 đến 01/11/2026 (253 tuần, mỗi tuần chỉ dùng dữ liệu có đến tuần đó): cách cũ đổi đề xuất 27 lần, trong đó 11 lần đảo hẳn giữa một lần và 52 tuần; cách mới đổi lời 0 lần và nói "ngang nhau" ở 253 tuần.
 "Thắng giải ngân một lần": tỷ lệ tuần bắt đầu mà cách đó cho kết quả tốt hơn, kèm khoảng tin cậy Wilson theo số đợt độc lập. "Giảm sâu nhất": mức tụt lớn nhất của tổng giá trị (BTC đã mua + tiền chưa mua) trong năm, lấy trung vị qua các tuần bắt đầu.
 Lịch không nghiêng theo tín hiệu của bot: kiểm định 6 tiêu chí không đạt (tín hiệu chưa có lợi thế), nên chỉ chia đều theo thời gian.
 Lợi nhuận quá khứ không bảo đảm tương lai. BTC đã tăng mạnh trong lịch sử nên giải ngân sớm thường lợi hơn; điều đó có thể không lặp lại.
@@ -375,7 +378,7 @@ Chia đều 4 tuần
 Chia đều 13 tuần
 Chia đều 26 tuần
 Chia đều 52 tuần
-Nhập số tiền để xem đề xuất và lịch giải ngân.
+Nhập số tiền để xem kết quả theo số tiền của bạn và lịch giải ngân.
 Tải lịch giải ngân (CSV)
 
 Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
@@ -1157,7 +1160,7 @@ Nhập số BTC bạn muốn bán. Bot so các cách bán trên giá thật tron
 Số BTC muốn bán
 Bắt đầu từ ngày
 
-Nhập số BTC để xem đề xuất và lịch bán.
+Nhập số BTC để xem lịch bán và số tiền ước tính.
 
 Vì sao bán chậm thường thu nhiều hơn: BTC tăng giá trong phần lớn lịch sử, nên những đợt bán sau thường được giá cao hơn. Đổi lại, nếu giá giảm thì bán chậm thiệt hơn: 10% lần xấu nhất của cách này thu ít hơn bán ngay −30%.
 
@@ -1212,7 +1215,8 @@ mỗi tuần bán 1/52 số BTC
 Wilson 35%–88%
 —
 Dữ liệu: 486 tuần bắt đầu, từ 10/07/2016 đến 26/10/2025, chỉ khoảng 9 đợt độc lập vì các cửa sổ 1 năm chồng lấn nhau. Bán ở giá đóng thứ Hai, phí và trượt giá 0,15% mỗi lần bán, tiền đã thu không tính lãi.
-Cách chọn, định trước khi tính: đề xuất là cách có 10% xấu nhất ít thiệt nhất, trong số các cách không thu ít hơn cách tốt nhất một cách đáng kể (khoảng tin cậy 95% của chênh lệch chứa 0).
+Cách chọn, định trước khi tính: bot chỉ đề xuất cách thu trung vị nhiều nhất khi mọi cách khác đều thu ít hơn nó đáng kể (khoảng tin cậy 95% của chênh lệch không chứa 0); nếu không, bot nói các cách ngang nhau và để bạn chọn. Quy tắc này dùng từ 04/11/2026.
+Kiểm tra lại từng tuần từ 02/01/2022 đến 01/11/2026 (253 tuần, mỗi tuần chỉ dùng dữ liệu có đến tuần đó): cách cũ đổi đề xuất 20 lần, cách mới đổi lời 9 lần và nói "ngang nhau" ở 165 tuần.
 "Thu ước tính" nhân số BTC với giá lúc này: giá thật lúc bán sẽ khác.
 Không nghiêng theo tín hiệu: kiểm định 6 tiêu chí chưa đạt, nên mọi cách chia đều theo thời gian.
 Kết quả trong quá khứ không bảo đảm cho tương lai; công cụ tham khảo, không phải lời khuyên đầu tư.
@@ -1224,7 +1228,7 @@ Chia đều 4 tuần
 Chia đều 13 tuần
 Chia đều 26 tuần
 Chia đều 52 tuần
-Nhập số BTC để xem đề xuất và lịch bán.
+Nhập số BTC để xem lịch bán và số tiền ước tính.
 
 Kết quả trong quá khứ không bảo đảm cho tương lai. Đây là công cụ tham khảo, không phải lời khuyên đầu tư.
 --- fc ---

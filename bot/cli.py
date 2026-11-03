@@ -20,6 +20,7 @@ perp-trade                 long/short with entry, stop-loss, take-profit: write 
 price-action               price action criteria vs any day: data/results/price_action.json + docs/PRICE_ACTION.md (--final: the single logged final test)
 pa-sheet                   price action panel of the Price action view: price action now + touch shares by ATR distance → data/results/pa.json
 forecast-regime            price bands by volatility regime vs the bands in use (registered, report only unless it wins) → docs/FORECAST_REGIME.md
+plan-stable                how often Giải ngân / Chốt lời dần changed their advice week by week since 2022, old rule vs plan.stable → docs/PLAN_ON_DINH.md, docs/PLAN.md
 exit-calib                 R1: calibration of the selling-price touch chance by year and 200-day state → docs/R1_GIA_CHO_BAN.md
 long-hold                  buy and hold: share of gains after holding 1 week … 4 years, buying price → data/results/hold.json
 sr-levels                  support / resistance by frame (hours, days, weeks, months): bounce or break vs a placebo level → data/results/sr.json
@@ -159,6 +160,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dải giá theo nhóm độ dao động: tốt hơn ở giai đoạn chọn {o['best']}; xác nhận chênh {o['confirm']['diff']:+.2%} "
               f"(95%: {o['confirm']['ci'][0]:+.2%} đến {o['confirm']['ci'][1]:+.2%}); " + ("ĐỔI cách tính" if o["switch"] else "giữ nguyên cách đang dùng")
               + "; docs/FORECAST_REGIME.md")
+        return 0
+    if args.command == "plan-stable":
+        from bot.models import deploy_plan, plan_stable
+        o = plan_stable.run(write=True)
+        deploy_plan.write_doc()
+        for side, name in (("plan", "Giải ngân"), ("sell_plan", "Chốt lời dần")):
+            s = o[side]
+            print(f"{name}, {s['weeks']} tuần từ {s['from']}: cách cũ đổi đề xuất {s['old_changes']} lần (đảo hẳn {s['old_flips']}); "
+                  f"cách mới đổi lời {s['new_changes']} lần (đảo hẳn {s['new_flips']}), {s['tie_weeks']} tuần nói ngang nhau")
+        print("docs/PLAN_ON_DINH.md, docs/PLAN.md, data/results/plan_stable.json")
         return 0
     if args.command == "exit-calib":
         from bot.models import exit_calib as ec

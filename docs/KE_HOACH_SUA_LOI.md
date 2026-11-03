@@ -19,6 +19,7 @@ python -m pytest
 
 - Lệnh thứ hai ghi `docs/HOI_CUU_MO_RONG.md` (Mac / Linux: `make hoi-cuu`).
 - Muốn xem lại phép so cách tính dải giá: `python -m bot.cli forecast-regime` (ghi `docs/FORECAST_REGIME.md`).
+- Muốn đếm lại số lần Giải ngân / Chốt lời dần đổi lời: `python -m bot.cli plan-stable` (ghi `docs/PLAN_ON_DINH.md`, khoảng 30 giây).
 - Không chạy `python -m bot.cli fetch` trên máy rồi đẩy `data/` lên git. Việc đó do Daily làm; đẩy cùng lúc dễ xung đột nhật ký.
 
 ## Yếu điểm, từ lớn đến nhỏ
@@ -27,7 +28,7 @@ python -m pytest
 |---|---|---|---|
 | 1 | Không thẻ nào đoán được hướng giá | rất lớn | chưa sửa được bằng cách dò; cần dữ liệu mới |
 | 2 | Long/Short: kỳ vọng âm, có đòn bẩy | lớn | cần thêm chốt chặn rủi ro (T1) |
-| 3 | Giải ngân đổi đề xuất ngược hẳn sau 1 ngày | lớn | cần đăng ký quy tắc ổn định |
+| 3 | Giải ngân đổi đề xuất ngược hẳn sau 1 ngày | lớn | **đã sửa 04/11/2026** (quy tắc "ngang nhau") |
 | 4 | Dải giá hẹp quá lúc êm, rộng quá lúc mạnh | vừa | **đã sửa phần lớn hôm nay** |
 | 5 | Cùng lỗi đó ở Giá chờ mua / bán, khoảng Xu hướng | vừa | cần đăng ký riêng |
 | 6 | Kiểm chứng trực tiếp còn quá ngắn | vừa | chỉ chờ; lịch D1, D2 |
@@ -68,6 +69,20 @@ python -m pytest
 ```
 
 ### 3. Giải ngân đổi đề xuất ngược hẳn sau 1 ngày
+
+**Đã sửa 04/11/2026.** Bạn chọn cách "thiết thực, trung thực nhất".
+- Đăng ký trước (`plan.stable`, `sell_plan.stable`, commit `1f0756b`): chỉ nêu "đề xuất" khi mọi cách khác đều kém cách tốt nhất đáng kể. Nếu không, trang nói các cách ngang nhau, chỉ ra cách lãi trung vị cao nhất và cách ít thiệt nhất khi gặp lúc xấu, rồi để bạn bấm chọn.
+- Đếm lại từng tuần từ 02/01/2022, mỗi tuần chỉ dùng dữ liệu có đến tuần đó (`docs/PLAN_ON_DINH.md`):
+
+| Thẻ | Cách cũ đổi đề xuất | Đảo hẳn (một lần ↔ 52 tuần) | Cách mới đổi lời |
+|---|---|---|---|
+| Giải ngân (253 tuần) | 27 lần | 11 lần | 0 lần: cả 253 tuần đều "ngang nhau" |
+| Chốt lời dần (253 tuần) | 20 lần | 0 | 9 lần; từ 05/2025 luôn "chia 52 tuần" |
+
+- Nghĩa là: từ 2022, lịch sử chưa bao giờ đủ để nói cách giải ngân nào hơn hẳn. Đề xuất cũ là một lựa chọn gần như ngẫu nhiên giữa các cách ngang nhau.
+- Cùng đợt, sửa lỗi USD: gõ số tiền rồi bấm ngay nút USD thì lần bấm đầu bị mất, vì trang vẽ lại cả hàng nút đúng lúc bấm. Giờ nút giữ nguyên, có bài kiểm tra bấm chuột thật. Ô USD cũng nhận "$1000", "1000 USD", "1,000.50"; gợi ý và câu báo lỗi theo đúng đơn vị; báo khi số tiền quá nhỏ để chia; số tiền làm tròn không còn ",00" thừa.
+
+**Trước khi sửa:**
 
 **Thấy gì:**
 - Ngày 02/11/2026, thẻ Giải ngân đề xuất **giải ngân một lần**. Ngày 03/11/2026 thì đề xuất **chia đều 52 tuần**. Đây là hai đầu ngược nhau.
@@ -174,7 +189,7 @@ python -m pytest
 
 ## Thứ tự nên làm
 
-1. Mục 3 (Giải ngân ổn định): nhanh, tránh quyết định sai với khoản tiền lớn.
+1. ~~Mục 3 (Giải ngân ổn định)~~: đã xong 04/11/2026.
 2. Mục 2 (T1 cho Long/Short).
 3. Mục 5 (giá chờ mua / bán theo cách trộn độ dao động): cùng cách vừa thắng ở dải giá.
 4. Mục 8, 7.

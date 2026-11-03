@@ -5,9 +5,10 @@ For every past start week, 1 BTC is sold in N equal weekly parts at the Monday c
 minus the fee, as the bot), cash already received earns nothing, and the total received is read 52 weeks after the first
 sale (every plan has sold everything by then). Return = total received / (1 BTC × the Monday close of the first sale
 week) − 1. Each plan gets the distribution of that return over all start weeks, the deepest fall of cash + unsold BTC,
-and how often it received more than selling everything at once. The recommended plan follows the rule of the buy side:
-among the best median and the plans not significantly worse (block-bootstrap interval of the median paired difference
-contains 0), the one with the highest 10th percentile. No signal tilts the plans.
+and how often it received more than selling everything at once. The recommendation follows the buy side's stability rule
+(sell_plan.stable, registered 04/11/2026): the best median is recommended only when every other plan is significantly
+worse (block-bootstrap interval of the median paired difference excludes 0); otherwise the plans not significantly worse
+are a tie and none is recommended. No signal tilts the plans.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import pandas as pd
 from bot.backtest import measure
 from bot.backtest.metrics import wilson
 from bot.config import CONFIG, DATA, cfg, load_yaml
-from bot.models.deploy_plan import start_weeks
+from bot.models.deploy_plan import start_weeks, verdict
 
 
 def spec() -> dict:
@@ -63,9 +64,8 @@ def compute(t: pd.DataFrame, sc: dict, fee: float, slip: float, n_boot: int, see
                      "worst": float(roi.min()), "below_start": float(np.mean(roi < 0)), "mdd_median": float(np.median(mdd)), "mdd_worst": float(mdd.min()),
                      "beat_once": beat, "beat_once_ci": list(wilson(round(beat * eps), eps)) if beat is not None else None,
                      "diff_vs_best": float(np.median(d)), "diff_ci": ci, "not_worse": bool(n == best or ci[0] <= 0 <= ci[1])})
-    rec = max((o for o in opts if o["not_worse"]), key=lambda o: o["p10"])
     return {"from": t.index[starts[0]].strftime("%Y-%m-%d"), "to": t.index[starts[-1]].strftime("%Y-%m-%d"), "starts": int(len(starts)), "episodes": eps,
-            "horizon": H, "options": opts, "best": int(best), "recommended": int(rec["weeks"])}
+            "horizon": H, "options": opts, "best": int(best), **verdict(opts, best)}
 
 
 def for_report(t: pd.DataFrame | None = None) -> dict:
@@ -77,7 +77,7 @@ def for_report(t: pd.DataFrame | None = None) -> dict:
     t = wc.load(None) if t is None else t
     out = compute(t, sc, c["fee"], c["slippage"], rb["bootstrap_n"], rb["seed"], pd.Timestamp(str(sc["data_from"])))
     out["full"] = {k: v for k, v in compute(t, sc, c["fee"], c["slippage"], rb["bootstrap_n"], rb["seed"], pd.Timestamp(str(sc["data_from_full"]))).items()
-                   if k in ("from", "to", "starts", "episodes", "best", "recommended")}
+                   if k in ("from", "to", "starts", "episodes", "best", "recommended", "tied")}
     out["cost"] = float(c["fee"] + c["slippage"])
     out["last_week"] = t.index[np.isfinite(t["exec_monday"].to_numpy(dtype=float))][-1].strftime("%Y-%m-%d")
     acc = DATA / "results" / "acceptance.json"

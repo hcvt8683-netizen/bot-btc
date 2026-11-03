@@ -331,15 +331,18 @@ const B3 = (() => {
     timing(kn.entry, 'buy');
     timing(kn.exit, 'sell');
     if (PL) {
-      const pn = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n)), op = (n) => PL.options.find((o) => o.weeks === n), rec = op(PL.recommended), best = op(PL.best_roi);
+      const pn = (n) => (n === 1 ? tx('web.plan.opt_1') : tx('web.plan.opt_n', n)), op = (n) => PL.options.find((o) => o.weeks === n);
+      const rec = PL.recommended == null ? null : op(PL.recommended), best = op(PL.best_roi), tie = rec ? [] : PL.options.filter((o) => o !== best && (PL.tied || []).includes(o.weeks));
       t(tx('web.vr.plan_title'));
       head(['col_plan', 'col_median', 'col_p10', 'col_worst', 'col_loss', 'col_mdd', 'col_beat'].map((k) => tx('web.plan.' + k)));
-      PL.options.forEach((o) => row([pn(o.weeks) + (o === best ? ` (${tx('web.plan.tag_best')})` : '') + (o === rec ? ` (${tx('web.plan.tag_rec')})` : '') + (o.not_worse ? '' : `, ${tx('web.plan.worse')}`),
+      PL.options.forEach((o) => row([pn(o.weeks) + (o === best ? ` (${tx('web.plan.tag_best')})` : '') + (o === rec ? ` (${tx('web.plan.tag_rec')})` : tie.includes(o) ? ` (${tx('web.plan.tag_tie')})` : '')
+        + (o.not_worse ? '' : `, ${tx('web.plan.worse')}`),
         SP(o.median), SP(o.p10), SP(o.worst), P(o.loss_share), SP(o.mdd_median), o.beat_lump == null ? '—' : `${P(o.beat_lump)} (${tx('web.plan.beat_sub', P(o.beat_lump_ci[0]), P(o.beat_lump_ci[1]))})`]));
       t('');
-      t(tx('web.vr.plan_line', pn(best.weeks), pn(rec.weeks), PL.starts, D(PL.from), PL.episodes));
-      const safer = PL.options.filter((o) => o.not_worse && o !== rec && o.worst > rec.worst).sort((x, y) => y.worst - x.worst)[0];
-      if (safer) t('- ' + tx('web.plan.safer', pn(safer.weeks), SP(safer.median), SP(safer.worst), SP(rec.worst)));
+      t(rec ? tx('web.vr.plan_line', pn(best.weeks), pn(rec.weeks), PL.starts, D(PL.from), PL.episodes)
+        : tx('web.vr.plan_line_tie', pn(best.weeks), tie.map((o) => pn(o.weeks)).join(', '), PL.starts, D(PL.from), PL.episodes));
+      const S = PL.stable;
+      if (S && S.weeks) t('- ' + tx('web.plan.note_stable', D(S.from), D(S.to), S.weeks, S.old_changes, S.old_flips, S.new_changes, S.tie_weeks));
       t('');
     }
     const CB = kn.calib && Object.keys(kn.calib).length ? kn.calib : null;

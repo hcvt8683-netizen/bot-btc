@@ -179,14 +179,14 @@ Bán ngay hay chờ (thử lại mọi ngày từ 01/01/2016 đến 25/10/2026; 
 ### Kế hoạch giải ngân một khoản tiền (lợi nhuận 1 năm sau lần mua đầu, theo lịch sử)
 | Cách giải ngân | Trung vị | 10% xấu nhất | Xấu nhất | Tỷ lệ lỗ | Giảm sâu nhất | Thắng giải ngân một lần |
 |---|---|---|---|---|---|---|
-| Giải ngân một lần (ROI cao nhất) (Đề xuất) | +56% | -45% | -82% | 32% | -48% | — |
+| Giải ngân một lần (ROI cao nhất) | +56% | -45% | -82% | 32% | -48% | — |
 | Chia đều 4 tuần, kém ROI cao nhất đáng kể | +52% | -46% | -78% | 32% | -48% | 43% (Wilson 19%–73%) |
-| Chia đều 13 tuần | +53% | -48% | -71% | 32% | -46% | 41% (Wilson 19%–73%) |
-| Chia đều 26 tuần | +44% | -46% | -64% | 32% | -40% | 40% (Wilson 19%–73%) |
+| Chia đều 13 tuần (Không kém đáng kể) | +53% | -48% | -71% | 32% | -46% | 41% (Wilson 19%–73%) |
+| Chia đều 26 tuần (Không kém đáng kể) | +44% | -46% | -64% | 32% | -40% | 40% (Wilson 19%–73%) |
 | Chia đều 52 tuần, kém ROI cao nhất đáng kể | +26% | -31% | -55% | 30% | -28% | 34% (Wilson 12%–65%) |
 
-- ROI trung vị cao nhất: Giải ngân một lần; đề xuất theo quy tắc định trước: Giải ngân một lần. Dữ liệu: 486 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập.
-- Nếu bạn ngại mua đúng đỉnh: Chia đều 26 tuần có ROI không kém đáng kể (trung vị +44%), lúc xấu nhất mất -64% thay vì -82%.
+- ROI trung vị cao nhất: Giải ngân một lần; ngang nhau với nó (không kém đáng kể), nên không đề xuất cách nào: Chia đều 13 tuần, Chia đều 26 tuần. Dữ liệu: 486 tuần bắt đầu từ 10/07/2016, khoảng 9 đợt độc lập.
+- Kiểm tra lại từng tuần từ 02/01/2022 đến 01/11/2026 (253 tuần, mỗi tuần chỉ dùng dữ liệu có đến tuần đó): cách cũ đổi đề xuất 27 lần, trong đó 11 lần đảo hẳn giữa một lần và 52 tuần; cách mới đổi lời 0 lần và nói "ngang nhau" ở 253 tuần.
 
 ### Xác suất có lãi và lợi nhuận dự đoán (đã hiệu chỉnh), bên mua và bên bán
 - Mua bây giờ: xác suất có lãi sau 1 tháng 57%, sau 3 tháng 60%, sau 6 tháng 68%, sau 1 năm 62%. Thời điểm mua có lợi nhất: chưa cách nào chọn được tuần mua tốt hơn mua bất kỳ lúc nào, nên các con số là tỷ lệ của 4 năm gần nhất và gần như không đổi theo từng tuần. Trong lịch sử, cách chắc nhất để tăng xác suất có lãi là giữ lâu hơn và mua đều.

@@ -291,10 +291,27 @@
    }
   ],
   "best_roi": 1,
-  "recommended": 52,
+  "tied": [
+   1,
+   13,
+   26,
+   52
+  ],
+  "recommended": null,
   "signals_passed": false,
   "cost": 0.0015,
-  "last_week": "2026-11-01"
+  "last_week": "2026-11-01",
+  "stable": {
+   "weeks": 253,
+   "from": "2022-01-02",
+   "to": "2026-11-01",
+   "old_changes": 27,
+   "old_flips": 11,
+   "new_changes": 0,
+   "new_flips": 0,
+   "tie_changes": 38,
+   "tie_weeks": 253
+  }
  },
  "sell_plan": {
   "from": "2016-07-10",
@@ -407,6 +424,9 @@
    }
   ],
   "best": 52,
+  "tied": [
+   52
+  ],
   "recommended": 52,
   "full": {
    "from": "2012-12-02",
@@ -414,11 +434,25 @@
    "starts": 675,
    "episodes": 12,
    "best": 52,
+   "tied": [
+    52
+   ],
    "recommended": 52
   },
   "cost": 0.0015,
   "last_week": "2026-11-01",
-  "signals_passed": false
+  "signals_passed": false,
+  "stable": {
+   "weeks": 253,
+   "from": "2022-01-02",
+   "to": "2026-11-01",
+   "old_changes": 20,
+   "old_flips": 0,
+   "new_changes": 9,
+   "new_flips": 0,
+   "tie_changes": 25,
+   "tie_weeks": 165
+  }
  },
  "forecast": {
   "anchor": "2026-11-02",

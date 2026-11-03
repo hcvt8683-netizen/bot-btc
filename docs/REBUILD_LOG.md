@@ -584,3 +584,21 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 **Khác:**
 - Khóa `pandas<4`: `weekly_close.py` (file khóa) dùng `DatetimeIndex.weekday`, sẽ bị bỏ ở pandas 4.
 - Yếu điểm và kế hoạch sửa: `docs/KE_HOACH_SUA_LOI.md`.
+
+## Giải ngân / Chốt lời dần: chỉ đề xuất khi một cách hơn hẳn (04/11/2026)
+
+**Yêu cầu:** làm mục 3 của `docs/KE_HOACH_SUA_LOI.md`. Người dùng chọn cách "thiết thực, trung thực nhất", và báo ô USD của Giải ngân không dùng được.
+
+**Thấy:** ngày 02/11 Giải ngân đề xuất "một lần", ngày 03/11 lại đề xuất "chia 52 tuần" chỉ vì thêm một tuần dữ liệu. Cận dưới khoảng tin cậy của 52 tuần đổi từ +0,7% sang −1,5%, nên 52 tuần lọt vào nhóm "không kém đáng kể", và quy tắc cũ chọn cách có 10% xấu nhất ít thiệt nhất trong nhóm.
+
+**Đăng ký trước** (`plan.stable`, `sell_plan.stable`, commit `1f0756b`, trước khi tính số nào): chỉ đề xuất khi mọi cách khác đều kém cách tốt nhất đáng kể; nếu không thì nói các cách ngang nhau và để người dùng chọn. Đếm số lần trang đổi lời từ 2022, chỉ để báo cáo.
+
+**Kết quả** (`docs/PLAN_ON_DINH.md`, `bot/models/plan_stable.py`, một lần chạy):
+- Giải ngân: cách cũ đổi đề xuất 27 lần trong 253 tuần, 11 lần đảo hẳn giữa một lần và 52 tuần. Cách mới đổi lời 0 lần; cả 253 tuần đều "ngang nhau".
+- Chốt lời dần: cách cũ đổi 20 lần, không lần nào đảo hẳn. Cách mới đổi 9 lần, nói "ngang nhau" ở 165 tuần; từ 05/2025 luôn "chia 52 tuần".
+- Mọi con số của bảng (trung vị, 10% xấu nhất, khoảng tin cậy) giữ nguyên cách tính; chỉ câu "đề xuất" đổi.
+
+**Kiểm tra rò rỉ:** `tests/test_plan.py`. Mỗi tuần chỉ dùng các tuần đến nó: đổi giá sau tuần 240 thì lời của các tuần đến 240 giữ nguyên. Đã cài thử lỗi "mỗi tuần dùng cả dữ liệu" và bài kiểm tra bắt được ở cả bên mua và bên bán. Lần đầu bên bán không bắt được, vì tương lai giả chưa đủ khác; đã đổi thành một đợt giảm kéo dài. Đã khôi phục mã.
+
+**USD:** nguyên nhân chính: gõ số tiền rồi bấm ngay nút USD (hoặc một cách chia) thì lần bấm đầu bị mất. Ô số tiền mất con trỏ, sự kiện `change` vẽ lại cả hàng nút, nên nút đang bấm bị thay bằng nút mới. Giờ các nút dựng một lần, mỗi lần vẽ chỉ đổi trạng thái chọn (`segButtons` trong `src/ui.js`). `tests/test_trend_ui.py` bấm chuột thật theo đúng thứ tự đó; cài lại lỗi thì bài kiểm tra báo sai. Ngoài ra ô số tiền bỏ qua ký hiệu tiền ($, USD, ₫, đ, VNĐ). Gợi ý và câu báo lỗi theo đơn vị đang chọn. Đổi đơn vị thì định dạng lại số đã nhập. Báo khi mỗi lần chia nhỏ hơn đơn vị nhỏ nhất (1.000 ₫ hoặc 0,01 $). Số làm tròn 3 chữ số không còn ",00" thừa.
+

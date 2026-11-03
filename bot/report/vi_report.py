@@ -152,8 +152,9 @@ def _evidence(summary: dict) -> dict:
 def _plan() -> dict | None:
     """Lump-sum deployment plans (bot/models/deploy_plan.py); None when the data are missing, so the page says so."""
     try:
-        from bot.models import deploy_plan
+        from bot.models import deploy_plan, plan_stable
         out = deploy_plan.for_report()
+        out["stable"] = plan_stable.summary("plan")  # how often the advice changed since 2022, old rule vs plan.stable
         return out if out.get("options") else None
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None
@@ -162,8 +163,9 @@ def _plan() -> dict | None:
 def _sell_plan() -> dict | None:
     """Selling a quantity of BTC in stages (bot/models/sell_plan.py); None when the data are missing, so the page says so."""
     try:
-        from bot.models import sell_plan
+        from bot.models import plan_stable, sell_plan
         out = sell_plan.for_report()
+        out["stable"] = plan_stable.summary("sell_plan")
         return out if out.get("options") else None
     except Exception:  # noqa: BLE001  the weekly report must never fail because of this block
         return None
