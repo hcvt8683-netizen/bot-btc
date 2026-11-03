@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The price action panel of the Long/Short view (src/pact.js) on panel data built from synthetic candles: it renders
+"""The entry-check panel of the Price action view (src/pact.js) on panel data built from synthetic candles: it renders
 without errors, its entry check gives exactly what bot/models/pa_sheet.check gives for many entries, a wrong stop is
 refused, "take the Long/Short plan" fills the inputs from the plan above, and nothing scrolls sideways on a phone."""
 from __future__ import annotations
@@ -72,7 +72,9 @@ async def _run(page: pathlib.Path, o: dict, vw: int) -> dict:
         await pg.route_web_socket(re.compile(".*"), lambda ws: None)
         await pg.goto(page.as_uri())
         await pg.wait_for_timeout(500)
-        await pg.click("#mode-ls")
+        await pg.click("#mode-ls")                 # the Long/Short plan sets window.LT_PLAN for the "from plan" button
+        await pg.wait_for_timeout(400)
+        await pg.click("#mode-pa")
         await pg.wait_for_timeout(400)
         res = {"errors": errs, "text": await pg.inner_text("#pact-sec"), "answer": await pg.inner_text("#pact-answer"),
                "scroll": await pg.evaluate("document.documentElement.scrollWidth")}

@@ -76,7 +76,7 @@ def test_every_text_key_exists_and_vi_json_is_in_sync():
             node = node[k]
         return True
     used = set()
-    for f in ("engine.js", "analysis.js", "ui.js", "ls.js"):
+    for f in ("engine.js", "analysis.js", "ui.js", "ls.js", "trend.js", "pact.js", "pa.js"):
         used |= set(re.findall(r"tx\('((?:web|sources)\.[a-z0-9_.]+)'(?!\s*\+)", (ROOT / "src" / f).read_text(encoding="utf-8")))
     used |= {f"web.kn.ev_{e}" for e in ("fomc", "cpi", "pce", "opex")} | {f"web.kn.layer_{x}" for x in "ABC"}  # keys built at run time
     ls = (ROOT / "src" / "ls.js").read_text(encoding="utf-8")

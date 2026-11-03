@@ -485,9 +485,9 @@
   // ================================================================ BÊN BÁN
   try { const md = localStorage.getItem('btc-bot3-mode'); if (md === 'sell' || md === 'buy') st.mode = md; } catch (e) { /* bỏ qua */ }
   st.mode = st.mode || 'buy';
-  function applyMode() {
-    const sell = st.mode === 'sell';
-    $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell));
+  function applyMode(clicked) {
+    const sell = st.mode === 'sell', own = !clicked && /\b(ls|tr|pa)-view\b/.test(document.body.className);  // đang ở chế độ riêng: nút do chế độ đó giữ
+    if (!own) { $('mode-buy').setAttribute('aria-pressed', String(!sell)); $('mode-sell').setAttribute('aria-pressed', String(sell)); }
     $('buy-view').hidden = sell; $('sell-view').hidden = !sell; $('plan-sec').hidden = sell; $('sp-sec').hidden = !sell;
     document.querySelector('#tabs [data-tab=plan]').textContent = tx(sell ? 'web.sp.tab' : 'web.page.tab_plan');
     if (sell) renderSellPlan();
@@ -498,7 +498,7 @@
     if (sell && st.sd) requestAnimationFrame(drawSellChart);
     if (!sell && st.a) requestAnimationFrame(drawChart);
   }
-  const setMode = (md) => { st.mode = md; try { localStorage.setItem('btc-bot3-mode', md); } catch (e) { /* bỏ qua */ } applyMode(); };
+  const setMode = (md) => { st.mode = md; try { localStorage.setItem('btc-bot3-mode', md); } catch (e) { /* bỏ qua */ } applyMode(true); };
   $('mode-buy').addEventListener('click', () => setMode('buy'));
   $('mode-sell').addEventListener('click', () => setMode('sell'));
   const pos = () => { try { return JSON.parse(localStorage.getItem('btc-bot3-pos') || '{}'); } catch (e) { return {}; } };

@@ -1,5 +1,5 @@
 // ===== PRICE ACTION START =====
-// Mục "Price action" trong chế độ Long/Short (#pact-sec). build.py nhúng PACT = data/results/pa.json (bot/models/pa_sheet.py):
+// Bảng "Kiểm tra điểm vào" trong chế độ Price action (#pact-sec, khu #pa-app của src/pa.js). build.py nhúng PACT = data/results/pa.json (bot/models/pa_sheet.py):
 // hành động giá ở nến ngày Bitstamp cuối đã đóng (tiêu chí của mục price_action, đỉnh / đáy cục bộ đã biết, ATR, cấu trúc)
 // và bảng đếm số lần giá chạm mức lên / xuống trước (theo ATR, mọi ngày từ 2016). Hàm check dưới đây phải giống hệt
 // pa_sheet.check (có test). Không phát tín hiệu hướng: price action chưa có lợi thế (0/48), kết luận Long/Short không đổi.

@@ -67,7 +67,7 @@
   @media (max-width: 680px) {
     .quote { justify-items: start; } .qline { justify-content: flex-start; }
     .hdr .price { font-size: 28px; } .hdr .mode span { display: none; } #spark { width: 110px; }
-    .hdr .modes { width: 100%; } .hdr .mode { flex: 1 1 0; padding: 7px 6px; text-align: center; justify-items: center; }
+    .hdr .modes { width: 100%; flex-wrap: wrap; } .hdr .mode { flex: 1 1 calc(33% - 6px); padding: 7px 6px; text-align: center; justify-items: center; }
   }
 
   /* thẻ */
@@ -334,7 +334,64 @@
   #ls-old > summary { color: var(--muted); }
   /* Xu hướng: chế độ riêng (src/trend.js). Chỉ ẩn phần khác khi đang xem */
   #mode-tr[aria-pressed="true"] { background: #6B4FD6; }
-  body.tr-view #tabs, body.tr-view #app > .tabp, body.tr-view #stale, body.tr-view #ls-app { display: none !important; }
+  /* Price action: chế độ riêng (src/pa.js). Chỉ ẩn phần khác khi đang xem, không đổi kiểu nào của chúng */
+  #mode-pa[aria-pressed="true"] { background: #0E8A86; }
+  body.pa-view #tabs, body.pa-view #app > .tabp, body.pa-view #stale, body.pa-view #ls-app, body.pa-view #tr-app { display: none !important; }
+  body:not(.pa-view) #pa-app { display: none; }
+  .pa-ic { background: color-mix(in srgb, #0E8A86 18%, transparent) !important; color: #0E8A86 !important; }
+  .pa-hero { background: linear-gradient(180deg, color-mix(in srgb, #0E8A86 8%, var(--panel)) 0%, var(--panel) 230px); }
+  .pa-pick { display: grid; gap: 10px; margin: 6px 0 12px; }
+  .pa-units button[aria-pressed="true"] { background: #0E8A86; border-color: #0E8A86; color: #fff; }
+  .pa-ns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pa-ns button { min-width: 44px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 5px 10px; font-size: 13.5px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .pa-ns button:hover { border-color: #0E8A86; }
+  .pa-ns button[aria-pressed="true"] { background: color-mix(in srgb, #0E8A86 16%, var(--panel)); border-color: #0E8A86; color: #0B6E6B; font-weight: 700; }
+  :root[data-theme="dark"] .pa-ns button[aria-pressed="true"] { color: #5FD6CF; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pa-ns button[aria-pressed="true"] { color: #5FD6CF; } }
+  .pa-honest { border-left: 4px solid #0E8A86; background: color-mix(in srgb, #0E8A86 9%, var(--panel)); border-radius: 0 12px 12px 0; padding: 10px 14px; margin: 4px 0 16px; font-size: 14px; }
+  .pa-honest p { margin: 0 0 4px; } .pa-honest p:last-child { margin: 0; }
+  .pa-grid { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .pa-grid { grid-template-columns: 1fr; } }
+  .pa-lad { position: relative; height: 360px; border-radius: 14px; background: var(--soft); overflow: hidden; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .pa-lad .zone { position: absolute; left: 0; right: 0; }
+  .pa-lad .zone.r { background: color-mix(in srgb, var(--cinnabar) 16%, transparent); border-top: 1px solid color-mix(in srgb, var(--cinnabar) 45%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--cinnabar) 45%, transparent); }
+  .pa-lad .zone.s { background: color-mix(in srgb, var(--jade) 16%, transparent); border-top: 1px solid color-mix(in srgb, var(--jade) 45%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--jade) 45%, transparent); }
+  .pa-lad .ln { position: absolute; left: 0; right: 0; height: 0; border-top: 2px solid var(--c); }
+  .pa-lad .ln.r { --c: var(--cinnabar); } .pa-lad .ln.s { --c: var(--jade); } .pa-lad .ln.p { --c: var(--ink); border-top-style: dashed; opacity: .75; }
+  .pa-lad .ln.t { --c: var(--muted); border-top: 1px dotted var(--c); opacity: .8; }
+  .pa-lad .lb { position: absolute; left: 12px; right: 12px; transform: translateY(-50%); display: flex; justify-content: space-between; gap: 8px; pointer-events: none; }
+  .pa-lad .lb span { background: var(--panel); border-radius: 8px; padding: 2px 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); white-space: nowrap; }
+  .pa-lad .lb b { font-weight: 700; } .pa-lad .lb.r b { color: var(--cinnabar); } .pa-lad .lb.s b { color: var(--jade); }
+  .pa-lad .lb.p span { background: var(--ink); color: var(--panel); font-weight: 700; }
+  .pa-lad .lb.t span { background: transparent; box-shadow: none; color: var(--muted); font-size: 11.5px; padding: 0 4px; }
+  .pa-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 600px) { .pa-cards { grid-template-columns: 1fr; } }
+  .pa-card { --pc: var(--muted); position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); display: grid; gap: 6px; overflow: hidden; min-width: 0; }
+  .pa-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--pc); }
+  .pa-card.r { --pc: var(--cinnabar); } .pa-card.s { --pc: var(--jade); }
+  .pa-card .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .pa-card .hd b { font-size: 15px; color: var(--pc); } .pa-card .hd span { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pa-card .px { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .pa-card .reach { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--soft); font-size: 13.5px; }
+  .pa-card .reach b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .pa-card .kick { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .pa-card .rx { display: flex; height: 26px; border-radius: 8px; overflow: hidden; font-size: 12.5px; font-weight: 700; color: #fff; }
+  .pa-card .rx i { display: flex; align-items: center; justify-content: center; font-style: normal; min-width: 0; white-space: nowrap; overflow: hidden; }
+  .pa-card .rx .bo { background: color-mix(in srgb, var(--pc) 85%, #000 0%); } .pa-card .rx .bk { background: color-mix(in srgb, var(--muted) 70%, transparent); }
+  .pa-card .vs { font-size: 13px; color: var(--muted); }
+  .pa-card .vs .mk { position: relative; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 16%, transparent); margin: 6px 0 2px; }
+  .pa-card .vs .mk i { position: absolute; top: -3px; width: 3px; height: 12px; border-radius: 2px; margin-left: -1px; }
+  .pa-card .vs .mk i.real { background: var(--pc); } .pa-card .vs .mk i.fake { background: var(--muted); }
+  .pa-card .vs .mk s { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: color-mix(in srgb, var(--pc) 28%, transparent); }
+  .pa-card .badge { justify-self: start; font-size: 12.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); }
+  .pa-card .badge.yeu_hon { background: color-mix(in srgb, var(--brass) 16%, transparent); color: var(--brass); }
+  .pa-card .badge.manh_hon { background: color-mix(in srgb, var(--jade) 16%, transparent); color: var(--jade); }
+  .pa-card .def { font-size: 12.5px; color: var(--muted); }
+  .pa-card .inz { font-size: 13px; font-weight: 700; color: var(--pc); }
+  #t-sr td.r, #t-sr th { white-space: nowrap; } #t-sr tbody tr { cursor: pointer; }
+  #t-sr td .v { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); margin: 1px 0; }
+  #t-sr td .v.yeu_hon { background: color-mix(in srgb, var(--brass) 16%, transparent); color: var(--brass); } #t-sr td .v.manh_hon { background: color-mix(in srgb, var(--jade) 16%, transparent); color: var(--jade); }
+  body.tr-view #tabs, body.tr-view #app > .tabp, body.tr-view #stale, body.tr-view #ls-app, body.tr-view #pa-app { display: none !important; }
   body:not(.tr-view) #tr-app { display: none; }
   .tr-hero { background: linear-gradient(180deg, color-mix(in srgb, #6B4FD6 7%, var(--panel)) 0%, var(--panel) 210px); }
   .tr-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; align-items: flex-start; }
@@ -401,7 +458,7 @@
   #t-tr-bt td.r, #t-tr-cross td.num, #t-tr-bt td:first-child, #t-tr-models td:first-child { white-space: nowrap; }
   @media (min-width: 701px) { #t-tr-bt td:last-child { min-width: 150px; } }
   #ls-app .box .field select#lt-hold { width: 100%; }
-  /* mục Price action trong chế độ Long/Short (src/pact.js) */
+  /* bảng Kiểm tra điểm vào trong chế độ Price action (src/pact.js) */
   #pact-sec .box .field input, #pact-sec .box .field select { width: 100%; }
   #pact-sec .box .seg { margin-bottom: 8px; }
   #pact-sec .box .btn { width: 100%; margin-top: 8px; }
@@ -456,6 +513,7 @@
       <button type="button" class="mode" id="mode-sell" aria-pressed="false"><b>{{web.page.ben_ban}}</b><span>{{web.page.toi_dang_giu_btc_ngan}}</span></button>
       <button type="button" class="mode" id="mode-ls" aria-pressed="false"><b>{{web.page.ben_ls}}</b><span>{{web.page.ls_sub}}</span></button>
       <button type="button" class="mode" id="mode-tr" aria-pressed="false"><b>{{web.page.ben_tr}}</b><span>{{web.page.tr_sub}}</span></button>
+      <button type="button" class="mode" id="mode-pa" aria-pressed="false"><b>{{web.page.ben_pa}}</b><span>{{web.page.pa_sub}}</span></button>
     </div>
   </div>
 </header>
@@ -804,40 +862,6 @@
           <div class="answer" id="lt-answer"></div>
         </div>
       </section>
-      <section class="panel" id="pact-sec">
-        <h2><span class="ic" aria-hidden="true">◈</span>{{web.pact.title}}</h2>
-        <p class="warn" id="pact-none" hidden>{{web.pact.none}}</p>
-        <div id="pact-body">
-          <p class="lead" id="pact-lead"></p>
-          <div id="pact-now"></div>
-          <h3 class="sm" style="margin-top:20px">{{web.pact.check_title}}</h3>
-          <div class="calc">
-            <div class="box">
-              <p class="kicker">{{web.pact.side_label}}</p>
-              <div class="seg" id="pact-side" role="group" aria-label="{{web.pact.side_label}}">
-                <button type="button" data-s="long" aria-pressed="true">{{web.pact.side_long}}</button>
-                <button type="button" data-s="short" aria-pressed="false">{{web.pact.side_short}}</button>
-              </div>
-              <label class="field">{{web.pact.entry_label}}<input type="text" inputmode="decimal" id="pact-entry" autocomplete="off"></label>
-              <label class="field">{{web.pact.stop_label}}<input type="text" inputmode="decimal" id="pact-stop" autocomplete="off"></label>
-              <label class="field">{{web.pact.target_label}}<input type="text" inputmode="decimal" id="pact-target" autocomplete="off"></label>
-              <label class="field">{{web.pact.hold_label}}<select id="pact-hold"><option value="7">{{web.pact.hold_7}}</option><option value="30" selected>{{web.pact.hold_30}}</option></select></label>
-              <button type="button" class="btn" id="pact-plan">{{web.pact.from_plan}}</button>
-              <button type="button" class="btn" id="pact-reset">{{web.pact.reset}}</button>
-            </div>
-            <div class="answer" id="pact-answer"></div>
-          </div>
-          <details id="pact-trade" style="margin-top:18px"><summary>{{web.pact.trade_title}}</summary>
-            <p class="lead" id="pact-trade-lead" style="margin-top:8px"></p>
-            <div class="scroll"><table id="t-pact-trade"></table></div>
-          </details>
-          <details id="pact-test" style="margin-top:12px"><summary>{{web.pact.test_title}}</summary>
-            <p class="lead" id="pact-test-lead" style="margin-top:8px"></p>
-            <div class="scroll"><table id="t-pact-test"></table></div>
-          </details>
-          <p class="muted" id="pact-foot" style="margin-top:14px">{{web.pact.foot}} <span id="pact-updated"></span></p>
-        </div>
-      </section>
       <section class="panel" id="lt-bt-sec">
         <h2><span class="ic" aria-hidden="true">↺</span>{{web.lt.bt_title}}</h2>
         <p class="lead" id="lt-bt-lead"></p>
@@ -953,6 +977,84 @@
       </section>
     </div>
 
+    <!-- ================= PRICE ACTION (chế độ riêng, src/pa.js; bảng Kiểm tra điểm vào: src/pact.js) ================= -->
+    <div id="pa-app">
+      <p class="warn" id="sr-none" hidden>{{web.pa.none}}</p>
+      <section class="panel pa-hero" id="sr-sec">
+        <div class="tr-top">
+          <div>
+            <h2><span class="ic pa-ic" aria-hidden="true">⇵</span>{{web.pa.title}}</h2>
+            <p class="lead">{{web.pa.lead}}</p>
+          </div>
+          <div class="tr-now">
+            <span class="kicker">{{web.pa.now_label}}</span>
+            <b class="num" id="sr-price">—</b>
+            <span class="muted" id="sr-price-sub"></span>
+          </div>
+        </div>
+        <div class="pa-pick">
+          <div class="seg pa-units" id="sr-unit" role="group" aria-label="{{web.pa.unit_label}}">
+            <button type="button" data-u="gio" aria-pressed="false">{{web.pa.u_gio}}</button>
+            <button type="button" data-u="ngay" aria-pressed="true">{{web.pa.u_ngay}}</button>
+            <button type="button" data-u="tuan" aria-pressed="false">{{web.pa.u_tuan}}</button>
+            <button type="button" data-u="thang" aria-pressed="false">{{web.pa.u_thang}}</button>
+          </div>
+          <div class="pa-ns" id="sr-ns" role="group" aria-label="{{web.pa.n_label}}"></div>
+        </div>
+        <div class="pa-honest" id="sr-honest"></div>
+        <div class="pa-grid">
+          <div class="pa-lad" id="sr-ladder"></div>
+          <div class="pa-cards" id="sr-cards"></div>
+        </div>
+        <p class="progress" id="sr-status"></p>
+      </section>
+      <section class="panel" id="sr-all-sec">
+        <h2><span class="ic pa-ic" aria-hidden="true">≡</span><span id="sr-all-title"></span></h2>
+        <p class="lead" id="sr-all-lead"></p>
+        <div class="scroll"><table id="t-sr"></table></div>
+        <ul class="crit" id="sr-notes"></ul>
+      </section>
+      <section class="panel" id="pact-sec">
+        <h2><span class="ic" aria-hidden="true">◈</span>{{web.pact.title}}</h2>
+        <p class="warn" id="pact-none" hidden>{{web.pact.none}}</p>
+        <div id="pact-body">
+          <p class="lead" id="pact-lead"></p>
+          <div id="pact-now"></div>
+          <h3 class="sm" style="margin-top:20px">{{web.pact.check_title}}</h3>
+          <div class="calc">
+            <div class="box">
+              <p class="kicker">{{web.pact.side_label}}</p>
+              <div class="seg" id="pact-side" role="group" aria-label="{{web.pact.side_label}}">
+                <button type="button" data-s="long" aria-pressed="true">{{web.pact.side_long}}</button>
+                <button type="button" data-s="short" aria-pressed="false">{{web.pact.side_short}}</button>
+              </div>
+              <label class="field">{{web.pact.entry_label}}<input type="text" inputmode="decimal" id="pact-entry" autocomplete="off"></label>
+              <label class="field">{{web.pact.stop_label}}<input type="text" inputmode="decimal" id="pact-stop" autocomplete="off"></label>
+              <label class="field">{{web.pact.target_label}}<input type="text" inputmode="decimal" id="pact-target" autocomplete="off"></label>
+              <label class="field">{{web.pact.hold_label}}<select id="pact-hold"><option value="7">{{web.pact.hold_7}}</option><option value="30" selected>{{web.pact.hold_30}}</option></select></label>
+              <button type="button" class="btn" id="pact-plan">{{web.pact.from_plan}}</button>
+              <button type="button" class="btn" id="pact-reset">{{web.pact.reset}}</button>
+            </div>
+            <div class="answer" id="pact-answer"></div>
+          </div>
+          <details id="pact-trade" style="margin-top:18px"><summary>{{web.pact.trade_title}}</summary>
+            <p class="lead" id="pact-trade-lead" style="margin-top:8px"></p>
+            <div class="scroll"><table id="t-pact-trade"></table></div>
+          </details>
+          <details id="pact-test" style="margin-top:12px"><summary>{{web.pact.test_title}}</summary>
+            <p class="lead" id="pact-test-lead" style="margin-top:8px"></p>
+            <div class="scroll"><table id="t-pact-test"></table></div>
+          </details>
+          <p class="muted" id="pact-foot" style="margin-top:14px">{{web.pact.foot}} <span id="pact-updated"></span></p>
+        </div>
+      </section>
+      <section class="panel" id="sr-method">
+        <h2><span class="ic pa-ic" aria-hidden="true">✓</span>{{web.pa.method_title}}</h2>
+        <ul class="crit" id="sr-method-list"></ul>
+        <p class="warn" style="margin-top:14px">{{web.pa.disclaimer}}</p>
+      </section>
+    </div>
+
     <p class="foot">{{web.page.ket_qua_trong_qua_khu_khong}}</p>
   </div>
 </main>
@@ -976,6 +1078,9 @@
 </script>
 <script>
 /*PACT*/
+</script>
+<script>
+/*PA*/
 </script>
 </body>
 </html>

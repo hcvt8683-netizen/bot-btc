@@ -13,6 +13,8 @@ Long/Short
 Hợp đồng tương lai
 Xu hướng
 Tăng hay giảm
+Price action
+Hỗ trợ / kháng cự
 --- home ---
 Khuyến nghị tuần này
 Mua đều
@@ -1047,6 +1049,8 @@ Long/Short
 Hợp đồng tương lai
 Xu hướng
 Tăng hay giảm
+Price action
+Hỗ trợ / kháng cự
 --- home ---
 Bên bán tuần này
 Giữ
