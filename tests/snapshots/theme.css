@@ -389,6 +389,22 @@
   #t-tr-bt td.r, #t-tr-cross td.num, #t-tr-bt td:first-child, #t-tr-models td:first-child { white-space: nowrap; }
   @media (min-width: 701px) { #t-tr-bt td:last-child { min-width: 150px; } }
   #ls-app .box .field select#lt-hold { width: 100%; }
+  /* mục Price action trong chế độ Long/Short (src/pact.js) */
+  #pact-sec .box .field input, #pact-sec .box .field select { width: 100%; }
+  #pact-sec .box .seg { margin-bottom: 8px; }
+  #pact-sec .box .btn { width: 100%; margin-top: 8px; }
+  #pact-sec .kpis { margin: 6px 0 12px; }
+  #pact-sec .pact-lv { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+  #pact-sec .pact-lv .val { font-size: 21px; }
+  #pact-sec .pact-act p { margin: 4px 0; }
+  #pact-sec .pact-v { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; margin: 2px 0 8px; }
+  #pact-sec .pact-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--muted) 16%, transparent); margin: 6px 0 4px; }
+  #pact-sec .pact-bar i { display: block; height: 100%; }
+  #pact-sec .pact-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  #pact-sec .pact-leg span { display: inline-flex; align-items: center; gap: 6px; }
+  #pact-sec .pact-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+  #pact-sec i.tp { background: var(--jade); } #pact-sec i.sl { background: var(--cinnabar); } #pact-sec i.nn { background: color-mix(in srgb, var(--muted) 45%, transparent); }
+  #pact-sec .answer p { margin: 0 0 8px; }
   .lt-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 4px; }
   @media (max-width: 560px) { .lt-sides { grid-template-columns: 1fr; } }
   .lt-side { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--panel); min-width: 0; }

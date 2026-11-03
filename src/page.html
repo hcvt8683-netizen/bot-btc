@@ -401,6 +401,22 @@
   #t-tr-bt td.r, #t-tr-cross td.num, #t-tr-bt td:first-child, #t-tr-models td:first-child { white-space: nowrap; }
   @media (min-width: 701px) { #t-tr-bt td:last-child { min-width: 150px; } }
   #ls-app .box .field select#lt-hold { width: 100%; }
+  /* mục Price action trong chế độ Long/Short (src/pact.js) */
+  #pact-sec .box .field input, #pact-sec .box .field select { width: 100%; }
+  #pact-sec .box .seg { margin-bottom: 8px; }
+  #pact-sec .box .btn { width: 100%; margin-top: 8px; }
+  #pact-sec .kpis { margin: 6px 0 12px; }
+  #pact-sec .pact-lv { grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 10px; }
+  #pact-sec .pact-lv .val { font-size: 21px; }
+  #pact-sec .pact-act p { margin: 4px 0; }
+  #pact-sec .pact-v { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; margin: 2px 0 8px; }
+  #pact-sec .pact-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--muted) 16%, transparent); margin: 6px 0 4px; }
+  #pact-sec .pact-bar i { display: block; height: 100%; }
+  #pact-sec .pact-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  #pact-sec .pact-leg span { display: inline-flex; align-items: center; gap: 6px; }
+  #pact-sec .pact-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+  #pact-sec i.tp { background: var(--jade); } #pact-sec i.sl { background: var(--cinnabar); } #pact-sec i.nn { background: color-mix(in srgb, var(--muted) 45%, transparent); }
+  #pact-sec .answer p { margin: 0 0 8px; }
   .lt-sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 4px; }
   @media (max-width: 560px) { .lt-sides { grid-template-columns: 1fr; } }
   .lt-side { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--panel); min-width: 0; }
@@ -788,6 +804,40 @@
           <div class="answer" id="lt-answer"></div>
         </div>
       </section>
+      <section class="panel" id="pact-sec">
+        <h2><span class="ic" aria-hidden="true">◈</span>{{web.pact.title}}</h2>
+        <p class="warn" id="pact-none" hidden>{{web.pact.none}}</p>
+        <div id="pact-body">
+          <p class="lead" id="pact-lead"></p>
+          <div id="pact-now"></div>
+          <h3 class="sm" style="margin-top:20px">{{web.pact.check_title}}</h3>
+          <div class="calc">
+            <div class="box">
+              <p class="kicker">{{web.pact.side_label}}</p>
+              <div class="seg" id="pact-side" role="group" aria-label="{{web.pact.side_label}}">
+                <button type="button" data-s="long" aria-pressed="true">{{web.pact.side_long}}</button>
+                <button type="button" data-s="short" aria-pressed="false">{{web.pact.side_short}}</button>
+              </div>
+              <label class="field">{{web.pact.entry_label}}<input type="text" inputmode="decimal" id="pact-entry" autocomplete="off"></label>
+              <label class="field">{{web.pact.stop_label}}<input type="text" inputmode="decimal" id="pact-stop" autocomplete="off"></label>
+              <label class="field">{{web.pact.target_label}}<input type="text" inputmode="decimal" id="pact-target" autocomplete="off"></label>
+              <label class="field">{{web.pact.hold_label}}<select id="pact-hold"><option value="7">{{web.pact.hold_7}}</option><option value="30" selected>{{web.pact.hold_30}}</option></select></label>
+              <button type="button" class="btn" id="pact-plan">{{web.pact.from_plan}}</button>
+              <button type="button" class="btn" id="pact-reset">{{web.pact.reset}}</button>
+            </div>
+            <div class="answer" id="pact-answer"></div>
+          </div>
+          <details id="pact-trade" style="margin-top:18px"><summary>{{web.pact.trade_title}}</summary>
+            <p class="lead" id="pact-trade-lead" style="margin-top:8px"></p>
+            <div class="scroll"><table id="t-pact-trade"></table></div>
+          </details>
+          <details id="pact-test" style="margin-top:12px"><summary>{{web.pact.test_title}}</summary>
+            <p class="lead" id="pact-test-lead" style="margin-top:8px"></p>
+            <div class="scroll"><table id="t-pact-test"></table></div>
+          </details>
+          <p class="muted" id="pact-foot" style="margin-top:14px">{{web.pact.foot}} <span id="pact-updated"></span></p>
+        </div>
+      </section>
       <section class="panel" id="lt-bt-sec">
         <h2><span class="ic" aria-hidden="true">↺</span>{{web.lt.bt_title}}</h2>
         <p class="lead" id="lt-bt-lead"></p>
@@ -923,6 +973,9 @@
 </script>
 <script>
 /*TR*/
+</script>
+<script>
+/*PACT*/
 </script>
 </body>
 </html>

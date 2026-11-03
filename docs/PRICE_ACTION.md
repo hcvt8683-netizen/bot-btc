@@ -1,6 +1,6 @@
 # Price action so với "một ngày bất kỳ"
 
-Sinh tự động bằng `python -m bot.cli price-action` lúc 08:58 03/11/2026 (mã `e2cf4e4`), nến ngày Bitstamp đến 01/11/2026. Cách làm đăng ký trước trong `config/candidates.yaml` mục `price_action`, lưu git trước khi tính (xem `docs/REBUILD_LOG.md`). Công cụ tham khảo, không phải lời khuyên đầu tư.
+Sinh tự động bằng `python -m bot.cli price-action` lúc 16:46 03/11/2026 (mã `9400d51`), nến ngày Bitstamp đến 01/11/2026. Cách làm đăng ký trước trong `config/candidates.yaml` mục `price_action`, lưu git trước khi tính (xem `docs/REBUILD_LOG.md`). Công cụ tham khảo, không phải lời khuyên đầu tư.
 
 ## Price action là gì
 
@@ -14,7 +14,7 @@ Price action (hành động giá) là cách đọc chính biểu đồ giá, kh�
 - Trước hiệu chỉnh có 5/48 cặp p < 0,05 (2 hơn, 3 kém mốc). Chỉ do may rủi, 48 phép thử đã cho khoảng 2,4 cặp như vậy, nên chừng đó chưa nói lên lợi thế.
 - Bộ tiêu chí (ít nhất 2 trong 5 tiêu chí cùng hướng), 8 cặp: chưa có lợi thế 8.
 - "Mốc" là tỷ lệ của mọi ngày trong cùng giai đoạn: BTC tăng giá nên một ngày bất kỳ đã có hơn một nửa số lần giá cao hơn sau k ngày. Tiêu chí tăng phải vượt tỷ lệ đó; tiêu chí giảm phải vượt tỷ lệ giá thấp hơn.
-- Theo đăng ký trước: không có cặp nào hơn mốc, nên **không đưa price action lên trang**; kết quả chỉ ghi ở đây và trong `docs/REBUILD_LOG.md`.
+- Theo đăng ký trước: không có cặp nào hơn mốc, nên **trang không dùng price action làm tín hiệu vào lệnh**. Theo yêu cầu của người dùng, chế độ Long/Short có mục "Price action" (mục `pa_sheet`) để xem hành động giá lúc này và kiểm tra điểm vào; mục đó luôn ghi price action chưa có lợi thế và không đổi kết luận Long/Short.
 
 ## Cách kiểm định
 

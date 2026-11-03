@@ -272,6 +272,7 @@
     const H = view.hold || r.h, st = atHold(r, H);
     const sideOk = !view.rule && pass[r.side];
     const base = trig && trig.px ? trig.px : s.price, lv = levels(r, base, s.atr), g = r.side === 'long' ? 1 : -1;
+    window.LT_PLAN = { side: r.side, E: lv.E, SL: lv.SL, TP: lv.TP };  // mục Price action (src/pact.js) lấy giá từ đây
     const m = 1 / L - LT.mmr, liq = L > 1 ? lv.E * (1 - g * m) : null;
     const plan = el('div', 'lt-plan');
     plan.append(el('h3', null, tx(!sideOk ? 'web.lt.plan_if' : trig ? 'web.lt.plan_wait' : 'web.lt.plan_now', sideName(r.side))));

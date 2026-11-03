@@ -65,6 +65,18 @@ def perp_trade(path=None):
         return json.load(f)
 
 
+PACT_PATH = None  # tests point this at a fixture
+
+
+def price_action(path=None):
+    """data/results/pa.json (python -m bot.cli pa-sheet): the price action panel of the Long/Short view, or None."""
+    path = path or PACT_PATH or os.path.join(ROOT, "data", "results", "pa.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def trend(path=None):
     """data/results/trend.json (python -m bot.cli trend) for the Trend view, or None when it does not exist."""
     path = path or os.path.join(ROOT, "data", "results", "trend.json")
@@ -89,6 +101,9 @@ def build(out=None, kn_path=None, ls_path=None, lt_path=None, tr_path=None):
     html = html.replace("/*LS*/", ls.replace("/*LT_JSON*/null", json.dumps(perp_trade(lt_path), ensure_ascii=False, separators=(",", ":"))))
     html = html.replace("/*TR*/", read("trend.js").replace("/*TR_JSON*/null", json.dumps(trend(tr_path), ensure_ascii=False, separators=(",", ":"))))
     out = out or os.path.join(ROOT, "bot-xac-suat.html")
+    if html.count("/*PACT*/") != 1:
+        sys.exit("Lỗi: page.html phải có đúng một chỗ /*PACT*/")
+    html = html.replace("/*PACT*/", read("pact.js").replace("/*PACT_JSON*/null", json.dumps(price_action(), ensure_ascii=False, separators=(",", ":"))))
     with open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)
     print(f"Đã tạo {out} ({len(html):,} ký tự)")

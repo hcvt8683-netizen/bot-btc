@@ -59,6 +59,8 @@ jobs:
         run: python -m bot.cli trend | tee -a "$GITHUB_STEP_SUMMARY" || echo "⚠ Không ghi được dự báo xu hướng hôm nay." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Long/Short có giá vào, cắt lỗ, chốt lời (mỗi tháng ghi lựa chọn một lần, chỉ thêm dòng)
         run: python -m bot.cli perp-trade | tee -a "$GITHUB_STEP_SUMMARY" || echo "⚠ Không tính được Long/Short có cắt lỗ hôm nay." | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Price action lúc này và xác suất chạm (mục Price action của thẻ Long/Short)
+        run: python -m bot.cli pa-sheet | tee -a "$GITHUB_STEP_SUMMARY" || echo "⚠ Không tính được price action hôm nay." | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Khuyến nghị tuần
         run: python -m bot.cli report | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Nhật ký đi tới (mỗi giá đóng Chủ nhật một dòng, mô hình đóng băng)
@@ -74,7 +76,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw data/status.json data/recommendation.json data/features.parquet data/endpoint_check.json data/forward data/forecast data/calib data/entry data/exit data/perp data/perp_trade data/results/perp_trade.json data/trend data/results/trend.json
+          git add data/raw data/status.json data/recommendation.json data/features.parquet data/endpoint_check.json data/forward data/forecast data/calib data/entry data/exit data/perp data/perp_trade data/results/perp_trade.json data/trend data/results/trend.json data/results/pa.json
           if git diff --cached --quiet; then
             echo "Không có dữ liệu mới."
           else

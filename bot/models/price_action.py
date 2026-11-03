@@ -391,8 +391,9 @@ def markdown(o: dict, cfg: dict) -> str:
           "sau k ngày. Tiêu chí tăng phải vượt tỷ lệ đó; tiêu chí giảm phải vượt tỷ lệ giá thấp hơn.",
           "- " + ("Theo đăng ký trước: có cặp hơn mốc, nên có thể đề xuất bộ tiêu chí price action trên trang, nhưng phải hỏi người dùng "
                   "trước khi đưa lên." if good else
-                  "Theo đăng ký trước: không có cặp nào hơn mốc, nên **không đưa price action lên trang**; kết quả chỉ ghi ở đây và "
-                  "trong `docs/REBUILD_LOG.md`."), "",
+                  "Theo đăng ký trước: không có cặp nào hơn mốc, nên **trang không dùng price action làm tín hiệu vào lệnh**. Theo yêu cầu "
+                  "của người dùng, chế độ Long/Short có mục \"Price action\" (mục `pa_sheet`) để xem hành động giá lúc này và kiểm tra điểm "
+                  "vào; mục đó luôn ghi price action chưa có lợi thế và không đổi kết luận Long/Short."), "",
           "## Cách kiểm định", "",
           f"- Giai đoạn nghiên cứu: ngày tín hiệu và ngày kết quả từ {fmt.date(o['research']['from'])} đến {fmt.date(o['research']['to'])}. "
           "Nến trước 2016 (từ 08/2011) chỉ dùng để tính ATR, đỉnh và đáy.",
