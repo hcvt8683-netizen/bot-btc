@@ -603,3 +603,25 @@ exit_calib:
   stats: "mỗi nhóm × k × x: khả năng bot nói (trung bình), tỷ lệ chạm thật, chênh lệch, Wilson 95% của tỷ lệ chạm thật với số lần độc lập = số ngày / k (tối thiểu 1)"
   rule: "lệch có hệ thống khi, ở cả hai nửa giai đoạn (chia ở ngày gốc giữa), khoảng Wilson 95% của tỷ lệ chạm thật nằm hẳn trên (hoặc hẳn dưới) khả năng bot nói trung bình. Chỉ báo cáo; có ô nào lệch có hệ thống thì đề xuất cách sửa và chờ người dùng duyệt"
   report: "docs/R1_GIA_CHO_BAN.md sinh bằng python -m bot.cli exit-calib; không ghi vào data/, không đổi trang"
+
+# Dải giá theo nhóm độ dao động. Đăng ký trước khi tính bất kỳ con số nào của hai cách mới (03/11/2026), sau khi hồi cứu mở rộng
+# (tools/hoi_cuu_mo_rong.py) thấy cách đang dùng đúng 80% tính chung nhưng lệch theo độ dao động lúc dự báo: 1/3 ngày êm nhất dải 8/10
+# trúng 72% (7 ngày) và 62% (30 ngày), 1/3 ngày mạnh nhất trúng 90% và 95%. 32 cách của forecast_search không có cách nào trộn độ dao động
+# ngắn và dài hạn hay lấy phân vị theo nhóm. Giai đoạn xác nhận 2022 → nay đã được xem với cách đang dùng (không phải ngoài mẫu hoàn toàn
+# mới); kiểm chứng thật là nhật ký trực tiếp sau khi đổi. Module mới bot/models/forecast_regime.py; price_forecast.py chỉ đổi nếu đạt.
+forecast_regime:
+  why: "độ dao động quay về mức trung bình: sau giai đoạn êm giá thường biến động mạnh lên, sau giai đoạn mạnh thường dịu lại. Chia cho độ dao động 30 ngày một mình làm dải hẹp quá lúc êm, rộng quá lúc mạnh"
+  variants:
+    hien_tai: "cách đang dùng (mục forecast: độ dao động 30 ngày, phân vị 1461 ngày, thực nghiệm)"
+    tron: "như hiện tại nhưng độ dao động = căn bậc hai của trung bình cộng phương sai 30 ngày và phương sai 365 ngày (trọng số 1/2 – 1/2, không dò); chỉ dùng lợi suất đến ngày gốc"
+    theo_nhom: "như hiện tại nhưng phân vị chỉ lấy từ những ngày gốc cũ cùng nhóm độ dao động với hôm nay; nhóm = 1/3 thấp, giữa, 1/3 cao của thứ hạng độ dao động 30 ngày so với 1461 ngày trước đó (tối thiểu 365); mỗi nhóm cần ít nhất 120 lần đã biết kết quả, thiếu thì dùng phân vị chung"
+  vol_long_days: 365
+  groups: 3
+  group_min_obs: 120
+  metric: "như forecast_search: điểm phân vị trên log giá, 5 phân vị × 8 kỳ hạn, chia cho cách đang dùng rồi lấy trung bình (dưới 1 là tốt hơn)"
+  group_metric: "độ lệch phủ theo nhóm: trung bình qua 8 kỳ hạn của trung bình qua 3 nhóm độ dao động (nhóm tính như theo_nhom) của |tỷ lệ trúng dải 80% − 80%|"
+  selection: {from: 2014-01-01, to: 2021-12-31}
+  confirm_from: 2022-01-01
+  rule: "chọn trong tron / theo_nhom cách có điểm thấp nhất ở giai đoạn chọn. Chỉ thay cách đang dùng nếu ở giai đoạn xác nhận: (a) khoảng tin cậy 95% của chênh lệch điểm (bootstrap khối 30 ngày, 2000 lần, seed của rebuild) nằm hẳn dưới 0; (b) dải 80% phủ 75–85% (trung bình 8 kỳ hạn); (c) độ lệch phủ theo nhóm nhỏ hơn cách đang dùng. Không đạt đủ cả ba thì giữ nguyên và ghi kết quả"
+  report: "python -m bot.cli forecast-regime → docs/FORECAST_REGIME.md và data/results/forecast_regime.json; không đổi trang hay nhật ký nếu không đạt"
+  if_switch: "đổi price_forecast.bands sang cách thắng (phiên bản nhật ký mới, thống kê tách theo phiên bản). Giá chờ mua / bán (entry, exit) và khoảng của thẻ Xu hướng dùng cùng độ dao động 30 ngày: chỉ đổi sau một đăng ký riêng"
