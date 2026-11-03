@@ -5,6 +5,7 @@
 // pa_sheet.check (có test). Không phát tín hiệu hướng: price action chưa có lợi thế (0/48), kết luận Long/Short không đổi.
 (() => {
   const PACT = /*PACT_JSON*/null;
+  const HOLD = /*HOLD_JSON*/null;   // mua giữ lâu dài (data/results/hold.json, bot/models/long_hold.py)
   const { tx, vnTime } = I18N;
   const $ = (id) => document.getElementById(id);
   if (!$('pact-sec')) return;
@@ -182,6 +183,7 @@
 
   function renderCheck() {
     if (view.side === 'hold') { renderHold(); return; }
+    if (view.side === 'hodl') { renderHodl(); return; }
     const { E, SL, TP, H } = inputs(), side = view.side, ans = $('pact-answer');
     if (!E) { ans.replaceChildren(el('p', 'warn', tx('web.pact.entry_bad'))); return; }
     const sg = suggest(side, E);
@@ -226,6 +228,65 @@
     drawChart(box, CAND, view.chart[1]);
   }
 
+  // ----- Mua giữ lâu dài (mục long_hold): giá nên mua (đọc lại kết quả mục entry) và giữ bao lâu thì có lãi -----
+  const HZ = { 7: 'web.pact.hz_7', 30: 'web.pact.hz_30', 90: 'web.pact.hz_90', 180: 'web.pact.hz_180', 365: 'web.pact.hz_365', 730: 'web.pact.hz_730', 1461: 'web.pact.hz_1461' };
+  const hz = (h) => (HZ[h] ? tx(HZ[h]) : `${h}`);
+  function renderHodl() {
+    const ans = $('pact-answer');
+    if (!HOLD) { ans.replaceChildren(el('p', 'warn', tx('web.pact.hodl_none'))); return; }
+    const P = HOLD.price, b = HOLD.buy, parts = [];
+    parts.push(el('p', 'kicker', tx('web.pact.hodl_kicker', vnDate(HOLD.anchor))), el('div', 'pact-v good', tx('web.pact.hodl_v', usd(P))));
+    if (b) parts.push(el('p', null, tx('web.pact.hodl_wait', b.wait.configs, b.wait.better, b.wait.worse)));
+    parts.push(el('p', 'muted', tx('web.pact.hodl_dca')));
+    const sc30 = b ? P / b.price : 1;   // khoảng của mục entry tính ở ngày gốc của nó: đổi theo tỷ lệ sang giá của thẻ này
+    if (b && b.low30) parts.push(el('p', null, tx('web.pact.hodl_low30', usd(b.low30.q10 * sc30), usd(b.low30.q90 * sc30), usd(b.low30.q50 * sc30))));
+    if (b && b.fills['7'] && b.fills['30']) {
+      const head = el('tr');
+      for (const t of [tx('web.pact.th_fill_price'), tx('web.pact.th_fill_off'), tx('web.pact.th_fill_7'), tx('web.pact.th_fill_30')]) head.append(el('th', null, t));
+      const thead = el('thead'), tbody = el('tbody'); thead.append(head);
+      for (const x of Object.keys(b.fills['7'])) {
+        const tr = el('tr');
+        tr.append(el('td', null, usd(P * (1 - Number(x)))), el('td', 'r', spc(-Number(x), 0)), el('td', 'r', pc(b.fills['7'][x], 0)), el('td', 'r', pc(b.fills['30'][x], 0)));
+        tbody.append(tr);
+      }
+      const tb = el('table'); tb.id = 't-hodl-fill'; tb.append(thead, tbody);
+      const sc = el('div', 'scroll'); sc.append(tb);
+      parts.push(el('p', 'sm', tx('web.pact.hodl_fill_title')), sc);
+    }
+    // giữ bao lâu thì có lãi: thanh tỷ lệ có lãi kèm khoảng tin cậy, vạch 50% và 80%
+    parts.push(el('p', 'sm', tx('web.pact.hodl_bars_title')));
+    const bars = el('div', 'hodl-bars'), rows = HOLD.rows.filter((r) => r.n);
+    for (const r of rows) {
+      const row = el('div', 'hodl-bar' + (r.h === HOLD.hold_at_least ? ' best' : '')), t = el('div', 'tr'), f = el('i'), ci = el('s');
+      f.style.width = (100 * r.p) + '%'; ci.style.left = (100 * r.ci[0]) + '%'; ci.style.width = (100 * (r.ci[1] - r.ci[0])) + '%';
+      const u50 = el('u'), u80 = el('u', 'g80'); u50.style.left = '50%'; u80.style.left = '80%';
+      t.append(f, ci, u50, u80);
+      const v = el('div', 'v'); v.append(document.createTextNode(tx('web.pact.hodl_bar_v', pc(r.p, 0))), el('small', null, tx('web.pact.hodl_bar_sub', spc(r.median, 0))));
+      row.append(el('b', null, hz(r.h)), t, v);
+      bars.append(row);
+    }
+    parts.push(bars);
+    const at = (h) => rows.find((r) => r.h === h) || {};
+    parts.push(el('p', HOLD.hold_at_least ? 'good' : null, HOLD.hold_at_least ? tx('web.pact.hodl_least', hz(HOLD.hold_at_least))
+      : tx('web.pact.hodl_least_none', pc(at(365).p, 0), pc(at(730).p, 0), pc(at(1461).p, 0), nf(0).format(at(730).n_eff || 0), nf(0).format(at(1461).n_eff || 0))));
+    const head = el('tr');
+    for (const t of [tx('web.pact.th_hz'), tx('web.pact.th_win'), tx('web.pact.th_eff'), tx('web.pact.th_med'), tx('web.pact.th_band'), tx('web.pact.th_price'), tx('web.pact.th_halves')]) head.append(el('th', null, t));
+    const thead = el('thead'), tbody = el('tbody'); thead.append(head);
+    for (const r of rows) {
+      const tr = el('tr', r.h === HOLD.hold_at_least ? 'here' : null);
+      const w = el('td', 'r', pc(r.p, 0)); w.append(el('span', 'sub', `${pc(r.ci[0], 0)}–${pc(r.ci[1], 0)}`));
+      tr.append(el('td', null, hz(r.h)), w, el('td', 'r', nf(0).format(r.n_eff)),
+        el('td', 'r ' + (r.median > 0 ? 'good' : 'bad'), spc(r.median, 0)), el('td', 'r', `${spc(r.p10, 0)} … ${spc(r.p90, 0)}`),
+        el('td', 'r', usd(P * (1 + r.median))), el('td', 'r', `${pc(r.halves[0].p, 0)} / ${pc(r.halves[1].p, 0)}`));
+      tbody.append(tr);
+    }
+    const tb = el('table'); tb.id = 't-hodl'; tb.append(thead, tbody);
+    const sc = el('div', 'scroll'); sc.append(tb);
+    parts.push(el('p', 'sm', tx('web.pact.hodl_table_title')), sc, el('p', 'warn', tx('web.pact.hodl_warn')));
+    ans.replaceChildren(...parts);
+    view.chart = null;
+  }
+
   // ----- Hold: đề xuất lúc này, từng lý do, và chờ gì ở mức giá nào -----
   const li = (good, text) => el('li', good ? 'ok' : null, text);
   function waitCard(side, L) {
@@ -268,8 +329,8 @@
   }
 
   function renderTrade() {
-    $('pact-trade').hidden = view.side === 'hold';
-    if (view.side === 'hold') return;
+    $('pact-trade').hidden = view.side === 'hold' || view.side === 'hodl';
+    if ($('pact-trade').hidden) return;
     const H = Number($('pact-hold').value), side = view.side, E = ST.close, g = side === 'long' ? 1 : -1;
     $('pact-trade-lead').textContent = tx('web.pact.trade_lead', sideName(side), holdName(H));
     const head = el('tr');
@@ -312,6 +373,7 @@
   function setSide(s) {
     view.side = s;
     $('pact-box').classList.toggle('hold', s === 'hold');
+    $('pact-box').classList.toggle('hodl', s === 'hodl');
     document.querySelectorAll('#pact-side button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
   }
   function reset() {

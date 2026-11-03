@@ -475,7 +475,20 @@
   #pact-sec .pact-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
   #pact-sec i.tp { background: var(--jade); } #pact-sec i.sl { background: var(--cinnabar); } #pact-sec i.nn { background: color-mix(in srgb, var(--muted) 45%, transparent); }
   #pact-sec .answer p { margin: 0 0 8px; }
-  #pact-box .hold-only { display: none; } #pact-box.hold .hold-only { display: block; } #pact-box.hold .trade-only { display: none; }
+  #pact-box .hold-only, #pact-box .hodl-only { display: none; } #pact-box.hold .hold-only, #pact-box.hodl .hodl-only { display: block; }
+  #pact-box.hold .trade-only, #pact-box.hodl .trade-only, #pact-box.hodl .not-hodl { display: none; }
+  #pact-side button[data-s="hodl"][aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .hodl-bars { display: grid; gap: 8px; margin: 8px 0 12px; }
+  .hodl-bar { display: grid; grid-template-columns: 74px minmax(0, 1fr) 150px; gap: 10px; align-items: center; font-size: 13.5px; }
+  .hodl-bar > b { font-weight: 600; } .hodl-bar .v { font-variant-numeric: tabular-nums; } .hodl-bar .v small { display: block; font-size: 12px; color: var(--muted); }
+  .hodl-bar .tr { position: relative; height: 16px; border-radius: 8px; background: color-mix(in srgb, var(--muted) 14%, transparent); }
+  .hodl-bar .tr i { position: absolute; inset: 0 auto 0 0; border-radius: 8px; background: linear-gradient(90deg, color-mix(in srgb, var(--jade) 55%, transparent), var(--jade)); }
+  .hodl-bar .tr s { position: absolute; top: 6px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 35%, transparent); }
+  .hodl-bar .tr u { position: absolute; top: -3px; bottom: -3px; width: 0; border-left: 1px dashed var(--muted); }
+  .hodl-bar .tr u.g80 { border-left-color: var(--jade); }
+  .hodl-bar.best .tr { box-shadow: 0 0 0 2px var(--blue); }
+  @media (max-width: 600px) { .hodl-bar { grid-template-columns: 64px minmax(0, 1fr); } .hodl-bar .v { grid-column: 1 / -1; } }
+  #t-hodl-fill td.r, #t-hodl td.r, #t-hodl td:first-child { white-space: nowrap; } #t-hodl th { white-space: normal; } #t-hodl td, #t-hodl th { padding-left: 8px; padding-right: 8px; }
   #pact-side button[data-s="hold"][aria-pressed="true"] { background: var(--brass); border-color: var(--brass); color: #1A1204; }
   #pact-sec ul.pact-why { list-style: none; margin: 6px 0 12px; padding: 0; display: grid; gap: 6px; font-size: 14px; }
   #pact-sec ul.pact-why li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; }
@@ -1039,14 +1052,16 @@
                 <button type="button" data-s="long" aria-pressed="true">{{web.pact.side_long}}</button>
                 <button type="button" data-s="short" aria-pressed="false">{{web.pact.side_short}}</button>
                 <button type="button" data-s="hold" aria-pressed="false">{{web.pact.side_hold}}</button>
+                <button type="button" data-s="hodl" aria-pressed="false">{{web.pact.side_hodl}}</button>
               </div>
               <label class="field trade-only">{{web.pact.entry_label}}<input type="text" inputmode="decimal" id="pact-entry" autocomplete="off"></label>
               <label class="field trade-only">{{web.pact.stop_label}}<input type="text" inputmode="decimal" id="pact-stop" autocomplete="off"></label>
               <label class="field trade-only">{{web.pact.target_label}}<input type="text" inputmode="decimal" id="pact-target" autocomplete="off"></label>
-              <label class="field">{{web.pact.hold_label}}<select id="pact-hold"><option value="7">{{web.pact.hold_7}}</option><option value="30" selected>{{web.pact.hold_30}}</option></select></label>
+              <label class="field not-hodl">{{web.pact.hold_label}}<select id="pact-hold"><option value="7">{{web.pact.hold_7}}</option><option value="30" selected>{{web.pact.hold_30}}</option></select></label>
               <button type="button" class="btn trade-only" id="pact-plan">{{web.pact.from_plan}}</button>
               <button type="button" class="btn trade-only" id="pact-reset">{{web.pact.reset}}</button>
               <p class="muted hold-only" style="font-size:13px;margin:8px 0 0">{{web.pact.hold_box}}</p>
+              <p class="muted hodl-only" style="font-size:13px;margin:8px 0 0">{{web.pact.hodl_box}}</p>
             </div>
             <div class="answer" id="pact-answer"></div>
           </div>

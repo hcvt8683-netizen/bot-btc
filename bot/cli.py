@@ -19,6 +19,7 @@ trend                      trend forecast 1–7 days, 1–4 weeks, 1–6 months:
 perp-trade                 long/short with entry, stop-loss, take-profit: write data/results/perp_trade.json, append the month's pick to data/perp_trade/select_log.csv
 price-action               price action criteria vs any day: data/results/price_action.json + docs/PRICE_ACTION.md (--final: the single logged final test)
 pa-sheet                   price action panel of the Price action view: price action now + touch shares by ATR distance → data/results/pa.json
+long-hold                  buy and hold: share of gains after holding 1 week … 4 years, buying price → data/results/hold.json
 sr-levels                  support / resistance by frame (hours, days, weeks, months): bounce or break vs a placebo level → data/results/sr.json
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
@@ -149,6 +150,12 @@ def main(argv: list[str] | None = None) -> int:
         c = o["counts"]
         print(f"Price action: {o['n_pairs']} cặp tiêu chí × kỳ hạn; hơn mốc {c['hon']}, kém mốc {c['kem']}, chưa có lợi thế {c['chua']}, "
               f"ít đợt {c['it_dot']}. docs/PRICE_ACTION.md, data/results/price_action.json")
+        return 0
+    if args.command == "long-hold":
+        from bot.models import long_hold as lh
+        o = lh.run(write=True)
+        print("Mua giữ lâu dài: " + ", ".join(f"{r['h']} ngày {r['p']:.0%}" for r in o["rows"] if r.get("n"))
+              + f"; giữ ít nhất: {o['hold_at_least'] or 'chưa có kỳ hạn nào'} (phiên bản {o['version']}).")
         return 0
     if args.command == "sr-levels":
         from bot.models import sr_levels as sr

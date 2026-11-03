@@ -539,3 +539,13 @@ Làm trên nhánh `rebuild/kiem-dinh`, chưa đưa lên trang web. Mỗi phần:
 **Đồ thị:** thẻ Price action vẽ nến Binance của khung đang chọn (2 × độ dài khung, 48–240 nến giờ hoặc 60–390 nến ngày) với vùng kháng cự / hỗ trợ, giá lúc này và mức bật 1 ATR (thay thang giá cũ); bảng Kiểm tra điểm vào vẽ 120 nến ngày Bitstamp với hỗ trợ / kháng cự, giá vào, cắt lỗ, chốt lời. `pa.json` và `sr.json` thêm nến gần đây để vẽ khi chưa tải được giá trực tiếp; số liệu kiểm định không đổi (vẫn 0/102, 0/48).
 
 **Vì sao giá gợi ý khác nhau** (ghi trên trang, mục "Vì sao giá gợi ý ở đây khác thẻ Long/Short?"): Long/Short đặt cắt lỗ k × ATR của nến giờ Binance quanh giá lúc này hoặc giá kích hoạt, không nhìn đỉnh / đáy; Kiểm tra điểm vào đặt cắt lỗ dưới đáy cục bộ gần nhất − 0,5 ATR ngày của nến Bitstamp, giá vào = giá đóng nến ngày cuối; hỗ trợ / kháng cự theo khung là cao nhất / thấp nhất của khung. Ba cách khác dữ liệu và mục đích; không gộp.
+
+## Mua giữ lâu dài (03/11/2026)
+
+**Yêu cầu:** thêm lựa chọn "Mua giữ lâu dài" cạnh Long / Short / Hold, kèm giá nên mua và giữ bao lâu thì có lãi.
+
+**Đăng ký trước** (`config/candidates.yaml` mục `long_hold`, commit `27e5f0c`): mua ở giá đóng ngày Coin Metrics của mọi ngày từ 01/01/2016, giữ 7 / 30 / 90 / 180 / 365 / 730 / 1461 ngày, phí và trượt giá 0,15% mỗi chiều; tỷ lệ có lãi, lãi trung vị, phân vị 10% / 90%, Wilson theo số lần độc lập (số ngày / h), hai nửa; "giữ ít nhất" = kỳ hạn ngắn nhất có lãi ≥ 80% ở cả hai nửa với cận dưới Wilson ≥ 50%. Giá nên mua đọc lại mục `entry` (không tính mới). Module mới `bot/models/long_hold.py`, test `tests/test_long_hold.py`.
+
+**Kết quả** (đến 02/11/2026): có lãi 52% khi giữ 1 tuần (565 lần độc lập), 57% 1 tháng, 60% 3 tháng, 64% 6 tháng, 70% 1 năm (10 lần độc lập), 80% 2 năm (4 lần), 100% 4 năm (2 lần, Wilson 34–100%). Lãi trung vị +0%, +3%, +10%, +26%, +64%, +186%, +372%. **Chưa kỳ hạn nào đạt quy tắc "giữ ít nhất"**: 2 năm có nửa sau 70%; 4 năm đúng mọi lần nhưng chỉ 2 giai đoạn độc lập. Giá nên mua: mua dần quanh giá hiện tại (20 cách chờ giá thấp hơn, 0 cách tốt hơn, 6 cách kém hơn rõ), kèm khả năng khớp lệnh chờ −1 … −10% trong 7 / 30 ngày và khoảng giá thấp nhất 30 ngày tới.
+
+**Trang web:** nút "Mua giữ lâu dài" (thứ tư) trong bảng Kiểm tra điểm vào: giá nên mua, bảng lệnh chờ, thanh tỷ lệ có lãi theo thời gian giữ (có khoảng tin cậy, vạch 50% và 80%), bảng chi tiết với giá thường gặp khi bán, cảnh báo BTC 2016–2026 tăng rất mạnh. Lệnh `python -m bot.cli long-hold` trong quy trình Daily (`data/results/hold.json`).

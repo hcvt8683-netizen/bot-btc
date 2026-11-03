@@ -18,6 +18,7 @@ import pytest
 from bot.models import pa_sheet as ps
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+HOLD = __import__("json").loads((ROOT / "tests" / "fixtures" / "hold.json").read_text(encoding="utf-8"))
 
 
 def synth() -> pd.DataFrame:
@@ -40,7 +41,8 @@ def built() -> tuple[pathlib.Path, dict]:
     build.PACT_PATH = str(tmp / "pa.json")
     try:
         out = build.build(str(tmp / "page.html"), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"),
-                          ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"), lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"))
+                          ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"), lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"),
+                          hold_path=str(ROOT / "tests" / "fixtures" / "hold.json"))
     finally:
         build.PACT_PATH = None
     return pathlib.Path(out), json.loads(json.dumps(o))
@@ -98,6 +100,14 @@ async def _run(page: pathlib.Path, o: dict, vw: int) -> dict:
             trade: document.getElementById('pact-trade').hidden, cards: document.querySelectorAll('#pact-answer .pact-wcard').length,
             lines: [...document.querySelectorAll('#pact-answer .pt text')].map((t) => t.textContent.split(' ')[0]),
             why: document.querySelectorAll('#pact-why-list li').length, scroll: document.documentElement.scrollWidth })""")
+        await pg.click("#pact-side [data-s=hodl]")
+        await pg.wait_for_timeout(200)
+        res["hodl"] = await pg.inner_text("#pact-answer")
+        res["hodl_ui"] = await pg.evaluate("""() => ({ entry: document.getElementById('pact-entry').offsetParent !== null,
+            hold: document.getElementById('pact-hold').offsetParent !== null, trade: document.getElementById('pact-trade').hidden,
+            bars: document.querySelectorAll('.hodl-bar').length, fills: document.querySelectorAll('#t-hodl-fill tbody tr').length,
+            rows: document.querySelectorAll('#t-hodl tbody tr').length, scroll: document.documentElement.scrollWidth,
+            overflow: (() => { const t = document.getElementById('t-hodl'); return Math.max(0, t.scrollWidth - t.clientWidth); })() })""")
         await pg.click("#pact-side [data-s=long]")
         await pg.wait_for_timeout(150)
         res["long_again"] = await pg.evaluate("({ entry: document.getElementById('pact-entry').offsetParent !== null, trade: document.getElementById('pact-trade').hidden })")
@@ -135,4 +145,11 @@ def test_price_action_panel(built, vw):
     hu = res["hold_ui"]
     assert not hu["entry"] and hu["trade"] and hu["cards"] == 2 and "Đóng" in hu["lines"] and hu["why"] == 4 and hu["scroll"] <= vw
     assert res["long_again"] == {"entry": True, "trade": False}
+    # Mua giữ lâu dài: giá nên mua (đọc lại mục entry), lệnh chờ, giữ bao lâu thì có lãi (7 kỳ hạn)
+    hd, hu, H = res["hodl"], res["hodl_ui"], HOLD
+    assert "Giá nên mua: mua dần quanh giá hiện tại" in hd and f"đã thử {H['buy']['wait']['configs']} cách chờ" in hd
+    assert ("chưa kỳ hạn nào đạt" in hd) == (H["hold_at_least"] is None)
+    assert f"{round(H['rows'][4]['p'] * 100)}% có lãi" in hd                       # 1 năm
+    assert not hu["entry"] and not hu["hold"] and hu["trade"] and hu["bars"] == 7 and hu["fills"] == 6 and hu["rows"] == 7
+    assert hu["scroll"] <= vw and (vw >= 700 or hu["overflow"] <= 1)
     assert res["scroll"] <= vw
