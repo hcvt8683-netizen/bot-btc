@@ -527,5 +527,34 @@ pa_sheet:
   verdict: "p = tỷ lệ chạm chốt lời trước trong các lần đã chạm một trong hai; hòa vốn q = khoảng cắt lỗ / (khoảng cắt lỗ + khoảng chốt lời) (chưa tính phí, trượt giá, funding); Wilson 95% với số lần độc lập = số ngày × tỷ lệ đã chạm / H. Cận dưới > q: 'Có lợi về kỳ vọng trong lịch sử'; cận trên < q: 'Bất lợi'; còn lại 'Ngang hòa vốn: không có lợi thế'. Bảng luôn ghi: lợi thế nếu có là của xu hướng giá BTC 2016–2026, không phải của tiêu chí price action (0/48 cặp hơn mốc)"
   tradeoff: "bảng phụ: cắt lỗ 1 và 2 ATR, chốt lời 0,5 / 1 / 1,5 / 2 / 3 lần khoảng cắt lỗ: p, q và lợi nhuận kỳ vọng theo R = p × (chốt lời / cắt lỗ) − (1 − p), để thấy xác suất thắng cao chưa chắc có lợi"
   web: "mục 'Price action' trong chế độ Long/Short của trang (#pa-sec, src/pa.js), người dùng yêu cầu rõ (xem medium_change). Mục này không đổi kết luận Long/Short (vẫn theo perp_trade) và luôn ghi price action chưa có lợi thế (0/48 cặp). Nhập: hướng, giá vào (mặc định giá đóng nến cuối), cắt lỗ, chốt lời (để trống = gợi ý), giữ 7 hoặc 30 ngày; nút lấy giá vào / cắt lỗ / chốt lời của kế hoạch Long/Short đang xem"
+  moved: "03/11/2026 (sau khi bảng đã lên trang): người dùng yêu cầu tách Price action thành thẻ riêng, nên mục này chuyển từ chế độ Long/Short sang chế độ Price action (xem mục sr_levels). Cách tính không đổi"
   medium_change: "03/11/2026, trước khi tính bất kỳ con số nào của bảng: người dùng yêu cầu 'giao diện thân thiện dễ dùng, đẩy github, cập nhật price action cho sheet long/short', nên bảng chuyển từ file Excel sang trang web, trong chế độ Long/Short. Cách tính (state, stops, touch, verdict, tradeoff) giữ nguyên"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# Hỗ trợ / kháng cự theo khung người dùng chọn, và giá chạm thì bật lại hay xuyên qua. Người dùng yêu cầu 03/11/2026 (thẻ
+# Price action riêng). Đăng ký trước khi tính bất kỳ con số nào.
+sr_levels:
+  why: "người dùng muốn một thẻ Price action riêng: kháng cự / hỗ trợ trong 1 giờ … 24 giờ, 1 … 7 ngày, 1 … 8 tuần, 1 … 12 tháng (người dùng chọn số), và khi giá chạm thì bật lại hay xuyên qua, xác suất bao nhiêu. Mục này đo trung thực, và so với một 'mức giả' cùng khoảng cách để biết mức thật có gì đặc biệt không"
+  known_before: "đã biết: price_action 0/48 cặp hơn mốc (gồm chạm hỗ trợ / kháng cự từ đỉnh / đáy cục bộ, phá vỡ giả); perp_trade: phá đỉnh / thủng đáy 20 ngày chưa có lợi thế; entry / exit: khả năng chạm một mức giá được dự báo đúng tỷ lệ. Chưa tính con số nào của mục này"
+  frames:      # đơn vị: số nến của cửa sổ W
+    gio: {candles: 1h, n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24], per_unit: 1}
+    ngay: {candles: 1h, n: [1, 2, 3, 4, 5, 6, 7], per_unit: 24}
+    tuan: {candles: 1d, n: [1, 2, 3, 4, 5, 6, 7, 8], per_unit: 7}
+    thang: {candles: 1d, n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], per_unit: 30}
+  data: "nến giờ: BTCUSDT vĩnh cửu Binance (perp_signal.hourly, đánh số theo giờ đóng nến) từ 01/01/2020; nến ngày: Bitstamp BTC/USD (price_action.daily) từ 18/08/2011. Giai đoạn chấm: ngày (giờ) chạm từ 01/07/2020 với nến giờ, từ 01/01/2016 với nến ngày, đến nến cuối đã biết kết quả"
+  levels: "tại nến t (đã đóng), cửa sổ W = n × per_unit nến: kháng cự R(t) = giá cao nhất của W nến t−W+1..t; hỗ trợ S(t) = giá thấp nhất của W nến đó. Mức dùng cho các nến sau t. Thiếu nến trong cửa sổ thì không có mức"
+  atr: "ATR(t) = trung bình biên thật của 14 nến cùng loại đến t (như price_action.atr)"
+  zone_atr: 0.25     # vùng chạm: w = 0,25 × ATR(t)
+  bounce_atr: 1.0    # bật lại: giá đi ngược khỏi mức ít nhất 1 ATR(t)
+  break_atr: 0.5     # xuyên qua: một nến đóng cửa vượt mức ít nhất 0,5 ATR(t)
+  touch: "chạm kháng cự ở nến u = t + 1: cao(u) ≥ R(t) − w và đóng(t) < R(t) − w (giá đi lên từ dưới vùng). Chạm hỗ trợ: thấp(u) ≤ S(t) + w và đóng(t) > S(t) + w"
+  outcome: "sau khi chạm kháng cự ở u, xét các nến u..u + H: xuyên qua nếu một nến đóng cửa ≥ R(t) + 0,5 ATR(t) (kể cả nến u); bật lại nếu một nến từ u + 1 có giá thấp nhất ≤ R(t) − 1 ATR(t) trước khi có nến xuyên qua. Một nến vừa có giá thấp nhất ≤ R − 1 ATR vừa đóng cửa ≥ R + 0,5 ATR thì tính xuyên qua (bảo thủ cho 'bật lại'). Không có gì sau H nến: 'chưa rõ'. Hỗ trợ đối xứng. H = W nến, tối thiểu 6 (nến giờ) hoặc 3 (nến ngày), tối đa 168 (nến giờ) hoặc 60 (nến ngày)"
+  episodes: "mỗi khung và phía: lần chạm ở u mở một đợt; các lần chạm sau có u' ≤ u + H thuộc cùng đợt (cửa sổ kết quả chồng nhau); mỗi đợt chỉ lấy lần chạm đầu. Mọi tỷ lệ tính trên đợt"
+  placebo: "mức giả để so sánh: R'(t) = đóng(t) × R(t − Δ) / đóng(t − Δ), S'(t) = đóng(t) × S(t − Δ) / đóng(t − Δ), với Δ = 2W + H nến (cùng khoảng cách tương đối như một mức thật, nhưng của một cửa sổ cũ không trùng, nên không phải đỉnh / đáy thật). Chạm, kết quả, đợt tính y hệt"
+  stats: "mỗi khung × phía: số đợt chạm, số bật lại / xuyên qua / chưa rõ, P(bật lại) = bật lại / (bật lại + xuyên qua), Wilson 95% theo số đợt đã rõ; cùng số của mức giả; chênh lệch thật − giả, p hai phía của kiểm định hai tỷ lệ (z); hai nửa giai đoạn chia ở ngày giữa (theo thời gian chạm)"
+  holm: "Holm trên mọi khung × phía: (24 + 7 + 8 + 12) × 2 = 102 phép thử"
+  verdict: "'mạnh hơn mức bất kỳ' (hay bật lại hơn) khi p Holm < 0,05 và chênh lệch > 0 ở cả hai nửa; 'yếu hơn mức bất kỳ' (hay xuyên qua hơn) khi p Holm < 0,05 và < 0 ở cả hai nửa; dưới 30 đợt đã rõ hoặc dưới 5 ở một nửa: 'ít dữ liệu'; còn lại 'như mức bất kỳ'"
+  reach: "khả năng giá chạm mức trong H nến tới: mọi nến t của giai đoạn chấm, khoảng cách d = (R(t) − đóng(t)) / ATR(t) (hỗ trợ: (đóng(t) − S(t)) / ATR(t)) chia 5 nhóm [0, 0,5), [0,5, 1), [1, 2), [2, 4), từ 4 trở lên; P(chạm) = tỷ lệ có nến trong t + 1..t + H chạm vùng (như mục touch, không cần điều kiện đến từ dưới); Wilson với số lần độc lập = số nến / H (làm tròn, tối thiểu 1). Chỉ mô tả"
+  live: "trang tính mức hiện tại từ nến giờ và nến ngày BTCUSDT vĩnh cửu Binance (fapi.binance.com) lúc mở thẻ; không tải được thì dùng mức của lần chạy Daily gần nhất. Thống kê lịch sử tính sẵn (python -m bot.cli sr-levels → data/results/sr.json)"
+  page: "thẻ Price action riêng (chế độ thứ năm, nút cạnh Xu hướng): chọn khung (giờ / ngày / tuần / tháng) và số; hiện giá lúc này, kháng cự và hỗ trợ của khung, khoảng cách (% và ATR), khi chạm thì bật lại / xuyên qua bao nhiêu lần trong lịch sử so với mức giả, khả năng chạm trong H nến; bảng mọi số của cùng đơn vị. Bảng 'Kiểm tra điểm vào' (mục pa_sheet) chuyển từ Long/Short sang thẻ này, cách tính giữ nguyên"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
