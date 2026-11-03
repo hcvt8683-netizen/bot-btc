@@ -570,3 +570,17 @@ pa_hold:
   chart: "đồ thị nến: thẻ Price action vẽ nến Binance của khung đang chọn với kháng cự / hỗ trợ (vùng ± 0,25 ATR) và giá lúc này; bảng Kiểm tra điểm vào vẽ 120 nến ngày Bitstamp gần nhất (pa.json) với hỗ trợ / kháng cự (vùng ± 0,5 ATR), giá vào, cắt lỗ, chốt lời. Chỉ hiển thị, không đổi cách tính"
   why_prices_differ: "trang giải thích vì sao giá gợi ý khác nhau giữa Long/Short (perp_trade: ATR của nến giờ Binance, cắt lỗ k × ATR, giá vào = giá lúc này hoặc giá kích hoạt), Kiểm tra điểm vào (pa_sheet: nến ngày Bitstamp, cắt lỗ dưới đáy cục bộ gần nhất − 0,5 ATR ngày) và hỗ trợ / kháng cự theo khung (sr_levels: cao nhất / thấp nhất của khung). Không gộp hay đổi cách tính nào"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# "Mua giữ lâu dài" trong bảng Kiểm tra điểm vào (thẻ Price action). Người dùng yêu cầu 03/11/2026. Đăng ký trước khi tính.
+long_hold:
+  why: "người dùng muốn nút 'Mua giữ lâu dài' cạnh Long / Short / Hold, kèm giá nên mua để giữ lâu dài và giữ bao lâu thì có lãi (1 tuần, 1 tháng, 3 tháng, 6 tháng…). Không đoán hướng: chỉ đo trong lịch sử, mua một ngày bất kỳ rồi giữ h ngày thì có lãi bao nhiêu lần"
+  known_before: "đã biết: mua đều là khuyến nghị (0/6 tiêu chí); xác suất có lãi 1, 3, 6, 12 tháng (calib) là tỷ lệ gốc, không cách nào chọn được tuần mua tốt hơn; entry: không cách chờ giá thấp hơn nào (20 cách) tốt hơn mua ngay, 6/20 kém hơn rõ"
+  price: "giá đóng ngày Coin Metrics (như mục forecast); mua ở giá đóng ngày T, bán ở giá đóng ngày T + h"
+  horizons_days: [7, 30, 90, 180, 365, 730, 1461]   # 1 tuần, 1 tháng, 3 tháng, 6 tháng, 1 năm, 2 năm, 4 năm
+  costs: 0.0015          # mỗi lần mua và mỗi lần bán (phí và trượt giá, như mục plan)
+  period: {from: 2016-01-01}   # mọi ngày mua T từ đây đến ngày cuối đã biết kết quả h ngày
+  stats: "mỗi h: tỷ lệ có lãi = tỷ lệ ngày T có giá đóng(T + h) × (1 − 0,0015) / (giá đóng(T) × (1 + 0,0015)) > 1; lợi nhuận trung vị, phân vị 10% và 90%; Wilson 95% với số lần độc lập = số ngày / h (làm tròn, tối thiểu 1); hai nửa chia ở ngày mua giữa"
+  hold_rule: "'giữ ít nhất' = kỳ hạn ngắn nhất trong danh sách mà tỷ lệ có lãi ≥ 80% ở cả hai nửa và cận dưới Wilson ≥ 50%; không có thì ghi 'chưa có kỳ hạn nào'. Chỉ mô tả lịch sử 2016–2026 (BTC tăng mạnh), không bảo đảm tương lai"
+  buy_price: "giá nên mua: đọc lại kết quả mục entry (không tính mới): mua dần quanh giá hiện tại vì không cách chờ nào tốt hơn mua ngay; kèm khả năng khớp lệnh chờ −1, −2, −3, −5, −8, −10% trong 7 và 30 ngày (entry.json). Gợi ý chia đều theo mục plan (thẻ Giải ngân)"
+  page: "nút 'Mua giữ lâu dài' trong bảng Kiểm tra điểm vào (src/pact.js): giá nên mua, bảng lệnh chờ, bảng và biểu đồ tỷ lệ có lãi theo thời gian giữ, 'giữ ít nhất', lợi nhuận thường gặp; số liệu data/results/hold.json (python -m bot.cli long-hold)"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
