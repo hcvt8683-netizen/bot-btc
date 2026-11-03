@@ -584,3 +584,10 @@ long_hold:
   buy_price: "giá nên mua: đọc lại kết quả mục entry (không tính mới): mua dần quanh giá hiện tại vì không cách chờ nào tốt hơn mua ngay; kèm khả năng khớp lệnh chờ −1, −2, −3, −5, −8, −10% trong 7 và 30 ngày (entry.json). Gợi ý chia đều theo mục plan (thẻ Giải ngân)"
   page: "nút 'Mua giữ lâu dài' trong bảng Kiểm tra điểm vào (src/pact.js): giá nên mua, bảng lệnh chờ, bảng và biểu đồ tỷ lệ có lãi theo thời gian giữ, 'giữ ít nhất', lợi nhuận thường gặp; số liệu data/results/hold.json (python -m bot.cli long-hold)"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# Thẻ "Tóm tắt quyết định" ở Tổng quan (bước S1 của docs/DANH_GIA_TONG_QUAN.md). Người dùng yêu cầu làm đợt 1 ngày 03/11/2026.
+# Chỉ hiển thị lại số các thẻ đã tính; không tính con số mới.
+summary:
+  rows: "Khuyến nghị tuần; Dải giá 7 ngày (8/10 lần); Giá chờ mua −3% (chế độ Mua) hoặc giá chờ bán +3% (chế độ Bán), khả năng khớp trong 7 ngày; Xác suất có lãi (Mua) hoặc giá thấp hơn (Bán) sau 1 và 6 tháng; Xu hướng 7 và 30 ngày (nhãn và P(tăng) của thẻ Xu hướng); Long/Short (kết luận và số tiêu chí đạt mỗi phía, trạng thái lúc bot cập nhật, 1x); Price action (đề xuất Long / Short / Hold của mục pa_hold); Mua giữ lâu dài (tỷ lệ có lãi khi giữ 1 năm và 2 năm)"
+  trust: "mức tin cậy lấy đúng bảng mục 1 của docs/DANH_GIA_TONG_QUAN.md: dải giá 5 sao; giá chờ mua 5 sao; giá chờ bán 4 sao (đang thận trọng, mục R1); khuyến nghị tuần, xác suất có lãi, xu hướng, mua giữ lâu dài 3 sao (tỷ lệ gốc, không chọn được thời điểm); Long/Short, price action 2 sao (công cụ kỷ luật, chưa có lợi thế về hướng). Không tự chấm lại; bảng đổi thì mục này đổi theo"
+  open: "mỗi dòng có nút mở đúng thẻ hoặc chế độ"
