@@ -455,3 +455,58 @@ trend_plus:
   band90: "khoảng 9/10 lần: phân vị 5% và 95% của z, cùng cách và cùng mô hình biên độ đang dùng của mục trend; chấm độ phủ đi tới từ 2016 (mục tiêu 90%), Wilson theo số cửa sổ k ngày không chồng nhau; trang hiện 'đúng khoảng 9/10 lần' kèm độ phủ thật; kỳ hạn nào độ phủ ngoài 87–93% thì trang ghi rõ"
   bitstamp: "kiểm chứng trên dữ liệu khác: chạy lại đúng mục trend (tỷ lệ gốc và 5 mô hình, cùng chấm, cùng Holm) trên giá đóng ngày Bitstamp thay cho Coin Metrics; báo cáo kết luận từng kỳ hạn và độ phủ 80%, 90% trên cả hai nguồn; không dùng để chọn mô hình"
   note: "các phần này thêm sau khi đã thấy kết quả mục trend (02/11/2026: không mô hình nào thắng tỷ lệ gốc về hướng)"
+
+# Price action (hành động giá) trên nến ngày Bitstamp: hỗ trợ / kháng cự, cấu trúc thị trường, pin bar và inside bar tại vùng,
+# phá vỡ giả, và một bộ tiêu chí. Đăng ký trước khi tính bất kỳ con số nào (03/11/2026).
+price_action:
+  why: "người dùng hỏi price action có giúp đoán hướng giá BTC không; nếu có thì xây bộ tiêu chí price action. Mục này đo trung thực từng tiêu chí price action (định nghĩa bằng số, ngưỡng cố định, không dò) so với một ngày bất kỳ; chỉ khi có tiêu chí hơn mốc mới đề xuất (hỏi người dùng trước) đưa lên trang"
+  known_before: "đã biết trước khi đăng ký và KHÔNG thử lại ở đây: (1) mục candles: 12 mẫu nến kinh điển trên nến ngày Bitstamp (nhấn chìm, búa, sao băng, doji sau giảm / tăng, sao mai / sao hôm, ba chàng lính trắng / ba quạ đen, xuyên tăng, mây đen), không mẫu nào thắng một ngày bất kỳ; (2) nhánh claude/eloquent-boyd-80d429 (chưa gộp): 7 mẫu nến trên nến ngày và nến tuần, 0/42 cặp hơn mốc; (3) mục trend: động lượng, giá so với MA 200 ngày, định giá MVRV, đảo chiều ngắn hạn 7 ngày, kết hợp: 0/80 phép so sánh thắng tỷ lệ gốc về hướng; (4) mục trend_plus: học máy logistic 16 đặc trưng (gồm 11 cờ mẫu nến), kém tỷ lệ gốc ở 16/16 kỳ hạn; (5) mục perp và perp_trade: Long/Short trên nến giờ hợp đồng vĩnh cửu gồm theo xu hướng 20 ngày, phá đỉnh / thủng đáy 20 ngày (đóng cửa vượt ra ngoài), đánh ngược sau 24 giờ tăng / giảm mạnh, điều chỉnh trong xu hướng, funding ngược: chưa có lợi thế (chấm đi tới −0,09R); (6) mục entry / exit: đặt lệnh chờ thấp hơn / cao hơn không tốt hơn mua / bán ngay; (7) tín hiệu tuần của bot đạt 0/6 tiêu chí. Vì mọi cách đoán hướng trước đây đều chưa thắng, kỳ vọng trước khi chạy là 'chưa có lợi thế'. Chưa tính con số nào của các tiêu chí dưới đây trên dữ liệu BTC"
+  not_tested: "các tiêu chí dưới đây là phần price action chưa được kiểm trong dự án: mức hỗ trợ / kháng cự lấy từ đỉnh / đáy cục bộ, cấu trúc đỉnh / đáy, pin bar và inside bar có điều kiện vị trí tại vùng, phá vỡ giả (thủng mức rồi đóng cửa quay lại, ngược với phá đỉnh / thủng đáy 20 ngày đã thử). Cấu trúc thị trường gần với 'theo xu hướng' đã thử (MA 20 ngày, MA 200 ngày, động lượng) nhưng định nghĩa khác (đỉnh / đáy cục bộ), nên vẫn kiểm; khi đọc kết quả cần nhớ điều này"
+  data: "nến ngày Bitstamp BTC/USD (bot.data.pit_store.load_history, nguồn bitstamp; mở 00:00 UTC; mở / cao / thấp / đóng từ 18/08/2011), lịch ngày liên tục. Nến có giá không dương, giá thấp nhất > min(mở, đóng) hoặc giá cao nhất < max(mở, đóng) coi là thiếu cả nến. Không dùng nến giờ hợp đồng vĩnh cửu (chỉ có từ 2020 và đã dùng ở perp_trade)"
+  terms: "thân = |đóng − mở|; biên = cao − thấp; bóng trên = cao − max(mở, đóng); bóng dưới = min(mở, đóng) − thấp. T = ngày tín hiệu (nến T đã đóng); mọi tiêu chí tại T chỉ dùng nến đến T; thiếu nến cần dùng thì tiêu chí không bật"
+  params:
+    atr_days: 14              # ATR(T) = trung bình 14 biên thật T−13..T; biên thật = max(cao − thấp, |cao − đóng hôm trước|, |thấp − đóng hôm trước|); cần đủ 14 ngày
+    swing_n: 5                # đỉnh / đáy cục bộ: 5 nến mỗi bên (cửa sổ 11 ngày), mức hay dùng trên nến ngày; không dò
+    level_lookback_days: 365  # mức hỗ trợ / kháng cự lấy từ đỉnh / đáy cục bộ có ngày j trong 365 ngày trước T − 1
+    zone_atr: 0.5             # nửa bề rộng vùng w = 0,5 × ATR(T − 1) (theo giá)
+    pin_wick: 0.6667          # pin bar: bóng dài ≥ 2/3 biên
+    combo_m: 2                # bộ tiêu chí: bật khi ít nhất 2 trong 5 tiêu chí cùng hướng bật cùng ngày
+  swing: "đỉnh cục bộ tại ngày j: cao(j) là cao nhất của 11 nến j−5..j+5 (đủ 11 nến) và lớn hơn hẳn cao của 5 nến trước (j−5..j−1); đáy cục bộ ngược lại với giá thấp. Đỉnh / đáy j chỉ được biết từ khi nến j + 5 đóng (không nhìn trước): tại ngày T chỉ dùng đỉnh / đáy có j + 5 ≤ T (cấu trúc) hoặc j + 5 ≤ T − 1 (mức hỗ trợ / kháng cự)"
+  levels: "mức tại T, chốt trước nến T: S = hỗ trợ gần nhất = đáy cục bộ cao nhất có mức < đóng(T − 1), trong các đáy đã biết đến T − 1 (j + 5 ≤ T − 1) có j ≥ T − 1 − 365; R = kháng cự gần nhất = đỉnh cục bộ thấp nhất có mức > đóng(T − 1), cùng điều kiện. w = 0,5 × ATR(T − 1). Không có S (hoặc R, hoặc ATR) thì các tiêu chí dùng nó không bật"
+  criteria:   # tên: hướng chờ đợi; định nghĩa tại ngày T
+    ho_tro: "tăng; chạm hỗ trợ và giữ: S − w ≤ thấp(T) ≤ S + w, đóng(T) > S, đóng(T − 1) > S + w (hôm trước còn ở trên vùng)"
+    khang_cu: "giảm; chạm kháng cự và bị đẩy xuống: R − w ≤ cao(T) ≤ R + w, đóng(T) < R, đóng(T − 1) < R − w"
+    cau_truc_tang: "tăng; cấu trúc tăng: trong hai đỉnh cục bộ đã biết gần nhất, đỉnh sau cao hơn đỉnh trước; trong hai đáy cục bộ đã biết gần nhất, đáy sau cao hơn đáy trước; và đóng(T) > đáy cục bộ đã biết gần nhất (cấu trúc chưa gãy)"
+    cau_truc_giam: "giảm; cấu trúc giảm: đỉnh sau thấp hơn đỉnh trước, đáy sau thấp hơn đáy trước, và đóng(T) < đỉnh cục bộ đã biết gần nhất"
+    pin_bar_ho_tro: "tăng; pin bar tăng tại hỗ trợ: biên > 0, bóng dưới ≥ 2/3 biên, thấp(T) ≤ S + w và đóng(T) > S"
+    pin_bar_khang_cu: "giảm; pin bar giảm tại kháng cự: biên > 0, bóng trên ≥ 2/3 biên, cao(T) ≥ R − w và đóng(T) < R"
+    inside_bar_ho_tro: "tăng; inside bar tại hỗ trợ: cao(T) < cao(T − 1) và thấp(T) > thấp(T − 1) (nến mẹ là T − 1), và nến mẹ chạm vùng hỗ trợ: thấp(T − 1) ≤ S + w (S, w của ngày T)"
+    inside_bar_khang_cu: "giảm; inside bar tại kháng cự: cao(T) < cao(T − 1), thấp(T) > thấp(T − 1), và cao(T − 1) ≥ R − w"
+    pha_vo_gia_duoi: "tăng; phá vỡ giả phía dưới: thấp(T) < S − w (thủng quá vùng hỗ trợ) nhưng đóng(T) > S (đóng cửa quay lại trên hỗ trợ)"
+    pha_vo_gia_tren: "giảm; phá vỡ giả phía trên: cao(T) > R + w nhưng đóng(T) < R"
+  count_note: "5 loại × 2 hướng = 10 tiêu chí (nhỉnh hơn 8 vì mỗi loại có cả hướng tăng và giảm). ho_tro và pha_vo_gia_duoi không trùng nhau (thấp(T) ≥ S − w hay < S − w), tương tự phía kháng cự; pin bar và inside bar có thể trùng với chúng"
+  combo:
+    bo_tang: "tăng; bộ tiêu chí tăng: ít nhất combo_m = 2 trong 5 tiêu chí tăng (ho_tro, cau_truc_tang, pin_bar_ho_tro, inside_bar_ho_tro, pha_vo_gia_duoi) bật cùng ngày T"
+    bo_giam: "giảm; bộ tiêu chí giảm: ít nhất 2 trong 5 tiêu chí giảm (khang_cu, cau_truc_giam, pin_bar_khang_cu, inside_bar_khang_cu, pha_vo_gia_tren) bật cùng ngày T"
+  combo_why: "price action thường đòi 'hợp lưu' (ít nhất hai lý do cùng hướng); m = 2 là mức tối thiểu của hợp lưu, chốt trước, không thử m khác"
+  horizons_days: [1, 3, 7, 30]
+  outcome: "tiêu chí tăng đúng khi đóng(T + k) > đóng(T); tiêu chí giảm đúng khi đóng(T + k) < đóng(T); bằng nhau là sai cho cả hai"
+  baseline: "mốc = mọi ngày trong cùng giai đoạn đã biết kết quả k ngày: tỷ lệ giá cao hơn (so với tiêu chí tăng) hoặc thấp hơn (so với tiêu chí giảm) sau k ngày, tức 'một ngày bất kỳ'"
+  research: {from: 2016-01-01, to: 2026-11-01}   # cả ngày tín hiệu T và ngày kết quả T + k nằm trong khoảng; 01/11/2026 là nến cuối có trong dữ liệu lúc đăng ký. Nến trước 2016 chỉ dùng để tính ATR, đỉnh / đáy
+  stats:
+    hit: "tỷ lệ đúng trên mọi ngày có tín hiệu, tỷ lệ của mốc, chênh lệch = tiêu chí − mốc (điểm phần trăm); số lần (ngày có tín hiệu đã biết kết quả)"
+    episodes: "đợt độc lập: tín hiệu cùng tiêu chí cách tín hiệu trước ≤ k ngày (cửa sổ kết quả chồng nhau) gộp vào một đợt; Wilson 95% của tỷ lệ đúng theo số đợt (mỗi đợt lấy tín hiệu đầu)"
+    bootstrap: "khoảng tin cậy 95% của chênh lệch: bootstrap khối dừng trên chuỗi ngày của giai đoạn, khối trung bình k ngày, 2000 lần, hạt giống 0; mỗi lần tính (tỷ lệ đúng các ngày có tín hiệu − tỷ lệ của mọi ngày) trên cùng các ngày lấy lại, lần không có ngày có tín hiệu thì bỏ. p hai phía = 2 × tỷ lệ chênh lệch bootstrap ở phía bên kia của 0 (tối thiểu 1/2000)"
+    holm: "hiệu chỉnh Holm trên mọi cặp tiêu chí × kỳ hạn: (10 tiêu chí + 2 bộ) × 4 kỳ hạn = 48 cặp"
+    halves: "chia giai đoạn nghiên cứu làm hai nửa theo số ngày đã biết kết quả (từng kỳ hạn); chênh lệch so với mốc của cùng nửa"
+    also: "chỉ mô tả: lợi suất log trung bình k ngày theo hướng tiêu chí (tiêu chí giảm đổi dấu) của ngày có tín hiệu so với mốc"
+  verdict: "'hơn mốc' khi p Holm < 0,05 và chênh lệch > 0 ở cả hai nửa; 'kém mốc' khi p Holm < 0,05 và chênh lệch < 0 ở cả hai nửa; dưới 30 đợt độc lập hoặc dưới 5 đợt ở một nửa → 'ít đợt' (không kết luận); còn lại 'chưa có lợi thế'"
+  web: "chỉ khi có ít nhất một cặp 'hơn mốc' mới đề xuất xây bộ tiêu chí price action trên trang, và hỏi người dùng trước khi đưa lên. Không có cặp nào 'hơn mốc' thì chỉ ghi vào docs/PRICE_ACTION.md và docs/REBUILD_LOG.md (người dùng đã dặn: không có lợi thế thì không lên trang)"
+  final_test:
+    from: 2026-11-03          # ngày tín hiệu đầu tiên của giai đoạn kiểm tra cuối mới = ngày đăng ký (nến 03/11/2026 đóng sau khi đăng ký); nến 02/11/2026 không thuộc giai đoạn nào
+    min_days: 365             # chỉ chạy khi có ≥ 365 ngày tín hiệu đã biết kết quả 30 ngày (sớm nhất khoảng 12/2027)
+    rule: "chỉ xác nhận các cặp 'hơn mốc' hoặc 'kém mốc' ở giai đoạn nghiên cứu: xác nhận khi chênh lệch cùng dấu và p một phía (bootstrap như trên) đã hiệu chỉnh Holm trên các cặp cần xác nhận < 0,05. Không có cặp nào thì chỉ báo cáo mô tả"
+    once: "chạy bằng `python -m bot.cli price-action --final`, ghi vào experiments/final_runs.log; đã chạy một lần thì lệnh từ chối; không sửa gì theo kết quả"
+  no_tuning: "định nghĩa, ngưỡng, kỳ hạn, m cố định; không thêm / bớt tiêu chí sau khi xem kết quả; báo cáo đủ 48 cặp, không chọn cặp đẹp nhất"
+  report: "docs/PRICE_ACTION.md và data/results/price_action.json sinh từ dữ liệu bằng `python -m bot.cli price-action`; mục trong docs/REBUILD_LOG.md"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
