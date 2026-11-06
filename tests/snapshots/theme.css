@@ -326,6 +326,26 @@
   #mode-pa[aria-pressed="true"] { background: #0E8A86; }
   body.pa-view #tabs, body.pa-view #app > .tabp, body.pa-view #stale, body.pa-view #ls-app, body.pa-view #tr-app { display: none !important; }
   body:not(.pa-view) #pa-app { display: none; }
+  #mode-lk[aria-pressed="true"] { background: #B4561E; }
+  body.lk-view #tabs, body.lk-view #app > .tabp, body.lk-view #stale, body.lk-view #ls-app, body.lk-view #tr-app, body.lk-view #pa-app { display: none !important; }
+  body:not(.lk-view) #lk-app { display: none; }
+  .lk-hero { background: linear-gradient(180deg, color-mix(in srgb, #B4561E 8%, var(--panel)) 0%, var(--panel) 230px); }
+  .lk-ic { background: color-mix(in srgb, #B4561E 16%, transparent); color: #B4561E; }
+  .lk-form { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin: 6px 0 10px; }
+  .lk-form .field { margin: 0; min-width: 0; }
+  .lk-form .field input, .lk-form .field select { width: auto; }
+  .lk-form .lk-h { display: flex; gap: 6px; } .lk-form #lk-hn { width: 84px; }
+  .lk-form #lk-t { min-width: 150px; }
+  #lk-quick { margin: 0 0 10px; } #lk-quick button { font-size: 13px; }
+  .lk-bandrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin: 6px 0 8px; }
+  .lk-bandrow .kpi .val { font-size: 22px; }
+  #lk-state { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 10px; }
+  @media (max-width: 700px) { #lk-state .kpi .val, .lk-bandrow .kpi .val { font-size: 20px; } #lk-state .kpi { padding: 12px 12px 10px; } }
+  .lk-out { background: var(--soft); border-radius: 12px; padding: 10px 14px; margin-top: 10px; }
+  .lk-out p { margin: 4px 0 0; }
+  .lk-svg .ln { fill: none; stroke: var(--ink); stroke-width: 1.8; } .lk-svg .ln.after { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 3; }
+  .lk-svg .tline { stroke: #B4561E; stroke-width: 1.2; stroke-dasharray: 3 3; }
+  .lk-svg .cone80 { fill: color-mix(in srgb, var(--blue) 13%, transparent); } .lk-svg .cone50 { fill: color-mix(in srgb, var(--blue) 24%, transparent); }
   .pa-ic { background: color-mix(in srgb, #0E8A86 18%, transparent) !important; color: #0E8A86 !important; }
   .pa-hero { background: linear-gradient(180deg, color-mix(in srgb, #0E8A86 8%, var(--panel)) 0%, var(--panel) 230px); }
   .pa-pick { display: grid; gap: 10px; margin: 6px 0 12px; }

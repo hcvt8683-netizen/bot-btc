@@ -648,3 +648,50 @@ forecast_regime:
   rule: "chọn trong tron / theo_nhom cách có điểm thấp nhất ở giai đoạn chọn. Chỉ thay cách đang dùng nếu ở giai đoạn xác nhận: (a) khoảng tin cậy 95% của chênh lệch điểm (bootstrap khối 30 ngày, 2000 lần, seed của rebuild) nằm hẳn dưới 0; (b) dải 80% phủ 75–85% (trung bình 8 kỳ hạn); (c) độ lệch phủ theo nhóm nhỏ hơn cách đang dùng. Không đạt đủ cả ba thì giữ nguyên và ghi kết quả"
   report: "python -m bot.cli forecast-regime → docs/FORECAST_REGIME.md và data/results/forecast_regime.json; không đổi trang hay nhật ký nếu không đạt"
   if_switch: "đổi price_forecast.bands sang cách thắng (phiên bản nhật ký mới, thống kê tách theo phiên bản). Giá chờ mua / bán (entry, exit) và khoảng của thẻ Xu hướng dùng cùng độ dao động 30 ngày: chỉ đổi sau một đăng ký riêng"
+
+# Tra cứu tại ngày t (chế độ mới "Tra cứu" trên trang). Người dùng yêu cầu 06/11/2026: "một sheet chuyên sâu: phản ứng thế nào khi giá
+# như vậy, nên mua hay không để giữ tại thời điểm t tra cứu, dự báo giá theo thời điểm t chọn, phải kiểm chứng quá khứ", kỳ hạn
+# "ngày, tháng, năm, do tôi chọn". Đã nói trước với người dùng: không cách nào cho độ chính xác cực cao về hướng giá. Mục này chỉ
+# tính lại các phần đã kiểm định (dải giá, mua giữ, hỗ trợ / kháng cự) tại một ngày bất kỳ bằng dữ liệu đến ngày đó, kèm kiểm chứng
+# quá khứ cho đúng kỳ hạn người dùng chọn. Đăng ký trước khi tính bất kỳ con số nào.
+lookup:
+  why: "người dùng muốn tra cứu tại một ngày t bất kỳ: tình trạng giá, dải giá ngày t + h, mua tại t giữ h có lãi bao nhiêu lần, hỗ trợ / kháng cự, tình huống tương tự (mục analog), và nếu t ở quá khứ thì điều đã xảy ra; cùng tỷ lệ đúng của từng phần trong quá khứ với đúng kỳ hạn h"
+  t_range: {from: 2016-01-01, to: "ngày cuối có giá đóng Coin Metrics"}
+  horizon: "h do người dùng chọn: số × đơn vị; ngày = 1, tháng = 30, năm = 365 ngày; 1 ≤ h ≤ 1461 ngày"
+  data: "giá đóng ngày Coin Metrics (như forecast, long_hold), lịch ngày liền; giá cao nhất / thấp nhất ngày Bitstamp (như sr_levels khung tuần, tháng)"
+  point_in_time: "mọi con số tại t chỉ dùng giá đến hết ngày t; thống kê chỉ dùng các cửa sổ đã biết kết quả tại t (ngày mua T' với T' + h ≤ t). Phần 'điều đã xảy ra' tách riêng, chỉ hiện khi t + h ≤ ngày cuối"
+  state: "giá đóng t; giảm từ đỉnh = 1 − giá / giá đóng cao nhất đến t; so với trung bình 200 giá đóng gần nhất (gồm t); lợi suất 7 và 30 ngày; độ dao động 30 ngày (độ lệch chuẩn lợi suất log ngày × √365) và thứ hạng của nó trong 1461 ngày đến t"
+  band: "đúng price_forecast.bands với k = h (vol_days 30, vol_long_days 365, quantiles 10/25/50/75/90); riêng số lợi suất chuẩn hóa đã biết dùng làm phân vị = max(window_days − h, min_obs) gần nhất (bằng price_forecast khi h ≤ 1096), tối thiểu min_obs = 365, thiếu thì 'chưa đủ dữ liệu'. Mục forecast chỉ kiểm định 1–7 và 30 ngày: kỳ hạn khác được kiểm chứng riêng ở mục check dưới đây, trang ghi rõ"
+  hold: "mua ở giá đóng t, bán ở giá đóng t + h, phí và trượt giá 0,15% mỗi chiều (như long_hold). Tỷ lệ bot nói tại t = tỷ lệ ngày mua T' trong [t − h − 1460, t − h] có lãi sau phí (4 năm ngày mua gần nhất đã biết kết quả); kèm trung vị, phân vị 10% và 90% lợi nhuận; Wilson 95% với số lần độc lập = số ngày / h (làm tròn, tối thiểu 1); dưới 365 ngày mua thì 'chưa đủ dữ liệu'"
+  levels: "Bitstamp: kháng cự = giá cao nhất, hỗ trợ = giá thấp nhất của 7, 30, 90, 360 ngày đến t (đúng sr_levels khung 1 tuần, 1 tháng, 3 tháng, 12 tháng); kèm kết luận đã có của sr_levels cho các khung đó (đọc sr.json, không tính mới)"
+  outcome: "khi t + h ≤ ngày cuối: giá đóng t + h; có nằm trong dải 80% / 50% không; mua giữ có lãi sau phí không; giá cao nhất và thấp nhất Bitstamp trong t + 1 … t + h"
+  check: "kiểm chứng quá khứ cho đúng h đã chọn: ngày gốc t' từ 01/01/2018, cách nhau h ngày (không chồng nhau), t' + h ≤ ngày cuối. Dải: tỷ lệ giá thật trong dải 80% và 50%, chung và theo năm, Wilson theo số lần. Mua giữ: tỷ lệ bot nói (trung bình) so với tỷ lệ có lãi thật, chung và theo 4 nhóm bot nói (< 50%, 50–70%, 70–90%, ≥ 90%), sai số Brier so với luôn nói 50%. Mỗi ngày gốc chỉ dùng dữ liệu đến ngày đó"
+  advice: "câu hành động cố định, không đổi theo con số: không phần nào của bot chọn được thời điểm mua (khuyến nghị tuần luôn là mua đều), nên 'mua dần theo lịch, không dồn tiền; đặt cắt lỗ ngoài dải 80%'. Trang hiện tỷ lệ có lãi khi giữ h để người dùng tự cân nhắc, không đổi khuyến nghị tuần"
+  sources: "phương pháp dải giá: mô phỏng lịch sử theo biến động (filtered historical simulation, Barone-Adesi, Giannopoulos & Vosper 1999), đã kiểm định ở mục forecast và forecast_regime; mua giữ: mục long_hold; hỗ trợ / kháng cự: mục sr_levels"
+  page: "chế độ thứ sáu 'Tra cứu' (nút cạnh Price action): ô ngày t, ô số và đơn vị kỳ hạn; tính trong trình duyệt từ chuỗi giá nhúng sẵn (data/results/lookup.json, python -m bot.cli lookup); hàm trong src/lookup.js phải cho cùng kết quả với bot/models/lookup.py (có test)"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# Tình huống tương tự: khi giá ở tình huống như ngày t, lịch sử sau đó đi thế nào so với các ngày còn lại. Người dùng yêu cầu
+# 06/11/2026 (cùng lúc với mục lookup). Đăng ký trước khi tính bất kỳ con số nào.
+analog:
+  why: "trả lời 'phản ứng thế nào khi giá như vậy': mỗi tình huống là một nhóm của một đặc trưng giá tại ngày T; đo giá sau h ngày cao hơn bao nhiêu lần so với các ngày còn lại"
+  sources: "động lượng chuỗi thời gian (Moskowitz, Ooi & Pedersen 2012, Journal of Financial Economics; với tiền mã hóa: Liu & Tsyvinski 2021, Review of Financial Studies, thấy động lượng ở 1–4 tuần); quy tắc trung bình động (Brock, Lakonishok & LeBaron 1992, Journal of Finance); độ dao động tụ cụm; mức giảm từ đỉnh (chỉ số dd_ath của bot)"
+  known_before: "đã biết: thẻ Xu hướng (trend) dùng trạng thái động lượng, MA 200, đảo chiều, không mô hình nào thắng tỷ lệ gốc về hướng; price_action 0/48; sr_levels 0/102; candles 0/36; học máy 16 đặc trưng không thắng. Chưa tính con số nào của mục này"
+  features:
+    r7: {cuts: [-0.10, -0.03, 0.03, 0.10], desc: "lợi suất 7 ngày đến T: ≤ −10% giảm mạnh, (−10%, −3%] giảm, (−3%, +3%) đi ngang, [+3%, +10%) tăng, ≥ +10% tăng mạnh"}
+    r30: {cuts: [-0.20, -0.07, 0.07, 0.20], desc: "lợi suất 30 ngày đến T: ≤ −20%, (−20%, −7%], (−7%, +7%), [+7%, +20%), ≥ +20%"}
+    ma200: {desc: "giá đóng T trên trung bình 200 giá đóng gần nhất (gồm T), hoặc dưới / bằng"}
+    dd: {cuts: [0.20, 0.50], desc: "giảm từ đỉnh (giá đóng cao nhất đến T): < 20%, 20–50%, ≥ 50%"}
+    vol: {desc: "thứ hạng độ dao động 30 ngày của T trong 1461 ngày đến T (tối thiểu 365): ≤ 1/3 thấp, ≤ 2/3 giữa, còn lại cao"}
+  conditions: "mỗi nhóm của mỗi đặc trưng là một điều kiện: 5 + 5 + 2 + 3 + 3 = 18"
+  horizons_days: [7, 30, 90, 365]
+  outcome: "lên = giá đóng T + h > giá đóng T (không tính phí); kèm trung vị lợi suất log h ngày (chỉ báo cáo)"
+  period: {from: 2014-01-01, to: "ngày T cuối đã biết kết quả h ngày"}
+  stats: "mỗi điều kiện × h: số ngày khớp, P(lên); các ngày còn lại trong cùng giai đoạn: P(lên); chênh lệch; số lần độc lập = số ngày / h (làm tròn, tối thiểu 1) cho cả hai nhóm, số lần lên = P × số lần độc lập (làm tròn); Wilson 95%; kiểm định hai tỷ lệ (z), p hai phía; hai nửa chia ở ngày T giữa giai đoạn"
+  holm: "Holm trên 18 × 4 = 72 phép thử"
+  verdict: "'hơn ngày bất kỳ' (sau đó lên nhiều hơn) khi p Holm < 0,05 và chênh lệch > 0 ở cả hai nửa; 'kém ngày bất kỳ' khi p Holm < 0,05 và < 0 ở cả hai nửa; số lần độc lập < 30, hoặc < 5 ở một nửa: 'ít dữ liệu'; còn lại 'như ngày bất kỳ'"
+  page: "tại ngày t của mục lookup: nhóm của t theo 5 đặc trưng; kết luận của từng nhóm ở 4 kỳ hạn; với kỳ hạn h người dùng chọn, thống kê chỉ mô tả (không kết luận) của các ngày T' ≤ t − h cùng nhóm (từng đặc trưng, và cả 5 cùng lúc), so với mọi ngày T' ≤ t − h từ 2014"
+  advice: "không đổi khuyến nghị nào. Kết luận 'hơn' / 'kém' nếu có chỉ hiển thị kèm số liệu; muốn dùng làm tín hiệu phải qua kiểm tra cuối"
+  final: "giai đoạn kiểm tra cuối mới bắt đầu từ ngày đăng ký (06/11/2026); chạy một lần khi đủ ít nhất 1 năm (từ 11/2027), chỉ với các điều kiện × kỳ hạn đã có kết luận 'hơn' / 'kém'"
+  report: "python -m bot.cli lookup → data/results/lookup.json (kết quả nghiên cứu và chuỗi giá cho trang) và docs/TRA_CUU.md"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"

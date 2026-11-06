@@ -15,6 +15,8 @@ Xu hướng
 Tăng hay giảm
 Price action
 Hỗ trợ / kháng cự
+Tra cứu
+Tại ngày bất kỳ
 --- home ---
 Khuyến nghị tuần này
 Mua đều
@@ -577,6 +579,8 @@ Xu hướng
 Tăng hay giảm
 Price action
 Hỗ trợ / kháng cự
+Tra cứu
+Tại ngày bất kỳ
 --- home ---
 Bên bán tuần này
 Giữ

@@ -338,6 +338,26 @@
   #mode-pa[aria-pressed="true"] { background: #0E8A86; }
   body.pa-view #tabs, body.pa-view #app > .tabp, body.pa-view #stale, body.pa-view #ls-app, body.pa-view #tr-app { display: none !important; }
   body:not(.pa-view) #pa-app { display: none; }
+  #mode-lk[aria-pressed="true"] { background: #B4561E; }
+  body.lk-view #tabs, body.lk-view #app > .tabp, body.lk-view #stale, body.lk-view #ls-app, body.lk-view #tr-app, body.lk-view #pa-app { display: none !important; }
+  body:not(.lk-view) #lk-app { display: none; }
+  .lk-hero { background: linear-gradient(180deg, color-mix(in srgb, #B4561E 8%, var(--panel)) 0%, var(--panel) 230px); }
+  .lk-ic { background: color-mix(in srgb, #B4561E 16%, transparent); color: #B4561E; }
+  .lk-form { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin: 6px 0 10px; }
+  .lk-form .field { margin: 0; min-width: 0; }
+  .lk-form .field input, .lk-form .field select { width: auto; }
+  .lk-form .lk-h { display: flex; gap: 6px; } .lk-form #lk-hn { width: 84px; }
+  .lk-form #lk-t { min-width: 150px; }
+  #lk-quick { margin: 0 0 10px; } #lk-quick button { font-size: 13px; }
+  .lk-bandrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin: 6px 0 8px; }
+  .lk-bandrow .kpi .val { font-size: 22px; }
+  #lk-state { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 10px; }
+  @media (max-width: 700px) { #lk-state .kpi .val, .lk-bandrow .kpi .val { font-size: 20px; } #lk-state .kpi { padding: 12px 12px 10px; } }
+  .lk-out { background: var(--soft); border-radius: 12px; padding: 10px 14px; margin-top: 10px; }
+  .lk-out p { margin: 4px 0 0; }
+  .lk-svg .ln { fill: none; stroke: var(--ink); stroke-width: 1.8; } .lk-svg .ln.after { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 3; }
+  .lk-svg .tline { stroke: #B4561E; stroke-width: 1.2; stroke-dasharray: 3 3; }
+  .lk-svg .cone80 { fill: color-mix(in srgb, var(--blue) 13%, transparent); } .lk-svg .cone50 { fill: color-mix(in srgb, var(--blue) 24%, transparent); }
   .pa-ic { background: color-mix(in srgb, #0E8A86 18%, transparent) !important; color: #0E8A86 !important; }
   .pa-hero { background: linear-gradient(180deg, color-mix(in srgb, #0E8A86 8%, var(--panel)) 0%, var(--panel) 230px); }
   .pa-pick { display: grid; gap: 10px; margin: 6px 0 12px; }
@@ -546,6 +566,7 @@
       <button type="button" class="mode" id="mode-ls" aria-pressed="false"><b>{{web.page.ben_ls}}</b><span>{{web.page.ls_sub}}</span></button>
       <button type="button" class="mode" id="mode-tr" aria-pressed="false"><b>{{web.page.ben_tr}}</b><span>{{web.page.tr_sub}}</span></button>
       <button type="button" class="mode" id="mode-pa" aria-pressed="false"><b>{{web.page.ben_pa}}</b><span>{{web.page.pa_sub}}</span></button>
+      <button type="button" class="mode" id="mode-lk" aria-pressed="false"><b>{{web.page.ben_lk}}</b><span>{{web.page.lk_sub}}</span></button>
     </div>
   </div>
 </header>
@@ -1098,6 +1119,71 @@
       </section>
     </div>
 
+    <div id="lk-app">
+      <p class="warn" id="lk-none" hidden>{{web.lk.none}}</p>
+      <section class="panel lk-hero" id="lk-sec">
+        <div class="tr-top">
+          <div>
+            <h2><span class="ic lk-ic" aria-hidden="true">⌕</span>{{web.lk.title}}</h2>
+            <p class="lead">{{web.lk.lead}}</p>
+          </div>
+          <div class="tr-now">
+            <span class="kicker">{{web.lk.price_label}}</span>
+            <b class="num" id="lk-price">—</b>
+            <span class="muted" id="lk-price-sub"></span>
+          </div>
+        </div>
+        <div class="lk-form">
+          <label class="field">{{web.lk.t_label}}<input type="date" id="lk-t"></label>
+          <label class="field">{{web.lk.h_label}}<span class="lk-h"><input type="number" id="lk-hn" min="1" max="1461" step="1" value="1" inputmode="numeric"><select id="lk-hu"><option value="1">{{web.lk.u_day}}</option><option value="30" selected>{{web.lk.u_month}}</option><option value="365">{{web.lk.u_year}}</option></select></span></label>
+          <button type="button" class="btn main" id="lk-go">{{web.lk.go}}</button>
+          <button type="button" class="btn" id="lk-latest">{{web.lk.latest}}</button>
+        </div>
+        <div class="seg" id="lk-quick" role="group" aria-label="{{web.lk.quick_label}}">
+          <button type="button" data-n="7" data-u="1">{{web.lk.q_7}}</button>
+          <button type="button" data-n="1" data-u="30">{{web.lk.q_30}}</button>
+          <button type="button" data-n="3" data-u="30">{{web.lk.q_90}}</button>
+          <button type="button" data-n="6" data-u="30">{{web.lk.q_180}}</button>
+          <button type="button" data-n="1" data-u="365">{{web.lk.q_365}}</button>
+          <button type="button" data-n="2" data-u="365">{{web.lk.q_730}}</button>
+        </div>
+        <p class="warn" id="lk-msg" aria-live="polite" hidden></p>
+        <div class="pa-honest" id="lk-honest"></div>
+        <div class="kpis" id="lk-state"></div>
+      </section>
+      <section class="panel" id="lk-band-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">↗</span><span id="lk-band-title">{{web.lk.band_head}}</span></h2>
+        <p class="sm muted">{{web.lk.ch_lead}}</p>
+        <div class="pa-chart" id="lk-chart"></div>
+        <div id="lk-band"></div>
+      </section>
+      <section class="panel" id="lk-hold-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">₿</span><span id="lk-hold-title">{{web.lk.hold_head}}</span></h2>
+        <div id="lk-hold"></div>
+      </section>
+      <section class="panel" id="lk-lv-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">⇵</span>{{web.lk.lv_title}}</h2>
+        <p class="lead">{{web.lk.lv_lead}}</p>
+        <div class="scroll"><table id="t-lk-lv"></table></div>
+      </section>
+      <section class="panel" id="lk-an-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">≈</span>{{web.lk.an_title}}</h2>
+        <p class="lead" id="lk-an-lead"></p>
+        <div class="scroll"><table id="t-lk-an"></table></div>
+        <div id="lk-an"></div>
+      </section>
+      <section class="panel" id="lk-ck-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">✓</span><span id="lk-ck-title">{{web.lk.ck_head}}</span></h2>
+        <p class="lead" id="lk-ck-lead"></p>
+        <div class="scroll"><table id="t-lk-ck"></table></div>
+        <div id="lk-ck"></div>
+      </section>
+      <section class="panel" id="lk-notes-sec">
+        <h2><span class="ic lk-ic" aria-hidden="true">i</span>{{web.lk.notes_title}}</h2>
+        <ul class="crit" id="lk-notes"></ul>
+      </section>
+    </div>
+
     <p class="foot">{{web.page.ket_qua_trong_qua_khu_khong}}</p>
   </div>
 </main>
@@ -1124,6 +1210,9 @@
 </script>
 <script>
 /*PA*/
+</script>
+<script>
+/*LK*/
 </script>
 </body>
 </html>
