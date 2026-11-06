@@ -569,6 +569,19 @@ sr_levels:
   page: "thẻ Price action riêng (chế độ thứ năm, nút cạnh Xu hướng): chọn khung (giờ / ngày / tuần / tháng) và số; hiện giá lúc này, kháng cự và hỗ trợ của khung, khoảng cách (% và ATR), khi chạm thì bật lại / xuyên qua bao nhiêu lần trong lịch sử so với mức giả, khả năng chạm trong H nến; bảng mọi số của cùng đơn vị. Bảng 'Kiểm tra điểm vào' (mục pa_sheet) chuyển từ Long/Short sang thẻ này, cách tính giữ nguyên"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
 
+# Đồ thị và bảng của thẻ Price action theo đúng khung. Người dùng báo 06/11/2026: "các khung thời gian của price action đều
+# giống nhau". Kiểm tra thấy mức R / S của từng khung đã khác nhau đúng định nghĩa sr_levels, nhưng đồ thị luôn vẽ nến giờ
+# (khung giờ, ngày) hoặc nến ngày (khung tuần, tháng): 1–24 giờ và 1 ngày cùng một đồ thị 48 nến giờ, 7–12 tháng cùng 390
+# nến ngày; nhiều khung có cùng một đỉnh / đáy nên cùng số. Chỉ đổi cách hiển thị; không tính con số mới, không đổi
+# levels, atr, touch, outcome, verdict, reach hay kết luận 0/102 của sr_levels.
+sr_view:
+  candles: "mỗi nến trên đồ thị = 1 đơn vị của khung: khung giờ vẽ nến 1 giờ; khung ngày gộp 24 nến giờ; khung tuần gộp 7 nến ngày; khung tháng gộp 30 nến ngày (như per_unit của sr_levels). Gộp: mở = mở của nến đầu, cao = cao nhất, thấp = thấp nhất, đóng = đóng của nến cuối. Các nhóm xếp từ nến đã đóng gần nhất lùi về trước, nên n nến gộp cuối đúng là W nến của khung n: đỉnh cao nhất của chúng là kháng cự R, đáy thấp nhất là hỗ trợ S (cùng số với sr_levels.levels). Nhóm thiếu nến ở đầu chuỗi bị bỏ"
+  count: "số nến gộp vẽ: giờ max(24, 3n), ngày max(10, 3n), tuần max(12, 3n), tháng max(12, 3n), không quá số nến có. Trang tải 520 nến giờ, 1100 nến ngày Binance; khi không tải được, sr.json lưu 504 nến giờ, 1100 nến ngày gần nhất (chỉ để vẽ)"
+  window: "n nến cuối (cửa sổ của khung) tô nền nhạt và ghi tên khung, để thấy kháng cự / hỗ trợ lấy từ nến nào"
+  same: "bảng 'Mọi khung': khi kháng cự (hỗ trợ) của khung n bằng đúng của khung n − 1, ô ghi thêm '= khung đầu tiên có mức đó', kèm một dòng giải thích: khung dài hơn chứa khung ngắn hơn, nên khi đỉnh / đáy cao nhất / thấp nhất nằm trong khung ngắn thì các khung dài hơn có cùng mức. Không nói mức trùng là mạnh hơn: sr_levels chưa đo điều đó"
+  unchanged: "thẻ kháng cự / hỗ trợ, ATR (14 nến giờ hoặc ngày, như sr_levels), vùng chạm, khả năng chạm, bật lại / xuyên qua giữ nguyên; bảng Kiểm tra điểm vào (pa_sheet) vẫn là nến ngày Bitstamp"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
 # Nút Hold trong bảng Kiểm tra điểm vào, và đề xuất Long / Short / Hold "chỉ khi hành động giá đã rõ". Người dùng yêu cầu
 # 03/11/2026, SAU khi đã biết price_action 0/48 và Long/Short chưa phía nào đủ 6/6. Ghi trước khi làm; không tính con số mới
 # nào ngoài việc hiển thị lại các kết quả đã có.
