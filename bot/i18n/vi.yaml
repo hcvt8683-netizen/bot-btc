@@ -748,8 +748,8 @@ web:
     col_actual: "Giá thật"
     col_in80: "Trong khoảng 80%?"
     col_in50: "Trong khoảng 50%?"
-    yes: "có"
-    no: "không"
+    "yes": "có"
+    "no": "không"
   rb:
     title: "Tuần này theo bản xây lại (đã kiểm định)"
     lead: "Đọc từ mô hình đóng băng và các kết quả kiểm định, tính hằng ngày trên máy chủ theo giá đóng tuần (Chủ nhật 23:59 UTC). Đây là phần đáng tin nhất của trang."

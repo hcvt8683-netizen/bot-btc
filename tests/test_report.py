@@ -88,6 +88,19 @@ def test_every_text_key_exists_and_vi_json_is_in_sync():
     assert json.loads((ROOT / "src" / "vi.json").read_text(encoding="utf-8")) == {"web": vi["web"], "sources": vi["sources"]}, "run python build.py"
 
 
+def test_yaml_reads_the_same_with_pyyaml_and_ruamel():
+    """load_yaml dùng PyYAML nếu máy có (YAML 1.1: yes/no/on/off là đúng/sai), không thì ruamel (YAML 1.2: là chữ).
+    Khóa hay giá trị yes/no/on/off không có ngoặc kép làm build hỏng trên máy có PyYAML (06/11/2026: web.fc.yes)."""
+    word = r"(?:yes|no|on|off)"
+    bad = []
+    for p in sorted([*(ROOT / "config").glob("*.yaml"), *(ROOT / "bot").rglob("*.yaml")]):
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            s = line.split(" #")[0].rstrip()
+            if re.match(rf"^\s*(?:- )?{word}\s*:", s, re.I) or re.search(rf":\s+{word}$", s, re.I):
+                bad.append(f"{p.relative_to(ROOT)}:{i}: {line.strip()}")
+    assert not bad, bad
+
+
 def test_buy_and_sell_tools_have_the_same_text_keys():
     """K('key') in src/ui.js reads web.en.key (buy side) or web.ex.key (sell side): both must exist."""
     web = load_yaml(ROOT / "bot" / "i18n" / "vi.yaml")["web"]
