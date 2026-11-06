@@ -70,8 +70,16 @@ def built_page() -> pathlib.Path:
     sys.path.insert(0, str(ROOT))
     import build  # noqa: PLC0415
     out = pathlib.Path(tempfile.mkdtemp()) / "page.html"
-    build.build(str(out), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"), ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"), lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"),
-                sr_path=str(ROOT / "tests" / "fixtures" / "sr.json"))
+    # Mọi số liệu nhúng đều cố định: pa / trend / hold của data/results đổi mỗi ngày, bảng Tóm tắt quyết định đọc chúng,
+    # nên ảnh chụp chữ từng đổi theo dữ liệu và làm Daily dừng ở bước Kiểm tra (06/11/2026). tests/fixtures/ui = bản 05/11/2026.
+    ui = ROOT / "tests" / "fixtures" / "ui"
+    build.PACT_PATH = str(ui / "pa.json")
+    try:
+        build.build(str(out), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"), ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"),
+                    lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"), sr_path=str(ROOT / "tests" / "fixtures" / "sr.json"),
+                    tr_path=str(ui / "trend.json"), hold_path=str(ui / "hold.json"))
+    finally:
+        build.PACT_PATH = None
     return out
 
 

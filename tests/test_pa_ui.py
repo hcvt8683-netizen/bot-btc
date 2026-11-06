@@ -108,6 +108,11 @@ async def _run(page_path: pathlib.Path, vw: int, fail: bool) -> dict:
         await pg.wait_for_timeout(200)
         res["month6"] = await pg.inner_text("#sr-cards")
         res["chart6"] = await pg.evaluate("document.querySelectorAll('#sr-chart rect.cu, #sr-chart rect.cd').length")
+        res["chart6_title"] = await pg.inner_text("#sr-chart-title")
+        res["chart6_span"] = await pg.evaluate("""() => { const s = document.querySelector('#sr-chart rect.span'), t = document.querySelector('#sr-chart .span-t');
+            const c = [...document.querySelectorAll('#sr-chart rect.cu, #sr-chart rect.cd')].map((r) => +r.getAttribute('x'));
+            return { x: s ? +s.getAttribute('x') : null, label: t ? t.textContent : null, inside: s ? c.filter((x) => x >= +s.getAttribute('x')).length : 0 }; }""")
+        res["same"] = await pg.evaluate("[...document.querySelectorAll('#t-sr tbody tr')].map((tr) => [tr.cells[1], tr.cells[4]].map((c) => (c.querySelector('.same') || {}).textContent || ''))")
         res["table"] = await pg.evaluate("""() => { const t = document.getElementById('t-sr');
             return { rows: t.tBodies[0].rows.length, here: t.querySelectorAll('tr.here').length, stack: t.classList.contains('stack'),
                      label: t.tBodies[0].rows[0].cells[1].dataset.label, overflow: Math.max(0, t.scrollWidth - t.clientWidth) }; }""")
@@ -134,16 +139,29 @@ def test_price_action_view(page_path: pathlib.Path, vw: int) -> None:
     assert v["cls"] == "pa-view" and v["pressed"] == ["false", "false", "false", "false", "true"]
     assert v["hidden"] == ["none", "none", "none"] and v["pa"] != "none" and v["pactHere"] and not v["pactInLs"]
     assert "nến giờ đóng lúc 16:00 02/11/2026" in r["status"]
-    R, S = levels(HOUR, 500, 24)                              # 1 ngày = 24 nến giờ đã đóng
+    R, S = levels(HOUR, 520, 24)                              # 1 ngày = 24 nến giờ đã đóng
     assert "Kháng cự 1 ngày" in r["day1"] and usd(R) in r["day1"] and "Hỗ trợ 1 ngày" in r["day1"] and usd(S) in r["day1"]
     assert "Bật xuống" in r["day1"] and "Mức giả cùng khoảng cách" in r["day1"]
     s = SR["summary"]
     assert f"{SR['tests']} khung × phía" in r["honest"] and f"{s['nhu_bat_ky']} như mức bất kỳ" in r["honest"]
     assert r["rows_day"] == 7
-    assert r["chart1"]["candles"] == 48 and {"Kháng", "Hỗ", "Lúc"} <= set(r["chart1"]["labels"])   # 2 × 24 nến giờ
-    assert r["chart6"] == 360                                                                       # 2 × 180 nến ngày
-    R6, S6 = levels(DAY, 400, 180)                            # 6 tháng = 180 nến ngày đã đóng
+    # mục sr_view: mỗi nến vẽ = 1 đơn vị của khung; khung 1 ngày: 10 nến ngày gộp từ nến giờ
+    assert r["chart1"]["candles"] == 10 and {"Kháng", "Hỗ", "Lúc"} <= set(r["chart1"]["labels"])
+    assert r["chart6"] == 18 and "18 nến tháng" in r["chart6_title"]                         # max(12, 3 × 6) nến tháng (30 ngày)
+    assert r["chart6_span"]["label"] == "6 tháng" and r["chart6_span"]["inside"] == 6          # nền xám = 6 nến cuối của khung
+    R6, S6 = levels(DAY, 1100, 180)                           # 6 tháng = 180 nến ngày đã đóng
     assert "Kháng cự 6 tháng" in r["month6"] and usd(R6) in r["month6"] and usd(S6) in r["month6"]
+    want = []                                                 # "= khung …" khi mức bằng đúng mức của khung trước
+    first = {}
+    for n in range(1, 13):
+        lv = levels(DAY, 1100, 30 * n)
+        cells = []
+        for i, x in enumerate(lv):
+            if n == 1 or x != levels(DAY, 1100, 30 * (n - 1))[i]:
+                first[i] = n
+            cells.append("" if first[i] == n else f"= khung {first[i]} tháng")
+        want.append(cells)
+    assert r["same"] == want and any(c for row in want for c in row)
     t = r["table"]
     assert t["rows"] == 12 and t["here"] == 1 and t["label"] == "Kháng cự"
     assert r["picked"] == "2" and r["ladder"] >= 3
