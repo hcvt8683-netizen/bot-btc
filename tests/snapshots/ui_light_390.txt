@@ -10,6 +10,7 @@ Bên bán
 Long/Short
 Xu hướng
 Price action
+Tra cứu
 --- home ---
 Khuyến nghị tuần này
 Mua đều
@@ -866,6 +867,7 @@ Bên bán
 Long/Short
 Xu hướng
 Price action
+Tra cứu
 --- home ---
 Bên bán tuần này
 Giữ
