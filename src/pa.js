@@ -36,9 +36,9 @@
   const frameName = (u, n) => tx('web.pa.f_' + u, n);
   const horizon = (r) => (r.candles === '1h' && r.H >= 24 && r.H % 24 === 0 ? tx('web.pa.h_days', r.H / 24) : r.candles === '1h' ? tx('web.pa.h_hours', r.H) : tx('web.pa.h_days', r.H));
 
-  // ----- nến trực tiếp: 500 nến giờ, 400 nến ngày (đủ cho 7 ngày và 12 tháng cộng ATR 14) -----
+  // ----- nến trực tiếp: 520 nến giờ, 1100 nến ngày (mức của 7 ngày / 12 tháng cộng ATR 14; đồ thị 21 nến ngày gộp, 36 nến tháng gộp) -----
   async function loadLive() {
-    const [kh, kd] = await Promise.all([getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1h&limit=500`), getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1d&limit=400`)]);
+    const [kh, kd] = await Promise.all([getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1h&limit=520`), getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1d&limit=1100`)]);
     const now = Date.now();
     const closed = (k) => k.filter((r) => Number(r[6]) < now).map((r) => ({ o: Number(r[1]), h: Number(r[2]), l: Number(r[3]), c: Number(r[4]), t: Number(r[6]) + 1 }));
     const h = closed(kh), d = closed(kd);
@@ -62,26 +62,44 @@
     return r.reach.find((b) => dist >= b.from && (b.to == null || dist < b.to)) || null;
   }
 
-  // ----- đồ thị nến của khung (hàm vẽ dùng chung PA_CHART của src/pact.js) -----
+  // ----- đồ thị nến của khung (mục sr_view; hàm vẽ dùng chung PA_CHART của src/pact.js) -----
+  // Mỗi nến vẽ = 1 đơn vị của khung (giờ: 1 nến giờ; ngày: 24 nến giờ; tuần: 7 nến ngày; tháng: 30 nến ngày), gộp từ nến
+  // đã đóng gần nhất lùi về trước, nên n nến gộp cuối đúng là W nến của khung n: đỉnh / đáy của chúng là R / S.
   const two = (x) => String(x).padStart(2, '0');
+  const PER = { gio: 1, ngay: 24, tuan: 7, thang: 30 }, MIN_BARS = { gio: 24, ngay: 10, tuan: 12, thang: 12 };
+  function baseCandles(r) {   // nến gốc đã đóng, t = giờ mở nến (ms UTC)
+    const hourly = r.candles === '1h', L = view.live && view.live[r.candles];
+    return L ? L.map((k) => ({ t: k.t - (hourly ? 3600000 : 86400000), o: k.o, h: k.h, l: k.l, c: k.c }))
+      : (SR.now[r.candles].candles || []).map(([x, o, h, l, c]) => ({ t: Date.parse(utcIso(x)) - (hourly ? 3600000 : 0), o, h, l, c }));
+  }
+  function group(base, per) {
+    const out = [];
+    for (let end = base.length; end - per >= 0; end -= per) {
+      const g = base.slice(end - per, end), hs = g.map((k) => k.h).filter(ok), ls = g.map((k) => k.l).filter(ok);
+      const o = g.find((k) => ok(k.o)), c = [...g].reverse().find((k) => ok(k.c));
+      out.unshift({ t: g[0].t, t1: g[g.length - 1].t, o: o ? o.o : null, h: hs.length ? Math.max(...hs) : null, l: ls.length ? Math.min(...ls) : null, c: c ? c.c : null });
+    }
+    return out;
+  }
   function candlesOf(r) {
-    const hourly = r.candles === '1h', n = hourly ? Math.min(240, Math.max(48, 2 * r.W)) : Math.min(390, Math.max(60, 2 * r.W));
-    const L = view.live && view.live[r.candles];
-    const raw = L ? L.slice(-n).map((k) => ({ t: k.t - (hourly ? 3600000 : 86400000), o: k.o, h: k.h, l: k.l, c: k.c }))
-      : (SR.now[r.candles].candles || []).slice(-n).map(([x, o, h, l, c]) => ({ t: Date.parse(utcIso(x)) - (hourly ? 3600000 : 0), o, h, l, c }));
-    return raw.map((k) => {   // nhãn theo giờ mở nến: nến giờ theo giờ Việt Nam, nến ngày theo ngày UTC
-      const v = new Date(k.t + (hourly ? 7 * 3600000 : 0)), dd = two(v.getUTCDate()), mm = two(v.getUTCMonth() + 1);
-      return { ...k, d: hourly ? `${dd}/${mm} ${two(v.getUTCHours())}h` : n > 200 ? `${mm}/${String(v.getUTCFullYear()).slice(2)}` : `${dd}/${mm}`,
-        full: hourly ? `${two(v.getUTCHours())}:00 ${dd}/${mm}/${v.getUTCFullYear()}` : `${dd}/${mm}/${v.getUTCFullYear()}` };
+    const hourly = r.candles === '1h', per = PER[r.unit], step = hourly ? 3600000 : 86400000;
+    const all = group(baseCandles(r), per), cand = all.slice(-Math.max(MIN_BARS[r.unit], 3 * r.n));
+    const vn = (t) => new Date(t + (hourly ? 7 * 3600000 : 0));   // nến giờ theo giờ Việt Nam, nến ngày theo ngày UTC
+    const day = (v) => `${two(v.getUTCDate())}/${two(v.getUTCMonth() + 1)}/${v.getUTCFullYear()}`;
+    const at = (v) => (hourly ? `${two(v.getUTCHours())}:00 ` : '') + day(v);
+    return cand.map((k) => {
+      const v = vn(k.t), e = vn(k.t1 + step), dd = two(v.getUTCDate()), mm = two(v.getUTCMonth() + 1);
+      return { ...k, d: r.unit === 'gio' ? `${dd}/${mm} ${two(v.getUTCHours())}h` : r.unit === 'thang' ? `${mm}/${String(v.getUTCFullYear()).slice(2)}` : `${dd}/${mm}`,
+        full: per === 1 ? at(v) : `${at(v)} → ${at(e)}` };
     });
   }
   function chart(r, lv) {
     const box = $('sr-chart');
     if (!window.PA_CHART) return;
-    const cand = candlesOf(r), a = lv.atr, w = SR.params.zone_atr * a, b = SR.params.bounce_atr * a;
-    $('sr-chart-title').textContent = tx(view.live ? 'web.pa.ch_title' : 'web.pa.ch_title_old', `${cand.length} ${tx(r.candles === '1h' ? 'web.pa.ch_hour' : 'web.pa.ch_day')}`, frameName(r.unit, r.n));
+    const cand = candlesOf(r), a = lv.atr, w = SR.params.zone_atr * a, b = SR.params.bounce_atr * a, inWin = Math.min(r.n, cand.length);
+    $('sr-chart-title').textContent = tx(view.live ? 'web.pa.ch_title' : 'web.pa.ch_title_old', nf(0).format(cand.length), tx('web.pa.ch_c_' + r.unit), frameName(r.unit, r.n), nf(0).format(inWin));
     window.PA_CHART(box, cand, {
-      height: 320, label: frameName(r.unit, r.n),
+      height: 320, label: frameName(r.unit, r.n), span: { from: cand.length - inWin, label: frameName(r.unit, r.n) },
       zones: [{ lo: lv.R - w, hi: lv.R + w, cls: 'r' }, { lo: lv.S - w, hi: lv.S + w, cls: 's' }],
       lines: [{ y: lv.R, cls: 'r', label: tx('web.pa.ch_r') }, { y: lv.S, cls: 's', label: tx('web.pa.ch_s') }, { y: lv.price, cls: 'p', label: tx('web.pa.ch_now') },
         { y: lv.R - b, cls: 't' }, { y: lv.S + b, cls: 't' }],
@@ -158,19 +176,27 @@
     const head = el('tr');
     for (const t of [tx('web.pa.th_frame'), tx('web.pa.th_r'), tx('web.pa.th_rd'), tx('web.pa.th_rb'), tx('web.pa.th_s'), tx('web.pa.th_sd'), tx('web.pa.th_sb'), tx('web.pa.th_v')]) head.append(el('th', null, t));
     const thead = el('thead'), tbody = el('tbody'); thead.append(head);
+    const first = { R: null, S: null }, prev = { R: null, S: null };   // mục sr_view: mức bằng đúng khung trước → ghi khung đầu tiên có mức đó
+    const lvCell = (side, n, x) => {
+      if (!(ok(x) && x === prev[side])) first[side] = n;
+      prev[side] = x;
+      const td = el('td', 'r', usd(x));
+      if (first[side] !== n) td.append(el('span', 'same', tx('web.pa.same_as', frameName(view.unit, first[side]))));
+      return td;
+    };
     for (const n of nsOf(view.unit)) {
       const rR = row(view.unit, n, 'R'), rS = row(view.unit, n, 'S'), lv = levelsNow(rR), tr = el('tr', n === view.n ? 'here' : null);
       const vcell = el('td');
       for (const [x, nm] of [[rR, tx('web.pa.th_r')], [rS, tx('web.pa.th_s')]]) { const v = el('span', 'v ' + x.verdict, `${nm}: ${tx('web.pa.v_' + x.verdict)}`); vcell.append(v, document.createElement('br')); }
       vcell.lastChild.remove();
       const both = (x) => `${pc(x.real.p, 0)} / ${pc(x.fake.p, 0)}`;
-      tr.append(el('td', null, frameName(view.unit, n)), el('td', 'r', usd(lv.R)), el('td', 'r', spc(lv.R / lv.price - 1)), el('td', 'r', both(rR)),
-        el('td', 'r', usd(lv.S)), el('td', 'r', spc(lv.S / lv.price - 1)), el('td', 'r', both(rS)), vcell);
+      tr.append(el('td', null, frameName(view.unit, n)), lvCell('R', n, lv.R), el('td', 'r', spc(lv.R / lv.price - 1)), el('td', 'r', both(rR)),
+        lvCell('S', n, lv.S), el('td', 'r', spc(lv.S / lv.price - 1)), el('td', 'r', both(rS)), vcell);
       tr.addEventListener('click', () => { view.n = n; render(); $('sr-sec').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
       tbody.append(tr);
     }
     $('t-sr').replaceChildren(thead, tbody);
-    $('sr-notes').replaceChildren(...[tx('web.pa.note_data'), tx('web.pa.note_fake'), tx('web.pa.note_long')].map((t) => el('li', null, t)));
+    $('sr-notes').replaceChildren(...[tx('web.pa.note_same'), tx('web.pa.note_bars'), tx('web.pa.note_data'), tx('web.pa.note_fake'), tx('web.pa.note_long')].map((t) => el('li', null, t)));
   }
   function renderMethod() {
     const r0 = row(view.unit, view.n, 'R');

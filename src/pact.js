@@ -45,6 +45,11 @@
       svg.append(sv('line', { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), class: 'grid' }));
       const t = sv('text', { x: m.l + 4, y: Y(v) - 3, class: 'ax' }); t.textContent = n0.format(v); svg.append(t);
     }
+    if (o.span && o.span.from >= 0 && o.span.from < n) {   // cửa sổ của khung (src/pa.js): nền nhạt từ nến span.from đến hết
+      const x0 = m.l + o.span.from * cw;
+      svg.append(sv('rect', { x: x0, width: W - m.r - x0, y: m.t, height: H - m.t - m.b, class: 'span' }));
+      if (o.span.label) { const t = sv('text', { x: x0 + 4, y: m.t + 12, class: 'ax span-t' }); t.textContent = o.span.label; svg.append(t); }
+    }
     for (const z of zones) svg.append(sv('rect', { x: m.l, width: W - m.l - m.r, y: Y(z.hi), height: Math.max(1, Y(z.lo) - Y(z.hi)), class: 'zn ' + z.cls }));
     const bw = Math.max(1, Math.min(9, cw * 0.66));
     cand.forEach((k, i) => {
