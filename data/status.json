@@ -182,13 +182,12 @@
    "errors": [],
    "warnings": [
     "close: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 05/11/2026",
-    "high: 1 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 04/11/2026",
     "low: 3 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/11/2026"
    ],
-   "last": "2026-11-09",
-   "rows": 312,
+   "last": "2026-11-10",
+   "rows": 336,
    "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-11T07:50:00Z"
+ "fetched_at": "2026-11-11T08:16:12Z"
 }
