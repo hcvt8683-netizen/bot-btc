@@ -113,6 +113,14 @@ async def _run(page_path: pathlib.Path, vw: int, fail: bool) -> dict:
             const c = [...document.querySelectorAll('#sr-chart rect.cu, #sr-chart rect.cd')].map((r) => +r.getAttribute('x'));
             return { x: s ? +s.getAttribute('x') : null, label: t ? t.textContent : null, inside: s ? c.filter((x) => x >= +s.getAttribute('x')).length : 0 }; }""")
         res["same"] = await pg.evaluate("[...document.querySelectorAll('#t-sr tbody tr')].map((tr) => [tr.cells[1], tr.cells[4]].map((c) => (c.querySelector('.same') || {}).textContent || ''))")
+        res["levels_all"] = {}
+        for unit in ("gio", "ngay", "tuan", "thang"):
+            await pg.click(f"#sr-unit [data-u={unit}]")
+            await pg.wait_for_timeout(100)
+            res["levels_all"][unit] = await pg.evaluate(
+                "[...document.querySelectorAll('#t-sr tbody tr')].map((tr) => [tr.cells[1], tr.cells[4]].map((c) => c.childNodes[0].textContent))")
+        await pg.click("#sr-unit [data-u=thang]")
+        await pg.wait_for_timeout(100)
         res["table"] = await pg.evaluate("""() => { const t = document.getElementById('t-sr');
             return { rows: t.tBodies[0].rows.length, here: t.querySelectorAll('tr.here').length, stack: t.classList.contains('stack'),
                      label: t.tBodies[0].rows[0].cells[1].dataset.label, overflow: Math.max(0, t.scrollWidth - t.clientWidth) }; }""")
@@ -162,6 +170,14 @@ def test_price_action_view(page_path: pathlib.Path, vw: int) -> None:
             cells.append("" if first[i] == n else f"= khung {first[i]} tháng")
         want.append(cells)
     assert r["same"] == want and any(c for row in want for c in row)
+    # mỗi khung của cả 4 đơn vị phải ra đúng mức của cửa sổ W nến riêng (như sr_levels.levels trong Python)
+    FRAMES = {"gio": (HOUR, 520, 1, 24), "ngay": (HOUR, 520, 24, 7), "tuan": (DAY, 1100, 7, 8), "thang": (DAY, 1100, 30, 12)}
+    for unit, (step, cnt, per, mx) in FRAMES.items():
+        want_lv = [[usd(v) for v in levels(step, cnt, per * n)] for n in range(1, mx + 1)]
+        assert r["levels_all"][unit] == want_lv, unit
+    # cửa sổ khác nhau phải cho mức khác nhau ở dữ liệu này (bắt lỗi mọi khung dùng chung một cửa sổ)
+    assert len({tuple(row) for row in r["levels_all"]["gio"]}) > 1
+    assert len({tuple(row) for row in r["levels_all"]["thang"]}) > 1
     t = r["table"]
     assert t["rows"] == 12 and t["here"] == 1 and t["label"] == "Kháng cự"
     assert r["picked"] == "2" and r["ladder"] >= 3
