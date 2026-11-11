@@ -648,3 +648,24 @@ forecast_regime:
   rule: "chọn trong tron / theo_nhom cách có điểm thấp nhất ở giai đoạn chọn. Chỉ thay cách đang dùng nếu ở giai đoạn xác nhận: (a) khoảng tin cậy 95% của chênh lệch điểm (bootstrap khối 30 ngày, 2000 lần, seed của rebuild) nằm hẳn dưới 0; (b) dải 80% phủ 75–85% (trung bình 8 kỳ hạn); (c) độ lệch phủ theo nhóm nhỏ hơn cách đang dùng. Không đạt đủ cả ba thì giữ nguyên và ghi kết quả"
   report: "python -m bot.cli forecast-regime → docs/FORECAST_REGIME.md và data/results/forecast_regime.json; không đổi trang hay nhật ký nếu không đạt"
   if_switch: "đổi price_forecast.bands sang cách thắng (phiên bản nhật ký mới, thống kê tách theo phiên bản). Giá chờ mua / bán (entry, exit) và khoảng của thẻ Xu hướng dùng cùng độ dao động 30 ngày: chỉ đổi sau một đăng ký riêng"
+
+# RSI 14 làm tiêu chí đánh giá cho ba chế độ Xu hướng, Long/Short và Price action. Người dùng yêu cầu 11/11/2026
+# ("kết hợp RSI trong dự báo giá, nhằm tăng khả năng dự báo chính xác nhất"). Đăng ký trước khi tính bất kỳ con số nào;
+# ngưỡng sách giáo khoa (14 kỳ, 30/70, 20/80), không dò.
+rsi_check:
+  why: "người dùng muốn thêm RSI vào tiêu chí đánh giá của ba chế độ Xu hướng, Long/Short và Price action, và tin rằng dải RSI càng sâu (quá bán / quá mua càng nặng) thì tỷ lệ thắng càng cao. Mục này đo trung thực RSI 14 với ngưỡng kinh điển so với một ngày (giờ) bất kỳ; chỉ khi thắng tỷ lệ gốc sau hiệu chỉnh mới được dùng đổi kết luận trên trang"
+  known_before: "đã biết: 12 mẫu nến 0/36 ô hơn mốc; học máy không thắng tỷ lệ gốc; price_action 0/48; sr_levels 0/102; trend: không mô hình nào thắng về hướng; perp / perp_trade chưa có lợi thế. Chưa tính con số nào của mục này"
+  rsi: "RSI 14 kiểu Wilder trên giá đóng: thay đổi mỗi nến so với nến trước; tăng trung bình / giảm trung bình khởi đầu = trung bình cộng của 14 thay đổi đầu tiên, sau đó làm mượt a(t) = (a(t−1) × 13 + x(t)) / 14; RSI = 100 − 100 / (1 + tăng TB / giảm TB); giảm TB = 0 thì RSI = 100. Giá trị tại nến t chỉ dùng các nến đến t; thiếu nến (NaN) thì không có RSI ngày đó"
+  bands:
+    qua_ban_sau: "tăng khi RSI(t) < 20"
+    qua_ban: "tăng khi 20 ≤ RSI(t) < 30"
+    qua_mua: "giảm khi 70 < RSI(t) ≤ 80"
+    qua_mua_sau: "giảm khi RSI(t) > 80"
+  daily: "nến ngày Bitstamp BTC/USD (như mục candles, candles.load), RSI trên giá đóng ngày; chấm mọi ngày từ 2016-01-01 đến ngày cuối đã biết kết quả; kỳ hạn (ngày): [1, 2, 3, 4, 5, 6, 7, 14, 21, 28, 30, 60, 90, 120, 150, 180] (đúng các kỳ hạn của mục trend)"
+  hourly: "nến giờ BTCUSDT vĩnh cửu Binance (perp_signal.hourly, từ 2020-01-01), RSI trên giá đóng giờ; chấm từ 2020-07-01 (như sr_levels); kỳ hạn (giờ): [1, 2, 3, 4, 6, 8, 12, 24, 48, 72, 120, 168]"
+  eval: "như mục candles: tại nến t thuộc dải, xét lợi suất k nến tới r = giá đóng(t + k) / giá đóng(t) − 1; đúng khi r đi như dải báo (tăng: r > 0; giảm: r < 0); chỉ đếm các lần độc lập cách nhau ít nhất k nến (lấy lần sớm nhất, bỏ các lần trong k nến sau nó); so với tỷ lệ cùng hướng của mọi nến đã biết kết quả trong giai đoạn (nhị thức một phía); hai nửa chia ở nến giữa; dưới 30 lần độc lập: ít dữ liệu"
+  holm: "Holm trên mọi dải × kỳ hạn của cả hai loại nến: 4 × 16 + 4 × 12 = 112 phép thử; một ô có lợi thế khi không ít dữ liệu, p Holm < 0,05 và tỷ lệ đúng hơn tỷ lệ gốc ở cả hai nửa (như candles.edge)"
+  claim: "kiểm chứng niềm tin 'dải càng sâu thì tỷ lệ thắng càng cao': mỗi kỳ hạn, so tỷ lệ đúng của dải sâu với dải nông cùng phía (qua_ban_sau so với qua_ban, qua_mua_sau so với qua_mua) bằng kiểm định hai tỷ lệ gộp (z, hai phía), Holm riêng trên 2 × (16 + 12) = 56 phép; báo trung thực dù kết quả thế nào"
+  page: "ba chế độ hiện giá trị RSI lúc này kèm dải: Xu hướng và Price action dùng RSI ngày của lần chạy Daily; Long/Short tính RSI giờ trực tiếp từ nến tải về lúc mở (hàm JS phải giống hệt Python, có test đối chiếu), không tải được thì dùng của Daily. Kèm bảng kết quả lịch sử. Chỉ dải × kỳ hạn có lợi thế sau Holm mới được dùng làm tín hiệu; không có thì trang ghi 'chưa có lợi thế thống kê' và kết luận của các chế độ giữ nguyên"
+  output: "python -m bot.cli rsi → data/results/rsi.json (build.py nhúng vào trang) và docs/RSI_KIEM_TRA.md"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
