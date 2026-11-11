@@ -12,7 +12,7 @@
    ],
    "last": "2026-11-10",
    "rows": 5960,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fng": {
    "ok": true,
@@ -24,7 +24,7 @@
    ],
    "last": "2026-11-11",
    "rows": 3202,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_spot": {
    "ok": true,
@@ -36,7 +36,7 @@
    ],
    "last": "2026-11-10",
    "rows": 3373,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_funding": {
    "ok": true,
@@ -47,7 +47,7 @@
    "warnings": [],
    "last": "2026-10-31",
    "rows": 183,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_oi": {
    "ok": true,
@@ -58,7 +58,7 @@
    "warnings": [],
    "last": "2026-11-10",
    "rows": 13,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_basis": {
    "ok": true,
@@ -69,7 +69,7 @@
    "warnings": [],
    "last": "2026-11-09",
    "rows": 12,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "stablecoins": {
    "ok": true,
@@ -80,7 +80,7 @@
    ],
    "last": "2026-11-11",
    "rows": 3270,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DTWEXBGS": {
    "ok": true,
@@ -92,7 +92,7 @@
    ],
    "last": "2026-11-06",
    "rows": 5227,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFII10": {
    "ok": true,
@@ -103,7 +103,7 @@
    ],
    "last": "2026-11-09",
    "rows": 5968,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -113,9 +113,9 @@
     "1 khoảng trống (lớn nhất 7 ngày): 10/09/2001→17/09/2001",
     "nasdaq: 43 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/04/2025"
    ],
-   "last": "2026-11-09",
-   "rows": 14059,
-   "snapshot": "2026-11-11.parquet"
+   "last": "2026-11-10",
+   "rows": 14060,
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_M2SL": {
    "ok": true,
@@ -126,7 +126,7 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coinmetrics_ext": {
    "ok": true,
@@ -139,7 +139,7 @@
    ],
    "last": "2026-11-10",
    "rows": 5960,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "bitstamp": {
    "ok": true,
@@ -150,7 +150,7 @@
    ],
    "last": "2026-11-10",
    "rows": 5564,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coingecko": {
    "ok": true,
@@ -161,7 +161,7 @@
    ],
    "last": "2026-11-10",
    "rows": 365,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFEDTARU": {
    "ok": true,
@@ -172,7 +172,7 @@
    ],
    "last": "2026-11-10",
    "rows": 6539,
-   "snapshot": "2026-11-11.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_perp_1h": {
    "ok": true,
@@ -182,12 +182,13 @@
    "errors": [],
    "warnings": [
     "close: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 05/11/2026",
+    "high: 1 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 04/11/2026",
     "low: 3 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/11/2026"
    ],
    "last": "2026-11-09",
-   "rows": 288,
-   "snapshot": "2026-11-11.parquet"
+   "rows": 312,
+   "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-11T01:49:51Z"
+ "fetched_at": "2026-11-11T05:21:09Z"
 }
