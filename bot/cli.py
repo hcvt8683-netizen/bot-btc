@@ -24,6 +24,7 @@ plan-stable                how often Giải ngân / Chốt lời dần changed t
 exit-calib                 R1: calibration of the selling-price touch chance by year and 200-day state → docs/R1_GIA_CHO_BAN.md
 long-hold                  buy and hold: share of gains after holding 1 week … 4 years, buying price → data/results/hold.json
 sr-levels                  support / resistance by frame (hours, days, weeks, months): bounce or break vs a placebo level → data/results/sr.json
+pa-rsi                     RSI joined with price action vs any day / PA alone / RSI alone (registered) → docs/PA_RSI.md
 rsi                        RSI 14 bands vs any day / hour (registered, honest): data/results/rsi.json + docs/RSI_KIEM_TRA.md
 final-report               docs/BAO_CAO.md + docs/PHU_LUC.md + docs/img/calib_*.svg from the result files
 """
@@ -197,6 +198,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"RSI 14: ngày {t['daily']['rsi']:.0f} ({t['daily']['band'] or 'trung tính'}), giờ {t['hourly']['rsi']:.0f} ({t['hourly']['band'] or 'trung tính'}); "
               f"{o['tests']} phép thử, có lợi thế: {o['summary']['edge']}, 'dải sâu thắng hơn': {o['claim_summary']['deeper_better']}/{o['claim_summary']['n']} "
               f"(phiên bản {o['version']}). data/results/rsi.json, docs/RSI_KIEM_TRA.md")
+        return 0
+    if args.command == "pa-rsi":
+        from bot.models import pa_rsi as pr
+        o = pr.run(write=True)
+        c = o["counts"]
+        print(f"RSI + price action: {o['n_pairs']} cặp; hơn ngày bất kỳ {c['hon']}, kém {c['kem']}, chưa có lợi thế {c['chua']}, ít đợt {c['it_dot']}; "
+              f"làm tăng lợi ích: {len(o['benefit'])} (phiên bản {o['version']}). docs/PA_RSI.md")
         return 0
     if args.command == "pa-sheet":
         from bot.models import pa_sheet as ps
