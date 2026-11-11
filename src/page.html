@@ -1031,39 +1031,6 @@
     <!-- ================= PRICE ACTION (chế độ riêng, src/pa.js; bảng Kiểm tra điểm vào: src/pact.js) ================= -->
     <div id="pa-app">
       <p class="warn" id="sr-none" hidden>{{web.pa.none}}</p>
-      <section class="panel pa-hero" id="sr-sec">
-        <div class="tr-top">
-          <div>
-            <h2><span class="ic pa-ic" aria-hidden="true">⇵</span>{{web.pa.title}}</h2>
-            <p class="lead">{{web.pa.lead}}</p>
-          </div>
-          <div class="tr-now">
-            <span class="kicker">{{web.pa.now_label}}</span>
-            <b class="num" id="sr-price">—</b>
-            <span class="muted" id="sr-price-sub"></span>
-          </div>
-        </div>
-        <div class="pa-pick">
-          <div class="seg pa-units" id="sr-unit" role="group" aria-label="{{web.pa.unit_label}}">
-            <button type="button" data-u="gio" aria-pressed="false">{{web.pa.u_gio}}</button>
-            <button type="button" data-u="ngay" aria-pressed="true">{{web.pa.u_ngay}}</button>
-            <button type="button" data-u="tuan" aria-pressed="false">{{web.pa.u_tuan}}</button>
-            <button type="button" data-u="thang" aria-pressed="false">{{web.pa.u_thang}}</button>
-          </div>
-          <div class="pa-ns" id="sr-ns" role="group" aria-label="{{web.pa.n_label}}"></div>
-        </div>
-        <div class="pa-honest" id="sr-honest"></div>
-        <p class="sm" id="sr-chart-title"></p>
-        <div class="pa-chart" id="sr-chart"></div>
-        <div class="pa-cards" id="sr-cards"></div>
-        <p class="progress" id="sr-status"></p>
-      </section>
-      <section class="panel" id="sr-all-sec">
-        <h2><span class="ic pa-ic" aria-hidden="true">≡</span><span id="sr-all-title"></span></h2>
-        <p class="lead" id="sr-all-lead"></p>
-        <div class="scroll"><table id="t-sr"></table></div>
-        <ul class="crit" id="sr-notes"></ul>
-      </section>
       <section class="panel" id="pact-sec">
         <h2><span class="ic" aria-hidden="true">◈</span>{{web.pact.title}}</h2>
         <p class="warn" id="pact-none" hidden>{{web.pact.none}}</p>
@@ -1104,6 +1071,39 @@
           </details>
           <p class="muted" id="pact-foot" style="margin-top:14px">{{web.pact.foot}} <span id="pact-updated"></span></p>
         </div>
+      </section>
+      <section class="panel pa-hero" id="sr-sec">
+        <div class="tr-top">
+          <div>
+            <h2><span class="ic pa-ic" aria-hidden="true">⇵</span>{{web.pa.title}}</h2>
+            <p class="lead">{{web.pa.lead}}</p>
+          </div>
+          <div class="tr-now">
+            <span class="kicker">{{web.pa.now_label}}</span>
+            <b class="num" id="sr-price">—</b>
+            <span class="muted" id="sr-price-sub"></span>
+          </div>
+        </div>
+        <div class="pa-pick">
+          <div class="seg pa-units" id="sr-unit" role="group" aria-label="{{web.pa.unit_label}}">
+            <button type="button" data-u="gio" aria-pressed="false">{{web.pa.u_gio}}</button>
+            <button type="button" data-u="ngay" aria-pressed="true">{{web.pa.u_ngay}}</button>
+            <button type="button" data-u="tuan" aria-pressed="false">{{web.pa.u_tuan}}</button>
+            <button type="button" data-u="thang" aria-pressed="false">{{web.pa.u_thang}}</button>
+          </div>
+          <div class="pa-ns" id="sr-ns" role="group" aria-label="{{web.pa.n_label}}"></div>
+        </div>
+        <div class="pa-honest" id="sr-honest"></div>
+        <p class="sm" id="sr-chart-title"></p>
+        <div class="pa-chart" id="sr-chart"></div>
+        <div class="pa-cards" id="sr-cards"></div>
+        <p class="progress" id="sr-status"></p>
+      </section>
+      <section class="panel" id="sr-all-sec">
+        <h2><span class="ic pa-ic" aria-hidden="true">≡</span><span id="sr-all-title"></span></h2>
+        <p class="lead" id="sr-all-lead"></p>
+        <div class="scroll"><table id="t-sr"></table></div>
+        <ul class="crit" id="sr-notes"></ul>
       </section>
       <section class="panel" id="sr-method">
         <h2><span class="ic pa-ic" aria-hidden="true">✓</span>{{web.pa.method_title}}</h2>
