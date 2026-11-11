@@ -36,9 +36,17 @@
   const frameName = (u, n) => tx('web.pa.f_' + u, n);
   const horizon = (r) => (r.candles === '1h' && r.H >= 24 && r.H % 24 === 0 ? tx('web.pa.h_days', r.H / 24) : r.candles === '1h' ? tx('web.pa.h_hours', r.H) : tx('web.pa.h_days', r.H));
 
-  // ----- nến trực tiếp: 520 nến giờ, 1100 nến ngày (mức của 7 ngày / 12 tháng cộng ATR 14; đồ thị 21 nến ngày gộp, 36 nến tháng gộp) -----
+  // ----- nến trực tiếp: 2 trang × 1500 nến giờ và nến ngày (mức của 7 ngày / 12 tháng cộng ATR 14; đồ thị mỗi nến = trọn khung, mục sr_view) -----
+  async function pages(interval) {   // trang mới nhất, rồi trang liền trước (endTime); gộp, bỏ trùng theo giờ mở nến
+    const first = await getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=${interval}&limit=1500`);
+    let older = [];
+    if (first.length) { try { older = await getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=${interval}&limit=1500&endTime=${Number(first[0][0]) - 1}`); } catch (e) { /* một trang vẫn dùng được */ } }
+    const seen = new Map();
+    for (const r of [...older, ...first]) seen.set(Number(r[0]), r);
+    return [...seen.values()].sort((a, b) => Number(a[0]) - Number(b[0]));
+  }
   async function loadLive() {
-    const [kh, kd] = await Promise.all([getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1h&limit=520`), getJSON(`${FAPI}klines?symbol=BTCUSDT&interval=1d&limit=1100`)]);
+    const [kh, kd] = await Promise.all([pages('1h'), pages('1d')]);
     const now = Date.now();
     const closed = (k) => k.filter((r) => Number(r[6]) < now).map((r) => ({ o: Number(r[1]), h: Number(r[2]), l: Number(r[3]), c: Number(r[4]), t: Number(r[6]) + 1 }));
     const h = closed(kh), d = closed(kd);
@@ -63,10 +71,10 @@
   }
 
   // ----- đồ thị nến của khung (mục sr_view; hàm vẽ dùng chung PA_CHART của src/pact.js) -----
-  // Mỗi nến vẽ = 1 đơn vị của khung (giờ: 1 nến giờ; ngày: 24 nến giờ; tuần: 7 nến ngày; tháng: 30 nến ngày), gộp từ nến
-  // đã đóng gần nhất lùi về trước, nên n nến gộp cuối đúng là W nến của khung n: đỉnh / đáy của chúng là R / S.
+  // Mỗi nến vẽ = trọn khung đang xem (khung 3 ngày: nến 3 ngày = 72 nến giờ; khung 6 tháng: nến 180 ngày), gộp từ nến đã đóng
+  // gần nhất lùi về trước, nên nến cuối đúng là W nến của khung: đỉnh / đáy của nó là R / S (= sr_levels.levels).
   const two = (x) => String(x).padStart(2, '0');
-  const PER = { gio: 1, ngay: 24, tuan: 7, thang: 30 }, MIN_BARS = { gio: 24, ngay: 10, tuan: 12, thang: 12 };
+  const PER = { gio: 1, ngay: 24, tuan: 7, thang: 30 }, MAX_BARS = 30;
   function baseCandles(r) {   // nến gốc đã đóng, t = giờ mở nến (ms UTC)
     const hourly = r.candles === '1h', L = view.live && view.live[r.candles];
     return L ? L.map((k) => ({ t: k.t - (hourly ? 3600000 : 86400000), o: k.o, h: k.h, l: k.l, c: k.c }))
@@ -82,8 +90,8 @@
     return out;
   }
   function candlesOf(r) {
-    const hourly = r.candles === '1h', per = PER[r.unit], step = hourly ? 3600000 : 86400000;
-    const all = group(baseCandles(r), per), cand = all.slice(-Math.max(MIN_BARS[r.unit], 3 * r.n));
+    const hourly = r.candles === '1h', per = r.W, step = hourly ? 3600000 : 86400000;
+    const cand = group(baseCandles(r), per).slice(-MAX_BARS);
     const vn = (t) => new Date(t + (hourly ? 7 * 3600000 : 0));   // nến giờ theo giờ Việt Nam, nến ngày theo ngày UTC
     const day = (v) => `${two(v.getUTCDate())}/${two(v.getUTCMonth() + 1)}/${v.getUTCFullYear()}`;
     const at = (v) => (hourly ? `${two(v.getUTCHours())}:00 ` : '') + day(v);
@@ -96,10 +104,11 @@
   function chart(r, lv) {
     const box = $('sr-chart');
     if (!window.PA_CHART) return;
-    const cand = candlesOf(r), a = lv.atr, w = SR.params.zone_atr * a, b = SR.params.bounce_atr * a, inWin = Math.min(r.n, cand.length);
-    $('sr-chart-title').textContent = tx(view.live ? 'web.pa.ch_title' : 'web.pa.ch_title_old', nf(0).format(cand.length), tx('web.pa.ch_c_' + r.unit), frameName(r.unit, r.n), nf(0).format(inWin));
+    const cand = candlesOf(r), a = lv.atr, w = SR.params.zone_atr * a, b = SR.params.bounce_atr * a;
+    const src = r.W === 1 ? tx('web.pa.ch_src_one') : tx(r.candles === '1h' ? 'web.pa.ch_src_h' : 'web.pa.ch_src_d', nf(0).format(r.W));
+    $('sr-chart-title').textContent = tx(view.live ? 'web.pa.ch_title' : 'web.pa.ch_title_old', nf(0).format(cand.length), frameName(r.unit, r.n), src);
     window.PA_CHART(box, cand, {
-      height: 320, label: frameName(r.unit, r.n), span: { from: cand.length - inWin, label: frameName(r.unit, r.n) },
+      height: 320, label: frameName(r.unit, r.n), span: { from: cand.length - 1, label: frameName(r.unit, r.n) },
       zones: [{ lo: lv.R - w, hi: lv.R + w, cls: 'r' }, { lo: lv.S - w, hi: lv.S + w, cls: 's' }],
       lines: [{ y: lv.R, cls: 'r', label: tx('web.pa.ch_r') }, { y: lv.S, cls: 's', label: tx('web.pa.ch_s') }, { y: lv.price, cls: 'p', label: tx('web.pa.ch_now') },
         { y: lv.R - b, cls: 't' }, { y: lv.S + b, cls: 't' }],

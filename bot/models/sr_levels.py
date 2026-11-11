@@ -27,7 +27,7 @@ SIDES = ("R", "S")      # resistance, support
 H_LIMITS = {"1h": (6, 168), "1d": (3, 60)}
 FROM = {"1h": pd.Timestamp("2020-07-01"), "1d": pd.Timestamp("2016-01-01")}
 REACH_EDGES = (0.0, 0.5, 1.0, 2.0, 4.0, np.inf)
-CHART = {"1h": 504, "1d": 1100}         # nến gần nhất cho đồ thị khi chưa tải được nến trực tiếp (chỉ hiển thị, mục sr_view)
+CHART = {"1h": 3000, "1d": 3000}         # nến gần nhất cho đồ thị khi chưa tải được nến trực tiếp (chỉ hiển thị, mục sr_view)
 BOUNCE, BREAK, OPEN = 1, 0, -1          # outcome codes; NaN = not known yet
 
 

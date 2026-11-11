@@ -40,8 +40,18 @@ def usd(x: float) -> str:
     return f"{math.floor(x + 0.5):,}".replace(",", ".") + " $"   # half up, like Intl.NumberFormat on the page
 
 
+SERIES = 3000   # nến giả liên tục; API giả trả 1500 nến mới nhất, hoặc 1500 nến trước endTime (trang thứ hai)
+
+
+def page(step: int, limit: int, end: int | None) -> list[list]:
+    k = klines(step, SERIES)
+    if end is not None:
+        k = [r for r in k if r[0] <= end]
+    return k[-limit:]
+
+
 def levels(step: int, n: int, W: int) -> tuple[float, float]:
-    k = klines(step, n)
+    k = klines(step, SERIES)
     closed = [r for r in k if r[6] < NOW_MS][-W:]
     return max(float(r[2]) for r in closed), min(float(r[3]) for r in closed)
 
@@ -69,7 +79,8 @@ async def _run(page_path: pathlib.Path, vw: int, fail: bool) -> dict:
                 return
             q = parse_qs(urlparse(u).query)
             step = HOUR if q["interval"][0] == "1h" else DAY
-            await r.fulfill(status=200, content_type="application/json", body=json.dumps(klines(step, int(q["limit"][0]))), headers=H)
+            end = int(q["endTime"][0]) if "endTime" in q else None
+            await r.fulfill(status=200, content_type="application/json", body=json.dumps(page(step, int(q["limit"][0]), end)), headers=H)
         elif u.startswith("file://"):
             await r.continue_()
         elif "fonts.g" in u:
@@ -148,31 +159,32 @@ def test_price_action_view(page_path: pathlib.Path, vw: int) -> None:
     assert v["cls"] == "pa-view" and v["pressed"] == ["false", "false", "false", "false", "true"]
     assert v["hidden"] == ["none", "none", "none"] and v["pa"] != "none" and v["pactHere"] and not v["pactInLs"]
     assert "nến giờ đóng lúc 16:00 02/11/2026" in r["status"]
-    R, S = levels(HOUR, 520, 24)                              # 1 ngày = 24 nến giờ đã đóng
+    R, S = levels(HOUR, SERIES, 24)                           # 1 ngày = 24 nến giờ đã đóng
     assert "Kháng cự 1 ngày" in r["day1"] and usd(R) in r["day1"] and "Hỗ trợ 1 ngày" in r["day1"] and usd(S) in r["day1"]
     assert "Bật xuống" in r["day1"] and "Mức giả cùng khoảng cách" in r["day1"]
     s = SR["summary"]
     assert f"{SR['tests']} khung × phía" in r["honest"] and f"{s['nhu_bat_ky']} như mức bất kỳ" in r["honest"]
     assert r["rows_day"] == 7
-    # mục sr_view: mỗi nến vẽ = 1 đơn vị của khung; khung 1 ngày: 10 nến ngày gộp từ nến giờ
-    assert r["chart1"]["candles"] == 10 and {"Kháng", "Hỗ", "Lúc"} <= set(r["chart1"]["labels"])
-    assert r["chart6"] == 18 and "18 nến tháng" in r["chart6_title"]                         # max(12, 3 × 6) nến tháng (30 ngày)
-    assert r["chart6_span"]["label"] == "6 tháng" and r["chart6_span"]["inside"] == 6          # nền xám = 6 nến cuối của khung
-    R6, S6 = levels(DAY, 1100, 180)                           # 6 tháng = 180 nến ngày đã đóng
+    # mục sr_view (11/11/2026): mỗi nến vẽ = trọn khung; khung 1 ngày: nến 24 giờ, tối đa 30 nến; 2 trang nến được ghép
+    assert r["chart1"]["candles"] == 30 and {"Kháng", "Hỗ", "Lúc"} <= set(r["chart1"]["labels"])
+    n6 = (SERIES - 1) // 180                                  # nến 6 tháng (180 nến ngày) đủ từ 2.999 nến ngày đã đóng
+    assert r["chart6"] == n6 and f"{n6} nến gần nhất, mỗi nến = 6 tháng (gộp 180 nến ngày)" in r["chart6_title"]
+    assert r["chart6_span"]["label"] == "6 tháng" and r["chart6_span"]["inside"] == 1          # nền xám = nến cuối = khung
+    R6, S6 = levels(DAY, SERIES, 180)                         # 6 tháng = 180 nến ngày đã đóng
     assert "Kháng cự 6 tháng" in r["month6"] and usd(R6) in r["month6"] and usd(S6) in r["month6"]
     want = []                                                 # "= khung …" khi mức bằng đúng mức của khung trước
     first = {}
     for n in range(1, 13):
-        lv = levels(DAY, 1100, 30 * n)
+        lv = levels(DAY, SERIES, 30 * n)
         cells = []
         for i, x in enumerate(lv):
-            if n == 1 or x != levels(DAY, 1100, 30 * (n - 1))[i]:
+            if n == 1 or x != levels(DAY, SERIES, 30 * (n - 1))[i]:
                 first[i] = n
             cells.append("" if first[i] == n else f"= khung {first[i]} tháng")
         want.append(cells)
     assert r["same"] == want and any(c for row in want for c in row)
     # mỗi khung của cả 4 đơn vị phải ra đúng mức của cửa sổ W nến riêng (như sr_levels.levels trong Python)
-    FRAMES = {"gio": (HOUR, 520, 1, 24), "ngay": (HOUR, 520, 24, 7), "tuan": (DAY, 1100, 7, 8), "thang": (DAY, 1100, 30, 12)}
+    FRAMES = {"gio": (HOUR, SERIES, 1, 24), "ngay": (HOUR, SERIES, 24, 7), "tuan": (DAY, SERIES, 7, 8), "thang": (DAY, SERIES, 30, 12)}
     for unit, (step, cnt, per, mx) in FRAMES.items():
         want_lv = [[usd(v) for v in levels(step, cnt, per * n)] for n in range(1, mx + 1)]
         assert r["levels_all"][unit] == want_lv, unit
