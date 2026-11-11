@@ -669,3 +669,23 @@ rsi_check:
   page: "ba chế độ hiện giá trị RSI lúc này kèm dải: Xu hướng và Price action dùng RSI ngày của lần chạy Daily; Long/Short tính RSI giờ trực tiếp từ nến tải về lúc mở (hàm JS phải giống hệt Python, có test đối chiếu), không tải được thì dùng của Daily. Kèm bảng kết quả lịch sử. Chỉ dải × kỳ hạn có lợi thế sau Holm mới được dùng làm tín hiệu; không có thì trang ghi 'chưa có lợi thế thống kê' và kết luận của các chế độ giữ nguyên"
   output: "python -m bot.cli rsi → data/results/rsi.json (build.py nhúng vào trang) và docs/RSI_KIEM_TRA.md"
   no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
+
+# RSI kết hợp price action để dự đoán hướng cho thẻ Xu hướng. Người dùng yêu cầu 11/11/2026: "RSI có kết hợp chung với Price
+# action được không → tạo ra kết quả dự đoán cho thẻ xu hướng; nếu kết hợp không làm tăng lợi ích thì không dùng".
+# Đăng ký trước khi tính bất kỳ con số nào của các cách kết hợp; ngưỡng cố định, không dò.
+pa_rsi:
+  why: "trader hay đòi 'hợp lưu': một tín hiệu price action chỉ đáng tin khi RSI xác nhận. Mục này đo trung thực từng cách ghép RSI vào 12 tín hiệu price action đã đăng ký (mục price_action: 10 tiêu chí + 2 bộ), so với một ngày bất kỳ, với price action dùng một mình và với RSI dùng một mình"
+  known_before: "đã biết trước khi đăng ký, cùng giai đoạn và cùng nến: price_action 0/48 cặp hơn mốc (mọi tiêu chí và bộ, kỳ hạn 1/3/7/30 ngày); rsi_check nến ngày 0/64 ô hơn mốc (dải 20/30/70/80, 16 kỳ hạn), nến giờ 5/48 ô hơn mốc ở kỳ hạn 1–4 giờ (không dùng ở đây: thẻ Xu hướng là nến ngày); 'dải RSI sâu thắng hơn' 0/56. Kỳ vọng trước khi chạy: chưa có lợi thế. Chưa tính con số nào của các cách ghép dưới đây"
+  data: "đúng như mục price_action: nến ngày Bitstamp (price_action.daily), tín hiệu price_action.flags (chỉ dùng nến đến T), giai đoạn nghiên cứu research của mục price_action (ngày tín hiệu T và ngày kết quả T + k trong 01/01/2016 … 01/11/2026), kỳ hạn [1, 3, 7, 30] ngày, đúng / sai và mốc 'một ngày bất kỳ' như mục price_action"
+  rsi: "RSI 14 kiểu Wilder của mục rsi_check (rsi_check.rsi) trên giá đóng nến ngày Bitstamp đến T; thiếu RSI thì cách ghép không bật"
+  variants:   # tên: tín hiệu tăng bật khi …; tín hiệu giảm bật khi …
+    qua_ban_mua: "tăng: price action tăng bật và RSI(T) < 30 (quá bán); giảm: price action giảm bật và RSI(T) > 70 (quá mua). Hợp lưu đảo chiều theo sách"
+    nghieng_dao_chieu: "tăng: price action tăng và RSI(T) < 50; giảm: price action giảm và RSI(T) > 50 (RSI nghiêng về phía vừa bị đẩy quá, chờ quay đầu)"
+    nghieng_xu_huong: "tăng: price action tăng và RSI(T) > 50; giảm: price action giảm và RSI(T) < 50 (RSI xác nhận đà cùng hướng)"
+  tests: "12 tín hiệu × 3 cách ghép × 4 kỳ hạn = 144 cặp; thống kê, bootstrap, đợt độc lập, hai nửa, Holm trên 144 cặp và nhãn 'hơn mốc / kém mốc / chưa có lợi thế / ít đợt' giống hệt mục price_action (price_action.table)"
+  benefit: "một cách ghép chỉ được coi là 'làm tăng lợi ích' khi cùng lúc: (a) nhãn 'hơn mốc' so với một ngày bất kỳ; (b) tỷ lệ đúng hơn chính tín hiệu price action đó dùng một mình (mọi ngày nó bật) ở cả hai nửa giai đoạn; (c) tỷ lệ đúng hơn điều kiện RSI đó dùng một mình (mọi ngày RSI thỏa, không cần price action) ở cả hai nửa. Thiếu một điều kiện là không dùng"
+  page: "có ít nhất một cách ghép 'làm tăng lợi ích' thì thêm vào thẻ Xu hướng (hướng dự đoán, tỷ lệ đúng, số đợt, khoảng tin cậy, kèm câu cần xác nhận trên dữ liệu mới). Không có thì KHÔNG đưa lên trang (người dùng: 'nếu việc kết hợp không làm tăng lợi ích thì không dùng'); chỉ ghi docs/PA_RSI.md"
+  final_test: "giai đoạn kiểm tra cuối mới từ 12/11/2026 (ngày sau đăng ký); chỉ cần nếu có cách ghép đạt; chạy một lần khi đủ 365 ngày, như mục price_action"
+  output: "python -m bot.cli pa-rsi → docs/PA_RSI.md và data/results/pa_rsi.json"
+  no_tuning: "ngưỡng 30/50/70, RSI 14, 3 cách ghép, 12 tín hiệu, 4 kỳ hạn cố định; báo cáo đủ 144 cặp, không chọn cặp đẹp nhất, không thêm cách ghép sau khi xem kết quả"
+  no_advice: "công cụ tham khảo, không phải lời khuyên đầu tư"
