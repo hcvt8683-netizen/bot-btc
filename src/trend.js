@@ -4,6 +4,7 @@
 // Giá lúc này lấy từ Binance (REST) khi mở chế độ và mỗi phút; xu hướng, phân vị, độ dao động lấy từ lần chạy Daily.
 (() => {
   const TR = /*TR_JSON*/null;
+  const RSI = /*RSID_JSON*/null;   // mục rsi_check, phần nến ngày (bot/models/rsi_check.py, build.py nhúng)
   const { tx, vnTime } = I18N;
   const $ = (id) => document.getElementById(id);
   const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
@@ -289,6 +290,46 @@
     $('tr-cd-notes').replaceChildren(el('li', null, tx('web.tr.cd_note', nf(0).format(CD.tests))));
   }
 
+  // ----- RSI (mục rsi_check): dải quá mua / quá bán so với một ngày bất kỳ, trung thực theo kết quả đã chấm -----
+  const RSI_BANDS = ['qua_ban_sau', 'qua_ban', 'qua_mua', 'qua_mua_sau'];
+  function renderRsi() {
+    if (!RSI) { $('tr-rsi-sec').hidden = true; return; }
+    const cells = RSI_BANDS.length * RSI.horizons.length;
+    $('tr-rsi-lead').textContent = tx('web.tr.rsi_lead', vnDate(RSI.from), nf(0).format(RSI.tests));
+    const t = RSI.today.daily;
+    $('tr-rsi-today').replaceChildren(el('span', 'pill mid', tx('web.tr.rsi_today', vnDate(t.anchor.slice(0, 10)),
+      ok(t.rsi) ? nf(1).format(t.rsi) : '—', tx('web.tr.rsi_b_' + (t.band || 'none')))));
+    const head = el('tr');
+    head.append(el('th', null, tx('web.tr.th_rsi_h')));
+    for (const b of RSI_BANDS) {
+      const th = el('th', null, tx('web.tr.rsi_b_' + b));
+      th.append(el('span', 'sub', tx(RSI.bands[b].dir > 0 ? 'web.tr.rsi_dir_up' : 'web.tr.rsi_dir_down')));
+      head.append(th);
+    }
+    const tb = el('tbody');
+    for (const k of RSI.horizons) {
+      const tr = el('tr');
+      tr.append(el('td', null, hLabel(k)));
+      for (const b of RSI_BANDS) {
+        const v = RSI.bands[b].per_k[String(k)], better = v && v.rate != null && v.rate > v.base;
+        const td = el('td', 'r num ' + (v && v.edge ? (RSI.bands[b].dir > 0 ? 'hit-up' : 'hit-down') : better ? '' : 'muted'),
+          v && v.n ? tx('web.tr.rsi_cell', pc(v.rate, 0), pc(v.base, 0)) + (v.few ? tx('web.tr.rsi_few') : '') : '—');
+        if (v) td.title = tx('web.tr.rsi_b_' + b) + ` · n = ${nf(0).format(v.n)}`;
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+    const th = el('thead'); th.append(head);
+    $('t-tr-rsi').replaceChildren(th, tb);
+    const edges = [];
+    for (const b of RSI_BANDS) for (const [k, v] of Object.entries(RSI.bands[b].per_k)) if (v.edge) edges.push(`${tx('web.tr.rsi_b_' + b)} ${hLabel(Number(k)).toLowerCase()}`);
+    const notes = [edges.length ? tx('web.tr.rsi_note_edge', nf(0).format(edges.length), edges.join('; ')) : tx('web.tr.rsi_note_none', nf(0).format(cells))];
+    if (RSI.other_edges) notes.push(tx('web.tr.rsi_note_hourly', nf(0).format(RSI.other_edges)));
+    notes.push(tx('web.tr.rsi_note_claim', nf(0).format(RSI.claim_summary.deeper_better), nf(0).format(RSI.claim_summary.n)),
+      tx('web.tr.rsi_note_dir'), tx('web.tr.rsi_updated', vnDate(RSI.to.slice(0, 10)), RSI.version));
+    $('tr-rsi-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+  }
+
   function renderMethod() {
     const items = [tx('web.tr.m1'), tx('web.tr.m2'), tx('web.tr.m3', nf(0).format(TR.tests)), tx('web.tr.m4'), tx('web.tr.m5'), tx('web.tr.updated', vnDate(TR.anchor), TR.version)];
     $('tr-method-list').replaceChildren(...items.map((t) => el('li', null, t)));
@@ -297,13 +338,13 @@
   }
 
   function render() {
-    if (!TR) { $('tr-none').hidden = false; ['tr-sec', 'tr-models-sec', 'tr-bt-sec'].forEach((id) => { $(id).hidden = true; }); return; }
+    if (!TR) { $('tr-none').hidden = false; ['tr-sec', 'tr-models-sec', 'tr-cd-sec', 'tr-rsi-sec', 'tr-bt-sec'].forEach((id) => { $(id).hidden = true; }); return; }
     if (!document.body.classList.contains('tr-view')) return;
     renderHead(); renderCards(); drawFan();
   }
   function renderAll() {
     if (!TR) { render(); return; }
-    render(); renderModels(); renderCross(); renderCandles(); renderBacktest(); renderMethod();
+    render(); renderModels(); renderCross(); renderCandles(); renderRsi(); renderBacktest(); renderMethod();
   }
 
   // ----- chuyển chế độ: chỉ thêm / bỏ lớp body.tr-view (và bỏ ls-view), không gọi gì của các phần khác -----

@@ -6,6 +6,7 @@
 (() => {
   const PACT = /*PACT_JSON*/null;
   const HOLD = /*HOLD_JSON*/null;   // mua giữ lâu dài (data/results/hold.json, bot/models/long_hold.py)
+  const RSIS = /*RSIS_JSON*/null;   // RSI ngày hôm nay và số ô có lợi thế (mục rsi_check, build.py nhúng)
   const { tx, vnTime } = I18N;
   const $ = (id) => document.getElementById(id);
   if (!$('pact-sec')) return;
@@ -181,7 +182,13 @@
           tx('web.pact.vt_' + (a7.verdict === 'hon' || a30.verdict === 'hon' ? 'hon' : a7.verdict === 'kem' && a30.verdict === 'kem' ? 'kem' : a30.verdict)))));
       }
     }
-    $('pact-now').replaceChildren(el('p', 'kicker', tx('web.pact.now_kicker', vnDate(ST.anchor))), kp, act);
+    const parts = [el('p', 'kicker', tx('web.pact.now_kicker', vnDate(ST.anchor))), kp, act];
+    if (RSIS && RSIS.today) {   // RSI ngày (mục rsi_check): chỉ hiển thị trung thực, đề xuất không đổi
+      const t = RSIS.today, e = RSIS.daily_edges.length;
+      parts.push(el('p', 'muted', tx('web.pact.rsi_line', vnDate(t.anchor.slice(0, 10)), ok(t.rsi) ? nf(1).format(t.rsi) : '—',
+        tx('web.pact.rsi_b_' + (t.band || 'none')), e ? tx('web.pact.rsi_ref_edge', nf(0).format(e)) : tx('web.pact.rsi_ref_none', nf(0).format(RSIS.daily_tests)))));
+    }
+    $('pact-now').replaceChildren(...parts);
   }
 
   const inputs = () => ({ E: parseNum($('pact-entry').value), SL: parseNum($('pact-stop').value), TP: parseNum($('pact-target').value), H: Number($('pact-hold').value) });

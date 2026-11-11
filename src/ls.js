@@ -10,6 +10,7 @@
 (() => {
   const LS = /*LS_JSON*/null;
   const LT = /*LT_JSON*/null;
+  const RSI = /*RSIH_JSON*/null;   // mục rsi_check, phần nến giờ (bot/models/rsi_check.py, build.py nhúng)
   const { tx, vnTime } = I18N;
   const $ = (id) => document.getElementById(id);
   const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
@@ -89,6 +90,25 @@
     const w = LT.now;
     return { ...w, c24: w.close / (1 + w.r24), price: w.close, at: Date.parse(utcIso(w.anchor)), live: false };
   }
+  // ----- RSI 14 kiểu Wilder (mục rsi_check): phải giống hệt rsi_check.rsi trong Python (có test đối chiếu) -----
+  function rsiAll(v, n = 14) {
+    const out = new Array(v.length).fill(NaN);
+    if (v.length <= n) return out;
+    const val = (au, ad) => (ad === 0 ? 100 : 100 - 100 / (1 + au / ad));
+    let au = 0, ad = 0;
+    for (let i = 1; i <= n; i++) { const ch = v[i] - v[i - 1]; au += Math.max(ch, 0) / n; ad += Math.max(-ch, 0) / n; }
+    out[n] = val(au, ad);
+    for (let i = n + 1; i < v.length; i++) {
+      const ch = v[i] - v[i - 1];
+      au = (au * (n - 1) + Math.max(ch, 0)) / n; ad = (ad * (n - 1) + Math.max(-ch, 0)) / n;
+      out[i] = val(au, ad);
+    }
+    return out;
+  }
+  window.LS_RSI14 = rsiAll;
+  const rsiBand = (x) => (!ok(x) ? null : x < 20 ? 'qua_ban_sau' : x < 30 ? 'qua_ban' : x > 80 ? 'qua_mua_sau' : x > 70 ? 'qua_mua' : null);
+  const rsiNow = () => (view.raw.h ? rsiAll(view.raw.h.c)[view.raw.h.c.length - 1] : RSI ? RSI.today.hourly.rsi : null);
+
   function fires(r, s) {  // = perp_trade.signals (lúc chưa bấm Chạy dùng đúng kết quả của Daily)
     if (!s.live) { const v = LT.now.signals[`${r.sig}|${r.side}`]; return v == null ? null : v; }
     const q = LT.thresholds.r24, fq = LT.thresholds.f24, L = r.side === 'long';
@@ -235,6 +255,12 @@
     const ans = $('lt-answer'), parts = [];
     parts.push(el('p', 'kicker', tx('web.lt.check_kicker', vnTime(new Date(s.at).toISOString()))), el('div', 'verdict ' + vtone, tx('web.lt.v_' + verdict)));
     parts.push(el('p', 'muted', tx('web.lt.check_rule', N, score('long'), score('short'))));
+    if (RSI) {   // RSI giờ lúc này (mục rsi_check): chỉ hiển thị trung thực, không đổi kết luận
+      const x = rsiNow(), b = rsiBand(x);
+      const hs = b ? Object.entries(RSI.bands[b].per_k).filter(([, v]) => v.edge).map(([k]) => holdText(Number(k))) : [];
+      parts.push(el('p', 'muted', tx('web.lt.rsi_plan', ok(x) ? nf(1).format(x) : '—', tx('web.lt.rsi_b_' + (b || 'none')),
+        !b ? tx('web.lt.rsi_plan_mid') : hs.length ? tx('web.lt.rsi_plan_edge', hs.join(', ')) : tx('web.lt.rsi_plan_none'))));
+    }
     if (pass.long && pass.short) parts.push(el('p', 'warn', tx('web.lt.check_both')));
     for (const sd of ['long', 'short']) if (!pass[sd] && near(sd)) parts.push(el('p', 'warn', tx('web.lt.v_cho_side', sideName(sd))));
     const cards = el('div', 'lt-sides');
@@ -478,6 +504,45 @@
     renderBacktest();
   }
 
+  // ----- RSI giờ (mục rsi_check): bảng từng dải × kỳ hạn so với một giờ bất kỳ, trung thực theo kết quả đã chấm -----
+  const RSI_BANDS = ['qua_ban_sau', 'qua_ban', 'qua_mua', 'qua_mua_sau'];
+  function renderRsiSec() {
+    if (!RSI) { $('ls-rsi-sec').hidden = true; return; }
+    $('ls-rsi-lead').textContent = tx('web.lt.rsi_lead', vnDate(RSI.from), nf(0).format(RSI.tests));
+    const t = RSI.today.hourly;
+    $('ls-rsi-today').replaceChildren(el('span', 'pill mid', tx('web.lt.rsi_today', vnTime(utcIso(t.anchor.length > 10 ? t.anchor : t.anchor + ' 00:00')),
+      ok(t.rsi) ? nf(1).format(t.rsi) : '—', tx('web.lt.rsi_b_' + (t.band || 'none')))));
+    const head = el('tr');
+    head.append(el('th', null, tx('web.lt.th_rsi_h')));
+    for (const b of RSI_BANDS) {
+      const th = el('th', null, tx('web.lt.rsi_b_' + b));
+      th.append(el('span', 'sub', tx(RSI.bands[b].dir > 0 ? 'web.lt.rsi_dir_up' : 'web.lt.rsi_dir_down')));
+      head.append(th);
+    }
+    const tb = el('tbody');
+    for (const k of RSI.horizons) {
+      const tr = el('tr');
+      tr.append(el('td', null, holdText(k)));
+      for (const b of RSI_BANDS) {
+        const v = RSI.bands[b].per_k[String(k)], better = v && v.rate != null && v.rate > v.base;
+        const td = el('td', 'r ' + (v && v.edge ? 'good' : better ? '' : 'muted'),
+          v && v.n ? tx('web.lt.rsi_cell', pc(v.rate, 0), pc(v.base, 0)) + (v.few ? tx('web.lt.rsi_few') : '') : '—');
+        if (v) td.title = tx('web.lt.rsi_b_' + b) + ` · n = ${nf(0).format(v.n)}`;
+        tr.append(td);
+      }
+      tb.append(tr);
+    }
+    const thead = el('thead'); thead.append(head);
+    $('t-ls-rsi').replaceChildren(thead, tb);
+    const edges = [];
+    for (const b of RSI_BANDS) for (const [k, v] of Object.entries(RSI.bands[b].per_k)) if (v.edge) edges.push(`${tx('web.lt.rsi_b_' + b)} ${tx('web.lt.rsi_after', holdText(Number(k)))}`);
+    const cells = RSI_BANDS.length * RSI.horizons.length;
+    const notes = [edges.length ? tx('web.lt.rsi_note_edge', nf(0).format(edges.length), edges.join('; ')) : tx('web.lt.rsi_note_none', nf(0).format(cells))];
+    notes.push(tx('web.lt.rsi_note_claim', nf(0).format(RSI.claim_summary.deeper_better), nf(0).format(RSI.claim_summary.n)),
+      tx('web.lt.rsi_note_dir'), tx('web.lt.rsi_updated', vnTime(utcIso(RSI.to)), RSI.version));
+    $('ls-rsi-notes').replaceChildren(...notes.map((x) => el('li', null, x)));
+  }
+
   // =====================================================================================================================
   // Xem thêm: giữ đúng kỳ hạn, không cắt lỗ (LS, nghiên cứu 02/11/2026)
   // =====================================================================================================================
@@ -667,6 +732,7 @@
   }
   if (LT) renderMethodLT();
   renderMethodOld();
+  renderRsiSec();
   let start = false;
   try { start = localStorage.getItem(KEY) === 'ls'; } catch (e) { /* bỏ qua */ }
   if (start) setView(true);
