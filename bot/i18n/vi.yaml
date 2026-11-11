@@ -1355,7 +1355,7 @@ web:
     rsi_lead: "RSI 14 trên giá đóng nến giờ BTCUSDT vĩnh cửu, chấm mọi giờ từ {0}. RSI dưới 30 gọi là quá bán (sách nói giá hay bật tăng), trên 70 là quá mua (hay quay giảm). Bảng so từng dải RSI với một giờ bất kỳ, hiệu chỉnh Holm trên {1} phép thử (chung một họ với nến ngày ở chế độ Xu hướng)."
     rsi_today: "RSI giờ lúc bot cập nhật ({0}): {1} — {2}"
     rsi_plan: "RSI 14 giờ lúc này: {0} — {1}. {2}"
-    rsi_plan_mid: "Trung tính (30–70): không thuộc dải quá mua / quá bán nào, không nói gì về hướng."
+    rsi_plan_mid: "Không thuộc dải quá mua / quá bán nào, nên không nói gì về hướng."
     rsi_plan_edge: "Dải này từng đúng hướng hơn một giờ bất kỳ ở kỳ hạn rất ngắn ({0} — xem bảng RSI bên dưới), nhưng chênh lệch nhỏ và chưa trừ phí: không đổi kết luận Long/Short."
     rsi_plan_none: "Dải này chưa đoán hướng hơn một giờ bất kỳ trong lịch sử: chỉ để tham khảo, không đổi kết luận Long/Short."
     rsi_b_qua_ban_sau: "Quá bán sâu (RSI dưới 20)"

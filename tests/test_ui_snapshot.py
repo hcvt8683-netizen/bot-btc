@@ -77,7 +77,7 @@ def built_page() -> pathlib.Path:
     try:
         build.build(str(out), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"), ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"),
                     lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"), sr_path=str(ROOT / "tests" / "fixtures" / "sr.json"),
-                    tr_path=str(ui / "trend.json"), hold_path=str(ui / "hold.json"))
+                    tr_path=str(ui / "trend.json"), hold_path=str(ui / "hold.json"), rsi_path=str(ROOT / "tests" / "fixtures" / "rsi.json"))
     finally:
         build.PACT_PATH = None
     return out

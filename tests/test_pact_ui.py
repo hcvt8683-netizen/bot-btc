@@ -42,7 +42,7 @@ def built() -> tuple[pathlib.Path, dict]:
     try:
         out = build.build(str(tmp / "page.html"), kn_path=str(ROOT / "tests" / "fixtures" / "recommendation.json"),
                           ls_path=str(ROOT / "tests" / "fixtures" / "perp.json"), lt_path=str(ROOT / "tests" / "fixtures" / "perp_trade.json"),
-                          hold_path=str(ROOT / "tests" / "fixtures" / "hold.json"))
+                          hold_path=str(ROOT / "tests" / "fixtures" / "hold.json"), rsi_path=str(ROOT / "tests" / "fixtures" / "rsi.json"))
     finally:
         build.PACT_PATH = None
     return pathlib.Path(out), json.loads(json.dumps(o))

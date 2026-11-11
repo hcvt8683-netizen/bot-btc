@@ -52,7 +52,8 @@ def page_path() -> pathlib.Path:
     import build  # noqa: PLC0415
     out = pathlib.Path(tempfile.mkdtemp()) / "page.html"
     build.build(str(out), kn_path=str(FIX / "recommendation.json"), ls_path=str(FIX / "perp.json"), lt_path=str(FIX / "perp_trade.json"),
-                tr_path=str(FIX / "trend.json") if (FIX / "trend.json").exists() else None, sr_path=str(FIX / "sr.json"))
+                tr_path=str(FIX / "trend.json") if (FIX / "trend.json").exists() else None, sr_path=str(FIX / "sr.json"),
+                rsi_path=str(FIX / "rsi.json"))
     return out
 
 
