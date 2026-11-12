@@ -12,7 +12,7 @@
    ],
    "last": "2026-11-11",
    "rows": 5961,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fng": {
    "ok": true,
@@ -24,7 +24,7 @@
    ],
    "last": "2026-11-12",
    "rows": 3203,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_spot": {
    "ok": true,
@@ -36,7 +36,7 @@
    ],
    "last": "2026-11-11",
    "rows": 3374,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_funding": {
    "ok": true,
@@ -47,7 +47,7 @@
    "warnings": [],
    "last": "2026-10-31",
    "rows": 183,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_oi": {
    "ok": true,
@@ -58,7 +58,7 @@
    "warnings": [],
    "last": "2026-11-11",
    "rows": 13,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_basis": {
    "ok": true,
@@ -69,7 +69,7 @@
    "warnings": [],
    "last": "2026-11-10",
    "rows": 13,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "stablecoins": {
    "ok": true,
@@ -80,7 +80,7 @@
    ],
    "last": "2026-11-12",
    "rows": 3271,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DTWEXBGS": {
    "ok": true,
@@ -92,7 +92,7 @@
    ],
    "last": "2026-11-06",
    "rows": 5227,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFII10": {
    "ok": true,
@@ -103,7 +103,7 @@
    ],
    "last": "2026-11-09",
    "rows": 5968,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -115,7 +115,7 @@
    ],
    "last": "2026-11-10",
    "rows": 14060,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_M2SL": {
    "ok": true,
@@ -126,7 +126,7 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coinmetrics_ext": {
    "ok": true,
@@ -139,7 +139,7 @@
    ],
    "last": "2026-11-11",
    "rows": 5961,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "bitstamp": {
    "ok": true,
@@ -150,7 +150,7 @@
    ],
    "last": "2026-11-11",
    "rows": 5565,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "coingecko": {
    "ok": true,
@@ -161,7 +161,7 @@
    ],
    "last": "2026-11-11",
    "rows": 365,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "fred_DFEDTARU": {
    "ok": true,
@@ -172,7 +172,7 @@
    ],
    "last": "2026-11-11",
    "rows": 6540,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   },
   "binance_perp_1h": {
    "ok": true,
@@ -186,8 +186,8 @@
    ],
    "last": "2026-11-10",
    "rows": 312,
-   "snapshot": "2026-11-12.parquet"
+   "snapshot": "đã có bản hôm nay"
   }
  },
- "fetched_at": "2026-11-12T02:02:42Z"
+ "fetched_at": "2026-11-12T02:11:04Z"
 }
