@@ -302,6 +302,14 @@ def check_bitstamp(cfg: dict, end: pd.Timestamp | None = None) -> dict:
     return out
 
 
+def pick(models: dict, dm: str, mm: str, qs: list[float]) -> tuple[str, str, str | None, str | None]:
+    """The models the page uses at T. A chosen model with no number at T (an input such as MVRV is published a day
+    late) gives way to goc that day; the one it replaced is returned as missing so the page can say so."""
+    dmiss = dm if dm != "goc" and models[dm]["p"] is None else None
+    mmiss = mm if mm != "goc" and any(models[mm][f"q{round(q * 100)}"] is None for q in qs) else None
+    return ("goc" if dmiss else dm), ("goc" if mmiss else mm), dmiss, mmiss
+
+
 def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
     """Everything the page shows (window TR); `end` cuts the data (frozen fixtures for the page tests)."""
     from bot.models import candles as cd
@@ -340,11 +348,12 @@ def run(write: bool = True, end: pd.Timestamp | None = None) -> dict:
         row["models"]["hoc_may"] = {**row["models"]["goc"], "p": None if pd.isna(pm) else float(pm)}
         e = ev[k]
         dm, mm = e.get("dir_model", "goc"), e.get("mag_model", "goc")
+        dm, mm, dmiss, mmiss = pick(row["models"], dm, mm, qs)
         pdir = row["models"][dm]["p"]
         ups = sum(1 for m in TESTED if (row["models"][m]["p"] or 0.5) > 0.5)
         downs = sum(1 for m in TESTED if row["models"][m]["p"] is not None and row["models"][m]["p"] < 0.5)
         row.update(dir_model=dm, mag_model=mm, label=label(pdir, cfg), p=pdir, **{f"q{round(q * 100)}": row["models"][mm][f"q{round(q * 100)}"] for q in qs},
-                   agree_up=ups, agree_down=downs)
+                   agree_up=ups, agree_down=downs, dir_missing=dmiss, mag_missing=mmiss)
         now_rows.append(row)
     states_now = {m: STATE_NAMES[m].get(int(v)) if pd.notna(v := (momentum_state(d["p"], 7).loc[T] if m == "dong_luong" else bs[m].loc[T])) else None
                   for m in COND}

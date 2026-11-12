@@ -125,3 +125,15 @@ def test_sell_plan_receives_the_monday_closes_minus_costs():
     assert roi[0] == pytest.approx(got / 100 - 1) and mdd[0] <= 0
     once, _ = sp.outcomes(price, np.array([0]), 1, 6, 0.001, 0.0005)
     assert once[0] == pytest.approx((1 - 0.0005) * (1 - 0.001) - 1)
+
+
+def test_a_chosen_model_without_a_number_today_gives_way_to_the_base_rate():
+    # 11/11/2026: MVRV of the last day not published yet → dinh_gia and ket_hop empty, the 1-day band showed one price
+    qs = [0.1, 0.5, 0.9, 0.05, 0.95]
+    full = {"p": 0.53, **{f"q{round(q * 100)}": 0.01 for q in qs}}
+    empty = {"p": None, **{f"q{round(q * 100)}": None for q in qs}}
+    models = {"goc": full, "ket_hop": empty, "dong_luong": full}
+    assert tr.pick(models, "ket_hop", "ket_hop", qs) == ("goc", "goc", "ket_hop", "ket_hop")
+    assert tr.pick(models, "dong_luong", "dong_luong", qs) == ("dong_luong", "dong_luong", None, None)
+    assert tr.pick(models, "goc", "goc", qs) == ("goc", "goc", None, None)
+    assert tr.pick({**models, "ket_hop": {**full, "q5": None}}, "goc", "ket_hop", qs) == ("goc", "goc", None, "ket_hop")

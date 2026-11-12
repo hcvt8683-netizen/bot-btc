@@ -1577,6 +1577,7 @@ web:
     honest_none: "Chưa mô hình nào đoán hướng giá tốt hơn tỷ lệ gốc ở kỳ hạn nào (đã thử {0} phép so sánh). Các mũi tên dưới đây là xu hướng của BTC trong 4 năm gần nhất (tỷ lệ gốc), không phải tín hiệu riêng của lúc này."
     honest_some: "Có mô hình thắng tỷ lệ gốc ở: {0}. Ở các kỳ hạn khác, mũi tên là xu hướng 4 năm gần nhất (tỷ lệ gốc)."
     honest_mag: "Về biên độ: mô hình ước lượng khoảng giá tốt hơn tỷ lệ gốc ở {0}."
+    honest_missing: "Hôm nay chưa có số của mô hình ở: {0}. Lý do thường là Coin Metrics công bố MVRV của ngày gần nhất trễ 1 ngày, nên kỳ hạn này tạm dùng tỷ lệ gốc 4 năm."
     g_day: "Ngày (1–7)"
     g_week: "Tuần (1–4)"
     g_month: "Tháng (1–6)"

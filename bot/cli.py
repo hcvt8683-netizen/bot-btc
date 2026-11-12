@@ -127,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
         from bot.models import trend as tr
         res = tr.run(write=True)
         rows = tr.log_today(res, tr.utc_now())
-        edge = [r["k"] for r in res["now"] if r["dir_model"] != "goc"]
+        edge = [r["k"] for r in res["now"] if (r.get("dir_missing") or r["dir_model"]) != "goc"]
         print(f"Dự báo xu hướng: gốc {res['anchor']}, {len(res['now'])} kỳ hạn; mô hình thắng tỷ lệ gốc về hướng ở: {edge or 'không kỳ hạn nào'}. "
               + (f"Đã ghi {len(rows)} dòng (phiên bản {res['version']})." if rows else "Ngày gốc đã được ghi, không ghi thêm."))
         return 0

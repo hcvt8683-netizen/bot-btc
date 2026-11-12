@@ -21,6 +21,15 @@
   const MODELS = ['goc', 'dong_luong', 'ma200', 'dinh_gia', 'dao_chieu', 'ket_hop', 'hoc_may'];
   const TESTED = ['dong_luong', 'ma200', 'dinh_gia', 'dao_chieu', 'ket_hop'];   // 5 mô hình chấm chung một họ Holm (học máy chấm riêng)
   const view = { group: 'day', price: null, at: null, timer: null };
+  // Mô hình biên độ đã chọn chưa có số ở ngày gần nhất (Coin Metrics công bố MVRV trễ 1 ngày) → tạm dùng tỷ lệ gốc,
+  // như bot/models/trend.py (mag_missing); sửa cả số liệu ghi trước khi Python có quy tắc này.
+  const QS = ['q5', 'q10', 'q50', 'q90', 'q95'];
+  if (TR) for (const r of TR.now) {
+    const mm = r.mag_model, g = r.models && r.models.goc;
+    if (!g || mm === 'goc' || !r.models[mm] || QS.every((q) => ok(r.models[mm][q]))) continue;
+    for (const q of QS) r[q] = g[q];
+    r.mag_missing = mm; r.mag_model = 'goc';
+  }
   const row = (k) => (TR ? TR.now.find((r) => r.k === k) : null);
   const hLabel = (k, group) => (group === 'week' || (!group && [14, 21, 28].includes(k)) ? tx('web.tr.h_week', k / 7)
     : k >= 30 ? tx('web.tr.h_month', k / 30) : tx('web.tr.h_day', k));
@@ -52,10 +61,13 @@
     $('tr-price-sub').textContent = view.at ? tx('web.tr.now_live', vnTime(new Date(view.at).toISOString())) : tx('web.tr.now_close', vnDate(TR.anchor));
     const chips = $('tr-states');
     chips.replaceChildren(...['dong_luong', 'ma200', 'dinh_gia', 'dao_chieu'].filter((m) => TR.states[m]).map((m) => el('span', 'pill muted', tx(`web.tr.st_${m}_${TR.states[m]}`))));
-    const dirEdge = TR.now.filter((r) => r.dir_model !== 'goc'), magEdge = TR.now.filter((r) => r.mag_model !== 'goc');
-    const lines = [dirEdge.length ? tx('web.tr.honest_some', dirEdge.map((r) => `${hLabel(r.k)} (${modelName(r.dir_model)})`).join(', '))
+    const dirOf = (r) => r.dir_missing || r.dir_model, magOf = (r) => r.mag_missing || r.mag_model;
+    const dirEdge = TR.now.filter((r) => dirOf(r) !== 'goc'), magEdge = TR.now.filter((r) => magOf(r) !== 'goc');
+    const lines = [dirEdge.length ? tx('web.tr.honest_some', dirEdge.map((r) => `${hLabel(r.k)} (${modelName(dirOf(r))})`).join(', '))
       : tx('web.tr.honest_none', nf(0).format(TR.tests))];
-    if (magEdge.length) lines.push(tx('web.tr.honest_mag', magEdge.map((r) => `${hLabel(r.k)} (${modelName(r.mag_model)})`).join(', ')));
+    if (magEdge.length) lines.push(tx('web.tr.honest_mag', magEdge.map((r) => `${hLabel(r.k)} (${modelName(magOf(r))})`).join(', ')));
+    const miss = TR.now.filter((r) => r.dir_missing || r.mag_missing);
+    if (miss.length) lines.push(tx('web.tr.honest_missing', miss.map((r) => `${hLabel(r.k)} (${modelName(r.mag_missing || r.dir_missing)})`).join(', ')));
     $('tr-honest').replaceChildren(...lines.map((t) => el('p', null, t)));
     // điều nói chắc được: khoảng 9/10 lần, kèm độ phủ thật khi chấm đi tới
     const P = base(), sure = [el('span', 't', tx('web.tr.sure_title'))];
@@ -63,9 +75,10 @@
       const r = row(k), e = TR.eval[String(k)];
       if (!r || !ok(r.q5) || !e || !e.models) continue;
       const p = el('p');
-      p.append(document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', pc(e.models[e.mag_model].cover90, 0)).split('\u0000')[0]),
+      const cov = pc((e.models[r.mag_model] || e.models[e.mag_model]).cover90, 0);   // độ phủ của mô hình đang dùng hôm nay
+      p.append(document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', cov).split('\u0000')[0]),
         el('b', null, usd(P * (1 + r.q5))), document.createTextNode(' – '), el('b', null, usd(P * (1 + r.q95))),
-        document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', pc(e.models[e.mag_model].cover90, 0)).split('\u0001')[1]));
+        document.createTextNode(tx('web.tr.sure_line', hLabel(k), '\u0000', '\u0001', cov).split('\u0001')[1]));
       sure.push(p);
     }
     sure.push(el('p', 'no', tx('web.tr.sure_basis', usd(P), vnDate(TR.anchor))), el('p', 'no', tx('web.tr.sure_no')));

@@ -178,3 +178,59 @@ def test_trend_view_and_sell_plan(page_path: pathlib.Path, vw: int) -> None:
     n = SP["recommended"]
     assert f"Đề xuất: Chia đều {n} tuần" in r["sp_sum"] and r["sp_rows"] == n and r["sp_table"] == len(SP["options"])
     assert r["buy_tab"] == "Giải ngân" and r["buy_vis"] == [False, True]
+
+
+def test_a_band_model_without_numbers_today_falls_back_to_the_base_rate(tmp_path: pathlib.Path) -> None:
+    """11/11/2026: MVRV of the last day was not published yet, so Kết hợp (the 1-day band model) had no numbers and the
+    1-day card showed '73.817 $ – 73.817 $'. The page now uses the base rate for that day and says why."""
+    pytest.importorskip("playwright")
+    sys.path.insert(0, str(ROOT))
+    import build  # noqa: PLC0415
+    tr = json.loads((FIX / "trend.json").read_text(encoding="utf-8"))
+    r1 = tr["now"][0]
+    assert r1["k"] == 1 and r1["mag_model"] == "ket_hop"
+    qs = ("q5", "q10", "q50", "q90", "q95")
+    r1["models"]["ket_hop"] = {"p": None, **{q: None for q in qs}}
+    r1.update({q: None for q in qs})                                    # as trend.json was written before the Python rule
+    src = tmp_path / "trend.json"
+    src.write_text(json.dumps(tr, ensure_ascii=False), encoding="utf-8")
+    out = tmp_path / "page.html"
+    build.build(str(out), kn_path=str(FIX / "recommendation.json"), ls_path=str(FIX / "perp.json"), lt_path=str(FIX / "perp_trade.json"),
+                tr_path=str(src), rsi_path=str(FIX / "rsi.json"))
+
+    async def go() -> dict:
+        from playwright.async_api import async_playwright  # noqa: PLC0415
+
+        async def route(r):
+            if r.request.url.startswith("file://"):
+                await r.continue_()
+            elif "fonts.g" in r.request.url:
+                await r.abort()
+
+        async with async_playwright() as pw:
+            b = await pw.chromium.launch()
+            pg = await (await b.new_context(viewport={"width": 1100, "height": 900}, locale="vi-VN", timezone_id="Asia/Ho_Chi_Minh")).new_page()
+            errs: list[str] = []
+            pg.on("pageerror", lambda e: errs.append(str(e)))
+            await pg.add_init_script("window.BOT_NO_WS = true;")
+            await pg.route("**/*", route)
+            await pg.route_web_socket(re.compile(".*"), lambda ws: None)
+            await pg.goto(out.as_uri())
+            await pg.wait_for_timeout(800)
+            await pg.click("#mode-tr")
+            await pg.wait_for_timeout(300)
+            res = {"errors": errs, "honest": await pg.inner_text("#tr-honest"), "sure": await pg.inner_text("#tr-sure"),
+                   "card1": await pg.evaluate("document.querySelector('#tr-cards .tr-card').innerText")}
+            await b.close()
+            return res
+
+    res = asyncio.run(go())
+    assert res["errors"] == []
+    g, P = r1["models"]["goc"], tr["close"]
+    band = f"{usd(P * (1 + g['q5']))} – {usd(P * (1 + g['q95']))}"
+    assert band in res["card1"] and band in res["sure"]
+    assert f"{usd(P)} – {usd(P)}" not in res["card1"]
+    cov = round(tr["eval"]["1"]["models"]["goc"]["cover90"] * 100)
+    assert f"đúng {cov}% số lần" in next(x for x in res["sure"].splitlines() if "sau 1 ngày" in x)
+    assert "chưa có số của mô hình ở: 1 ngày (Kết hợp)." in res["honest"] and "tạm dùng tỷ lệ gốc" in res["honest"]
+    assert any(x.startswith("Về biên độ") and "1 ngày (Kết hợp)" in x for x in res["honest"].splitlines())   # it still won on the band
