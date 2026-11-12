@@ -10,9 +10,9 @@
     "mvrv: 28 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020",
     "iss_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 20/04/2024"
    ],
-   "last": "2026-11-10",
-   "rows": 5960,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-11",
+   "rows": 5961,
+   "snapshot": "2026-11-12.parquet"
   },
   "fng": {
    "ok": true,
@@ -22,9 +22,9 @@
     "2 khoảng trống (lớn nhất 4 ngày): 13/04/2018→17/04/2018, 25/10/2024→27/10/2024",
     "fng: 7 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 23/08/2019"
    ],
-   "last": "2026-11-11",
-   "rows": 3202,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-12",
+   "rows": 3203,
+   "snapshot": "2026-11-12.parquet"
   },
   "binance_spot": {
    "ok": true,
@@ -34,9 +34,9 @@
     "close: 5 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/02/2021",
     "quote_volume: 2 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 09/02/2018"
    ],
-   "last": "2026-11-10",
-   "rows": 3373,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-11",
+   "rows": 3374,
+   "snapshot": "2026-11-12.parquet"
   },
   "binance_funding": {
    "ok": true,
@@ -47,7 +47,7 @@
    "warnings": [],
    "last": "2026-10-31",
    "rows": 183,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "binance_oi": {
    "ok": true,
@@ -57,8 +57,8 @@
    "errors": [],
    "warnings": [],
    "last": "2026-11-11",
-   "rows": 14,
-   "snapshot": "đã có bản hôm nay"
+   "rows": 13,
+   "snapshot": "2026-11-12.parquet"
   },
   "binance_basis": {
    "ok": true,
@@ -69,7 +69,7 @@
    "warnings": [],
    "last": "2026-11-10",
    "rows": 13,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "stablecoins": {
    "ok": true,
@@ -78,9 +78,9 @@
    "warnings": [
     "stable_usd: 4 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 31/07/2018"
    ],
-   "last": "2026-11-11",
-   "rows": 3270,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-12",
+   "rows": 3271,
+   "snapshot": "2026-11-12.parquet"
   },
   "fred_DTWEXBGS": {
    "ok": true,
@@ -92,7 +92,7 @@
    ],
    "last": "2026-11-06",
    "rows": 5227,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "fred_DFII10": {
    "ok": true,
@@ -103,7 +103,7 @@
    ],
    "last": "2026-11-09",
    "rows": 5968,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "fred_NASDAQCOM": {
    "ok": true,
@@ -115,7 +115,7 @@
    ],
    "last": "2026-11-10",
    "rows": 14060,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "fred_M2SL": {
    "ok": true,
@@ -126,7 +126,7 @@
    ],
    "last": "2026-09-01",
    "rows": 813,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "coinmetrics_ext": {
    "ok": true,
@@ -137,9 +137,9 @@
     "volume_spot_usd: 11 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 14/11/2011",
     "supply: 36 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 18/11/2010"
    ],
-   "last": "2026-11-10",
-   "rows": 5960,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-11",
+   "rows": 5961,
+   "snapshot": "2026-11-12.parquet"
   },
   "bitstamp": {
    "ok": true,
@@ -148,9 +148,9 @@
    "warnings": [
     "close: 22 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 12/03/2020"
    ],
-   "last": "2026-11-10",
-   "rows": 5564,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-11",
+   "rows": 5565,
+   "snapshot": "2026-11-12.parquet"
   },
   "coingecko": {
    "ok": true,
@@ -159,9 +159,9 @@
    "warnings": [
     "price: 1 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 05/02/2026"
    ],
-   "last": "2026-11-10",
+   "last": "2026-11-11",
    "rows": 365,
-   "snapshot": "đã có bản hôm nay"
+   "snapshot": "2026-11-12.parquet"
   },
   "fred_DFEDTARU": {
    "ok": true,
@@ -170,14 +170,14 @@
    "warnings": [
     "fed_upper: 14 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 03/11/2022"
    ],
-   "last": "2026-11-10",
-   "rows": 6539,
-   "snapshot": "đã có bản hôm nay"
+   "last": "2026-11-11",
+   "rows": 6540,
+   "snapshot": "2026-11-12.parquet"
   },
   "binance_perp_1h": {
    "ok": true,
    "via": "data.binance.vision",
-   "primary_error": "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1793145600000&limit=1500)",
+   "primary_error": "FetchError: HTTP 451 (https://fapi.binance.com/fapi/v1/klines?symbol=BTCUSDT&interval=1h&startTime=1793232000000&limit=1500)",
    "source": "binance_perp_1h",
    "errors": [],
    "warnings": [
@@ -185,9 +185,9 @@
     "low: 3 biến động lớn hơn 5σ (giữ nguyên, chỉ đánh dấu), gần nhất 08/11/2026"
    ],
    "last": "2026-11-10",
-   "rows": 336,
-   "snapshot": "đã có bản hôm nay"
+   "rows": 312,
+   "snapshot": "2026-11-12.parquet"
   }
  },
- "fetched_at": "2026-11-11T08:34:16Z"
+ "fetched_at": "2026-11-12T02:02:42Z"
 }
