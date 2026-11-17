@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-11-15T01:53:27Z",
+ "checked_at": "2026-11-17T01:58:58Z",
  "results": [
   {
    "source": "Coin Metrics",
@@ -34,7 +34,7 @@
   {
    "source": "Binance data.binance.vision (futures archive)",
    "result": "200 OK",
-   "seconds": 0.4
+   "seconds": 0.2
   },
   {
    "source": "CoinGecko",
@@ -44,7 +44,7 @@
   {
    "source": "DefiLlama",
    "result": "200 OK",
-   "seconds": 0.1
+   "seconds": 0.2
   },
   {
    "source": "FRED (CSV)",
