@@ -14,7 +14,7 @@
 | qua_ban_sau | 1 | 23 | 57% | 52% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 2 | 14 | 57% | 53% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 3 | 12 | 50% | 54% | 1.00 | ít dữ liệu |
-| qua_ban_sau | 4 | 9 | 44% | 54% | 1.00 | ít dữ liệu |
+| qua_ban_sau | 4 | 10 | 40% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 5 | 8 | 62% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 6 | 8 | 62% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 7 | 7 | 43% | 54% | 1.00 | ít dữ liệu |
@@ -27,12 +27,12 @@
 | qua_ban_sau | 120 | 6 | 67% | 60% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 150 | 5 | 80% | 61% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 180 | 4 | 75% | 64% | 1.00 | ít dữ liệu |
-| qua_ban | 1 | 118 | 56% | 52% | 1.00 | không hơn |
+| qua_ban | 1 | 119 | 55% | 52% | 1.00 | không hơn |
 | qua_ban | 2 | 72 | 61% | 53% | 1.00 | không hơn |
-| qua_ban | 3 | 58 | 55% | 54% | 1.00 | không hơn |
+| qua_ban | 3 | 59 | 54% | 54% | 1.00 | không hơn |
 | qua_ban | 4 | 50 | 58% | 54% | 1.00 | không hơn |
 | qua_ban | 5 | 46 | 63% | 54% | 1.00 | không hơn |
-| qua_ban | 6 | 40 | 68% | 54% | 1.00 | không hơn |
+| qua_ban | 6 | 41 | 66% | 54% | 1.00 | không hơn |
 | qua_ban | 7 | 38 | 58% | 54% | 1.00 | không hơn |
 | qua_ban | 14 | 29 | 48% | 56% | 1.00 | ít dữ liệu |
 | qua_ban | 21 | 27 | 48% | 56% | 1.00 | ít dữ liệu |
@@ -71,7 +71,7 @@
 | qua_mua_sau | 28 | 24 | 25% | 43% | 1.00 | ít dữ liệu |
 | qua_mua_sau | 30 | 24 | 25% | 43% | 1.00 | ít dữ liệu |
 | qua_mua_sau | 60 | 19 | 21% | 41% | 1.00 | ít dữ liệu |
-| qua_mua_sau | 90 | 13 | 8% | 40% | 1.00 | ít dữ liệu |
+| qua_mua_sau | 90 | 14 | 14% | 40% | 1.00 | ít dữ liệu |
 | qua_mua_sau | 120 | 13 | 23% | 40% | 1.00 | ít dữ liệu |
 | qua_mua_sau | 150 | 10 | 10% | 39% | 1.00 | ít dữ liệu |
 | qua_mua_sau | 180 | 10 | 0% | 36% | 1.00 | ít dữ liệu |
@@ -90,7 +90,7 @@
 | qua_ban_sau | 24 | 96 | 48% | 52% | 1.00 | không hơn |
 | qua_ban_sau | 48 | 92 | 49% | 52% | 1.00 | không hơn |
 | qua_ban_sau | 72 | 87 | 55% | 52% | 1.00 | không hơn |
-| qua_ban_sau | 120 | 79 | 51% | 52% | 1.00 | không hơn |
+| qua_ban_sau | 120 | 80 | 50% | 52% | 1.00 | không hơn |
 | qua_ban_sau | 168 | 73 | 49% | 53% | 1.00 | không hơn |
 | qua_ban | 1 | 2342 | 56% | 51% | 0.00 | có lợi thế |
 | qua_ban | 2 | 1478 | 55% | 51% | 0.08 | không hơn |
