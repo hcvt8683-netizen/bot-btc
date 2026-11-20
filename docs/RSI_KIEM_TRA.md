@@ -15,7 +15,7 @@
 | qua_ban_sau | 2 | 14 | 57% | 53% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 3 | 12 | 50% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 4 | 10 | 40% | 54% | 1.00 | ít dữ liệu |
-| qua_ban_sau | 5 | 8 | 62% | 54% | 1.00 | ít dữ liệu |
+| qua_ban_sau | 5 | 9 | 56% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 6 | 8 | 62% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 7 | 7 | 43% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 14 | 6 | 67% | 56% | 1.00 | ít dữ liệu |
@@ -27,13 +27,13 @@
 | qua_ban_sau | 120 | 6 | 67% | 60% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 150 | 5 | 80% | 61% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 180 | 4 | 75% | 64% | 1.00 | ít dữ liệu |
-| qua_ban | 1 | 119 | 55% | 52% | 1.00 | không hơn |
-| qua_ban | 2 | 72 | 61% | 53% | 1.00 | không hơn |
+| qua_ban | 1 | 120 | 55% | 52% | 1.00 | không hơn |
+| qua_ban | 2 | 73 | 60% | 53% | 1.00 | không hơn |
 | qua_ban | 3 | 59 | 54% | 54% | 1.00 | không hơn |
 | qua_ban | 4 | 50 | 58% | 54% | 1.00 | không hơn |
 | qua_ban | 5 | 46 | 63% | 54% | 1.00 | không hơn |
 | qua_ban | 6 | 41 | 66% | 54% | 1.00 | không hơn |
-| qua_ban | 7 | 38 | 58% | 54% | 1.00 | không hơn |
+| qua_ban | 7 | 39 | 56% | 54% | 1.00 | không hơn |
 | qua_ban | 14 | 29 | 48% | 56% | 1.00 | ít dữ liệu |
 | qua_ban | 21 | 27 | 48% | 56% | 1.00 | ít dữ liệu |
 | qua_ban | 28 | 26 | 50% | 57% | 1.00 | ít dữ liệu |
@@ -92,11 +92,11 @@
 | qua_ban_sau | 72 | 87 | 55% | 52% | 1.00 | không hơn |
 | qua_ban_sau | 120 | 80 | 50% | 52% | 1.00 | không hơn |
 | qua_ban_sau | 168 | 73 | 49% | 53% | 1.00 | không hơn |
-| qua_ban | 1 | 2342 | 56% | 51% | 0.00 | có lợi thế |
-| qua_ban | 2 | 1478 | 55% | 51% | 0.08 | không hơn |
-| qua_ban | 3 | 1165 | 55% | 51% | 0.38 | không hơn |
-| qua_ban | 4 | 998 | 56% | 51% | 0.03 | có lợi thế |
-| qua_ban | 6 | 808 | 54% | 51% | 1.00 | không hơn |
+| qua_ban | 1 | 2345 | 56% | 51% | 0.00 | có lợi thế |
+| qua_ban | 2 | 1480 | 55% | 51% | 0.07 | không hơn |
+| qua_ban | 3 | 1166 | 55% | 51% | 0.42 | không hơn |
+| qua_ban | 4 | 999 | 56% | 51% | 0.04 | có lợi thế |
+| qua_ban | 6 | 809 | 54% | 51% | 1.00 | không hơn |
 | qua_ban | 8 | 702 | 54% | 51% | 1.00 | không hơn |
 | qua_ban | 12 | 598 | 51% | 51% | 1.00 | không hơn |
 | qua_ban | 24 | 450 | 52% | 52% | 1.00 | không hơn |
@@ -106,7 +106,7 @@
 | qua_ban | 168 | 204 | 54% | 53% | 1.00 | không hơn |
 | qua_mua | 1 | 2824 | 54% | 49% | 0.00 | có lợi thế |
 | qua_mua | 2 | 1720 | 53% | 49% | 0.01 | có lợi thế |
-| qua_mua | 3 | 1342 | 53% | 49% | 0.35 | không hơn |
+| qua_mua | 3 | 1342 | 53% | 49% | 0.36 | không hơn |
 | qua_mua | 4 | 1118 | 52% | 49% | 1.00 | không hơn |
 | qua_mua | 6 | 914 | 51% | 49% | 1.00 | không hơn |
 | qua_mua | 8 | 784 | 52% | 49% | 1.00 | không hơn |
