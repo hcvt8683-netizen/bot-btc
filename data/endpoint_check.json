@@ -1,10 +1,10 @@
 {
- "checked_at": "2026-11-25T02:09:44Z",
+ "checked_at": "2026-11-26T02:08:34Z",
  "results": [
   {
    "source": "Coin Metrics",
    "result": "200 OK",
-   "seconds": 0.3
+   "seconds": 0.1
   },
   {
    "source": "Alternative.me",
@@ -34,7 +34,7 @@
   {
    "source": "Binance data.binance.vision (futures archive)",
    "result": "200 OK",
-   "seconds": 0.2
+   "seconds": 0.3
   },
   {
    "source": "CoinGecko",
@@ -44,12 +44,12 @@
   {
    "source": "DefiLlama",
    "result": "200 OK",
-   "seconds": 0.1
+   "seconds": 1.6
   },
   {
    "source": "FRED (CSV)",
    "result": "200 OK",
-   "seconds": 0.3
+   "seconds": 0.2
   }
  ]
 }
