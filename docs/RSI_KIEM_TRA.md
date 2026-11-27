@@ -4,7 +4,7 @@
 
 - Số phép thử: 112 (dải × kỳ hạn, cả nến ngày và nến giờ), hiệu chỉnh Holm.
 - Ô có lợi thế (p Holm < 0,05 và hơn tỷ lệ gốc ở cả hai nửa): **4**.
-- Ô ít dữ liệu (dưới 30 lần độc lập): 37.
+- Ô ít dữ liệu (dưới 30 lần độc lập): 36.
 - Niềm tin 'dải càng sâu thắng càng cao': 0/56 cặp sâu hơn nông một cách chắc chắn sau Holm.
 
 ## Nến ngày Bitstamp (từ 2016)
@@ -16,7 +16,7 @@
 | qua_ban_sau | 3 | 13 | 54% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 4 | 11 | 45% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 5 | 10 | 60% | 54% | 1.00 | ít dữ liệu |
-| qua_ban_sau | 6 | 9 | 56% | 54% | 1.00 | ít dữ liệu |
+| qua_ban_sau | 6 | 10 | 60% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 7 | 8 | 38% | 54% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 14 | 6 | 67% | 55% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 21 | 6 | 50% | 55% | 1.00 | ít dữ liệu |
@@ -27,14 +27,14 @@
 | qua_ban_sau | 120 | 6 | 67% | 60% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 150 | 5 | 80% | 61% | 1.00 | ít dữ liệu |
 | qua_ban_sau | 180 | 4 | 75% | 64% | 1.00 | ít dữ liệu |
-| qua_ban | 1 | 125 | 55% | 52% | 1.00 | không hơn |
+| qua_ban | 1 | 126 | 56% | 52% | 1.00 | không hơn |
 | qua_ban | 2 | 76 | 59% | 53% | 1.00 | không hơn |
 | qua_ban | 3 | 61 | 52% | 54% | 1.00 | không hơn |
 | qua_ban | 4 | 52 | 58% | 54% | 1.00 | không hơn |
 | qua_ban | 5 | 47 | 62% | 54% | 1.00 | không hơn |
 | qua_ban | 6 | 42 | 64% | 54% | 1.00 | không hơn |
-| qua_ban | 7 | 39 | 56% | 54% | 1.00 | không hơn |
-| qua_ban | 14 | 29 | 48% | 55% | 1.00 | ít dữ liệu |
+| qua_ban | 7 | 40 | 55% | 54% | 1.00 | không hơn |
+| qua_ban | 14 | 30 | 47% | 55% | 1.00 | không hơn |
 | qua_ban | 21 | 27 | 48% | 55% | 1.00 | ít dữ liệu |
 | qua_ban | 28 | 26 | 50% | 57% | 1.00 | ít dữ liệu |
 | qua_ban | 30 | 25 | 48% | 57% | 1.00 | ít dữ liệu |
@@ -112,7 +112,7 @@
 | qua_mua | 8 | 785 | 52% | 49% | 1.00 | không hơn |
 | qua_mua | 12 | 644 | 50% | 49% | 1.00 | không hơn |
 | qua_mua | 24 | 480 | 48% | 48% | 1.00 | không hơn |
-| qua_mua | 48 | 393 | 50% | 48% | 1.00 | không hơn |
+| qua_mua | 48 | 394 | 50% | 48% | 1.00 | không hơn |
 | qua_mua | 72 | 347 | 51% | 48% | 1.00 | không hơn |
 | qua_mua | 120 | 255 | 52% | 48% | 1.00 | không hơn |
 | qua_mua | 168 | 218 | 49% | 47% | 1.00 | không hơn |
