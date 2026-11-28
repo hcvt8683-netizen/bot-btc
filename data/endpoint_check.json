@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-11-27T02:11:48Z",
+ "checked_at": "2026-11-28T08:31:44Z",
  "results": [
   {
    "source": "Coin Metrics",
@@ -9,22 +9,22 @@
   {
    "source": "Alternative.me",
    "result": "200 OK",
-   "seconds": 0.1
+   "seconds": 0.2
   },
   {
    "source": "Binance api (spot)",
    "result": "HTTP 451",
-   "seconds": 0.0
+   "seconds": 0.2
   },
   {
    "source": "Binance data-api.binance.vision (spot)",
    "result": "200 OK",
-   "seconds": 0.6
+   "seconds": 0.7
   },
   {
    "source": "Binance fapi (funding, OI)",
    "result": "HTTP 451",
-   "seconds": 0.0
+   "seconds": 0.2
   },
   {
    "source": "Binance dapi (quarterly futures)",
@@ -34,22 +34,22 @@
   {
    "source": "Binance data.binance.vision (futures archive)",
    "result": "200 OK",
-   "seconds": 0.2
+   "seconds": 0.6
   },
   {
    "source": "CoinGecko",
    "result": "200 OK",
-   "seconds": 0.0
+   "seconds": 0.1
   },
   {
    "source": "DefiLlama",
    "result": "200 OK",
-   "seconds": 0.0
+   "seconds": 0.1
   },
   {
    "source": "FRED (CSV)",
    "result": "200 OK",
-   "seconds": 0.1
+   "seconds": 0.4
   }
  ]
 }
